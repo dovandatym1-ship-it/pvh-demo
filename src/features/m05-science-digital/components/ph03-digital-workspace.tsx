@@ -118,6 +118,7 @@ export function DigitalWorkspace({plans,indicators,canWrite,canReview}:Props){
      setStatus(e.target.value);
      if(e.target.value==="CONFIRMED_ZERO")setValue("0");
      if(e.target.value==="NOT_REPORTED"||e.target.value==="NOT_APPLICABLE")setValue("");
+     if(e.target.value==="NOT_REPORTED")setIndicatorSource("");
     }}>
      <option value="UNVERIFIED">Chưa đối soát</option>
      <option value="NOT_REPORTED">Chưa nộp</option>
