@@ -21,6 +21,7 @@
 - `P02-11`: Thêm Storage RLS chỉ cho chủ file đọc/xóa bản PENDING, RPC cleanup chỉ xóa metadata sau khi object không tồn tại; retry finalize cùng receipt, không tự tạo metadata mới khi xác nhận lỗi.
 - `P02-07`: Thêm `source_ref` cấu trúc, RPC tạo v2 giữ transaction và đối chiếu giá trị nguồn khi replay idempotent.
 - `P02-14`: Giữ notification append-only, thêm receipts riêng có RLS và RPC idempotent đánh dấu đã đọc; bàn làm việc có thao tác xác nhận đọc.
+- `P02-08/15`: Danh sách bổ sung lọc theo thôn/xóm và sắp xếp mới/cũ/hạn gần nhất (mọi truy vấn vẫn chịu RLS), hiển thị loading/error riêng cho công việc và bàn làm việc, không fallback seed khi database lỗi.
 - `P02-16`: pgTAP structural contract tăng từ 13 lên 32 assertion; Node tests tăng từ 5 lên 14, CI chạy `tests/m01-*.test.mjs`. **Đây là kiểm thử ở mức source/contract, chưa phải DB E2E.**
 
 **Trạng thái:** `CODED_AWAITING_CI_AND_DB_TEST`. Chưa có bằng chứng Gate G2 PASS; không áp migration trên Supabase thật.

@@ -46,7 +46,7 @@ Không dùng nhãn chức danh hoặc `SYSTEM_ADMIN` để vượt permission ch
 
 - `SOURCE_REF`: trường nguồn công việc hiện ở mô tả, chưa có danh mục liên kết chuẩn/version nguồn.
 - Dọn upload lỗi trong phiên đã có RPC kiểm tra sự tồn tại của object; **chưa có cron dọn các PENDING quá hạn sau khi tab đóng**, chưa đối soát checksum server-side, preview và version file.
-- Đổi hạn/địa bàn có reason và OCC đã code; `source_ref` đã thành trường riêng và inbox đã có đánh dấu đọc. Chưa có `work_item_links` chuẩn hóa tới loại hồ sơ và phiên bản nguồn, người phối hợp, ủy quyền theo thời hạn, filter nhóm/tổ.
+- Đổi hạn/địa bàn có reason và OCC đã code; `source_ref` đã thành trường riêng và inbox đã có đánh dấu đọc. Danh sách có lọc theo thôn/xóm/sắp xếp, nhưng vẫn bị giới hạn bởi RLS (không mặc định cho nhân viên xem toàn bộ việc của nhóm). Chưa có `work_item_links` chuẩn hóa tới loại hồ sơ và phiên bản nguồn, người phối hợp, ủy quyền theo thời hạn, lọc tổ chuyên môn riêng.
 - Persona demo cookie không thể thay thế ba tài khoản Supabase Auth thật để nghiệm thu; cấu hình G1 còn phụ thuộc chủ dự án.
 - Chưa có browser E2E/DB staging user thật, pgTAP concurrency, RLS, `supabase db reset`.
 

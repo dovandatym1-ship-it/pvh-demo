@@ -26,10 +26,12 @@ function requireRead(ctx: RequestContext) {
   if (!ctx.permissions.includes("m01:work:read")) throw new Error("FORBIDDEN: Thiếu quyền xem công việc");
 }
 
-export type WorkFilter = "mine" | "created" | "review" | "all";
+export type WorkFilter = "mine" | "created" | "review" | "hamlet" | "all";
+export type WorkSort = "newest" | "oldest" | "due_soon";
 
 export async function getWorkItemsPage(ctx: RequestContext, opts: {
   filter?: WorkFilter; page?: number; pageSize?: number; search?: string;
+  hamletId?: string; sort?: WorkSort;
 } = {}): Promise<{ items: WorkItemDTO[]; total: number; page: number; pageSize: number }> {
   requireRead(ctx);
   const db = await createServerSupabaseClient();
@@ -40,6 +42,12 @@ export async function getWorkItemsPage(ctx: RequestContext, opts: {
   let query = db.from("work_items").select("*", { count: "exact" }).eq("tenant_id", ctx.tenantId);
   if (filter === "mine") query = query.eq("assigned_to", ctx.userId);
   if (filter === "created") query = query.eq("created_by", ctx.userId);
+  if (filter === "hamlet") {
+    if (!opts.hamletId || !/^[0-9a-f-]{36}$/i.test(opts.hamletId)) {
+      return { items: [], total: 0, page, pageSize };
+    }
+    query = query.eq("hamlet_id", opts.hamletId);
+  }
   if (filter === "review") {
     // A reviewer cannot approve work currently assigned to themselves.
     if (!ctx.permissions.includes("m01:work:review")) {
@@ -53,7 +61,11 @@ export async function getWorkItemsPage(ctx: RequestContext, opts: {
   }
   const search = opts.search?.trim().slice(0, 100);
   if (search) query = query.ilike("title", `%${search.replace(/[%_,]/g, "\\$&")}%`);
-  const { data, error, count } = await query.order("created_at", { ascending: false })
+  const sort = opts.sort || "newest";
+  const ordered = sort === "due_soon"
+    ? query.order("due_date", { ascending: true, nullsFirst: false }).order("created_at", { ascending: false })
+    : query.order("created_at", { ascending: sort === "oldest" });
+  const { data, error, count } = await ordered
     .range((page - 1) * pageSize, page * pageSize - 1);
   if (error) throw new Error(`DB_ERROR: Không tải được danh sách công việc (${error.code})`);
   return { items: (data || []).map((r) => mapWork(r)), total: count ?? 0, page, pageSize };

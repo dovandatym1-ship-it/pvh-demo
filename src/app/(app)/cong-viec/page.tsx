@@ -1,18 +1,19 @@
 import Link from "next/link";
 import { getRequestContext } from "@/lib/auth/request-context";
 import { assertRoutePermission } from "@/config/navigation";
-import { getActiveHamlets, getAssignees, getWorkItemsPage, type WorkFilter } from "@/features/m01-core-work/server/queries";
+import { getActiveHamlets, getAssignees, getWorkItemsPage, type WorkFilter, type WorkSort } from "@/features/m01-core-work/server/queries";
 import { CreateWorkItemForm } from "@/features/m01-core-work/components/create-work-item-form";
 
 export const dynamic = "force-dynamic";
 
 const filters: { id: WorkFilter; label: string }[] = [
   { id: "mine", label: "Việc của tôi" }, { id: "created", label: "Do tôi tạo" },
-  { id: "review", label: "Chờ rà soát" }, { id: "all", label: "Toàn đơn vị" },
+  { id: "review", label: "Chờ rà soát" }, { id: "hamlet", label: "Theo thôn/xóm" },
+  { id: "all", label: "Toàn đơn vị" },
 ];
 
 export default async function CongViecPage({ searchParams }: {
-  searchParams: Promise<{ view?: string; page?: string; q?: string }>;
+  searchParams: Promise<{ view?: string; page?: string; q?: string; hamlet?: string; sort?: string }>;
 }) {
   const ctx = await getRequestContext();
   assertRoutePermission("/cong-viec", ctx.permissions, ctx.roles);
@@ -22,12 +23,15 @@ export default async function CongViecPage({ searchParams }: {
   const selectedView = view === "all" && !showAll ? "mine" : view;
   const pageNum = Math.max(1, Number.parseInt(params.page || "1", 10) || 1);
   const search = (params.q || "").slice(0, 100);
+  const sort: WorkSort = (["newest", "oldest", "due_soon"] as const).find(s => s === params.sort) || "newest";
+  const hamletId = params.hamlet || "";
   const [list, assignees, hamlets] = await Promise.all([
-    getWorkItemsPage(ctx, { filter: selectedView, page: pageNum, search }),
+    getWorkItemsPage(ctx, { filter: selectedView, page: pageNum, search, hamletId, sort }),
     ctx.permissions.includes("m01:work:create") ? getAssignees(ctx) : Promise.resolve([]),
-    ctx.permissions.includes("m01:work:create") ? getActiveHamlets(ctx) : Promise.resolve([]),
+    getActiveHamlets(ctx),
   ]);
-  const linkTo = (nextPage: number) => `/cong-viec?view=${selectedView}&page=${nextPage}&q=${encodeURIComponent(search)}`;
+  const filterParams = `view=${selectedView}&q=${encodeURIComponent(search)}&hamlet=${encodeURIComponent(hamletId)}&sort=${sort}`;
+  const linkTo = (nextPage: number) => `/cong-viec?${filterParams}&page=${nextPage}`;
 
   return (
     <div className="space-y-6">
@@ -38,12 +42,25 @@ export default async function CongViecPage({ searchParams }: {
         <div className="p-4 border-b space-y-3">
           <nav aria-label="Bộ lọc công việc" className="flex gap-2 flex-wrap text-sm">
             {filters.filter(f => f.id !== "all" || showAll).map(f =>
-              <Link key={f.id} href={`/cong-viec?view=${f.id}&q=${encodeURIComponent(search)}`}
+              <Link key={f.id} href={`/cong-viec?view=${f.id}&q=${encodeURIComponent(search)}&hamlet=${encodeURIComponent(hamletId)}&sort=${sort}`}
                 aria-current={selectedView === f.id ? "page" : undefined}
                 className={`rounded-full px-3 py-1.5 ${selectedView === f.id ? "bg-emerald-800 text-white" : "bg-slate-100 text-slate-700"}`}>{f.label}</Link>)}
           </nav>
           <form method="GET" className="flex gap-2 flex-wrap">
             <input type="hidden" name="view" value={selectedView} />
+            <label className="sr-only" htmlFor="work-sort">Sắp xếp</label>
+            <select id="work-sort" name="sort" defaultValue={sort} className="rounded-md border border-slate-300 px-2 py-2 text-sm">
+              <option value="newest">Mới nhất</option><option value="oldest">Cũ nhất</option>
+              <option value="due_soon">Hạn gần nhất</option>
+            </select>
+            {selectedView === "hamlet" && <>
+              <label className="sr-only" htmlFor="work-hamlet">Thôn/xóm</label>
+              <select id="work-hamlet" name="hamlet" defaultValue={hamletId}
+                className="rounded-md border border-slate-300 px-2 py-2 text-sm">
+                <option value="">Chọn thôn/xóm</option>
+                {hamlets.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
+              </select>
+            </>}
             <input name="q" defaultValue={search} maxLength={100} placeholder="Tìm theo tiêu đề..."
               className="min-w-0 flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />
             <button className="rounded-md bg-slate-800 px-4 py-2 text-sm text-white">Tìm kiếm</button>
