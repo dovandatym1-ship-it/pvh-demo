@@ -9,3 +9,10 @@ export async function uploadEvidenceObject(objectPath: string, file: File): Prom
     .upload(objectPath, file, { upsert: false, contentType: file.type });
   if (error) throw new Error("PRIVATE_STORAGE_UPLOAD_FAILED");
 }
+
+/** Remove a failed, still-pending upload; the DB RLS policy checks its owner. */
+export async function removePendingEvidenceObject(objectPath: string): Promise<void> {
+  const db = createClient();
+  const { error } = await db.storage.from("evidence").remove([objectPath]);
+  if (error) throw new Error("PRIVATE_STORAGE_REMOVE_FAILED");
+}

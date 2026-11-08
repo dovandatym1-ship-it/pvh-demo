@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createWorkItemAction } from "../server/actions";
 
-type Assignee = { userId: string; fullName: string };
+type Assignee = { userId: string; fullName: string; allowedHamlets: string[] | null };
+type Hamlet = { id: string; name: string };
 
-export function CreateWorkItemForm({ assignees }: { assignees: Assignee[] }) {
+export function CreateWorkItemForm({ assignees, hamlets }: { assignees: Assignee[]; hamlets: Hamlet[] }) {
   const router = useRouter();
   const intentKey = useRef<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -18,6 +19,9 @@ export function CreateWorkItemForm({ assignees }: { assignees: Assignee[] }) {
   const [category, setCategory] = useState("CHUNG");
   const [dueDate, setDueDate] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
+  const [hamletId, setHamletId] = useState("");
+  const eligibleAssignees = assignees.filter(a => !a.allowedHamlets ||
+    (hamletId !== "" && a.allowedHamlets.includes(hamletId)));
   const change = (fn: () => void) => { intentKey.current = null; setError(""); fn(); };
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -29,6 +33,7 @@ export function CreateWorkItemForm({ assignees }: { assignees: Assignee[] }) {
     try {
       const result = await createWorkItemAction({
         title, description, category, priority, ...(assignedTo ? { assignedTo } : {}),
+        ...(hamletId ? { hamletId } : {}),
         ...(dueDate ? { dueDate: new Date(dueDate).toISOString() } : {}),
         idempotencyKey: intentKey.current,
       });
@@ -66,14 +71,22 @@ export function CreateWorkItemForm({ assignees }: { assignees: Assignee[] }) {
           <input type="datetime-local" value={dueDate} onChange={e => change(() => setDueDate(e.target.value))}
             className="mt-1 block w-full rounded-md border border-slate-300 p-2" />
         </label>
+        {hamlets.length > 0 && <label className="block text-sm font-medium text-slate-700">Địa bàn (thôn/xóm)
+          <select value={hamletId} onChange={e => change(() => { setHamletId(e.target.value); setAssignedTo(""); })}
+            className="mt-1 block w-full rounded-md border border-slate-300 p-2">
+            <option value="">Toàn xã / chưa xác định</option>
+            {hamlets.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
+          </select>
+        </label>}
         {assignees.length > 0 && <label className="block text-sm font-medium text-slate-700">Người phụ trách
           <select value={assignedTo} onChange={e => change(() => setAssignedTo(e.target.value))}
             className="mt-1 block w-full rounded-md border border-slate-300 p-2">
             <option value="">Chưa giao</option>
-            {assignees.map(a => <option key={a.userId} value={a.userId}>{a.fullName}</option>)}
+            {eligibleAssignees.map(a => <option key={a.userId} value={a.userId}>{a.fullName}</option>)}
           </select>
         </label>}
       </div>
+      {assignedTo && <p className="text-xs text-amber-700">Người được chọn là người phụ trách dự kiến. Sau khi lưu, đầu mối cần bấm “Xác nhận giao việc” để chuyển từ Mới sang Đã giao và gửi thông báo.</p>}
       {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
       <Button disabled={pending} type="submit">{pending ? "Đang lưu..." : "Lưu công việc"}</Button>
     </form>

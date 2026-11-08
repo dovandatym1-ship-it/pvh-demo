@@ -1,7 +1,7 @@
 # PH02 — Implementation Receipt (DRAFT, not a Gate PASS)
 
 **Branch:** `feat/pvh-ph02-core-workflow`  
-**Base:** `feat/pvh-ph01-platform-auth` (commit `88ce16db339b88d970bc8307d7713bd437e75f89`)  
+**Base:** `feat/pvh-ph01-platform-auth` (đối chiếu PR #2 tại `7817399e62b15479a515588a14712322ad0f5270`)  
 **Owner duyệt:** Đỗ Văn Đạt, chưa duyệt / chưa merge.
 
 ## Code đã thực hiện
@@ -11,6 +11,17 @@
 - Form tạo việc, lọc danh sách có paging/tìm kiếm, chi tiết/timeline/giao lại/trả lại/hoàn thành, tải minh chứng private.
 - Bàn làm việc đếm số theo DB và hạn thật; loại bỏ fallback seed trong M01 queries; inbox nội bộ ghi trong cùng transaction khi giao, trình, trả lại, hoàn thành, hủy.
 - Quy trình OP-M01, pure policy regression tests và pgTAP structural contract (chưa chạy trên DB).
+
+## Lượt hardening bổ sung — 08/11/2026
+
+- `P1`: Xác thực người nhận việc theo **quyền read/update + scope org_unit_ids** tại trigger dùng chung cho tạo/giao; RPC liệt kê ứng viên lọc theo công việc, kèm địa bàn được phép; UI thêm địa bàn và loại ứng viên không hợp lệ.
+- `P1`: Không tiết lộ version/state trước kiểm tra quyền đọc trong `SECURITY DEFINER`; tìm người rà soát thực sự hợp lệ trước khi cho trình và chỉ gửi inbox cho người đủ quyền.
+- `P1`: Backfill file PH01 có Storage object thật sang `UPLOADED`, không mặc định khóa mọi minh chứng cũ.
+- `P02-10`: Thêm `app.update_work_item_details` đổi hạn/địa bàn có reason/OCC/idempotency/event/audit/inbox; UI thao tác quản lý.
+- `P02-11`: Thêm Storage RLS chỉ cho chủ file đọc/xóa bản PENDING, RPC cleanup chỉ xóa metadata sau khi object không tồn tại; retry finalize cùng receipt, không tự tạo metadata mới khi xác nhận lỗi.
+- `P02-16`: pgTAP structural contract tăng từ 13 lên 27 assertion; Node tests tăng từ 5 lên 12, CI chạy `tests/m01-*.test.mjs`. **Đây là kiểm thử ở mức source/contract, chưa phải DB E2E.**
+
+**Trạng thái:** `CODED_AWAITING_CI_AND_DB_TEST`. Chưa có bằng chứng Gate G2 PASS; không áp migration trên Supabase thật.
 
 ## Chưa nghiệm thu / phụ thuộc
 
@@ -27,10 +38,10 @@
 | P02-01 | `IMPLEMENTED_DRAFT` | Xác nhận OP/SLA/actor với owner |
 | P02-02–06 | `CODED_NOT_DB_VERIFIED` | Apply migration vào DB test độc lập; pgTAP + concurrent/replay SQL readback |
 | P02-07–09, P02-12–13, P02-15 | `CODED_NOT_BROWSER_VERIFIED` | Build, UI browser E2E với 3 personas và 375px |
-| P02-10 | `PARTIAL` | Chưa sửa hạn/scope, chưa làm người phối hợp và delegation history đầy đủ |
-| P02-11 | `PARTIAL` | Orphan cleanup, verified hash, version file, preview |
+| P02-10 | `PARTIAL` | Đổi hạn/địa bàn đã code, chưa kiểm thử DB; người phối hợp và delegation history chưa hoàn thành |
+| P02-11 | `PARTIAL` | Có xử lý cleanup/retry trong phiên, còn cron cleanup stale PENDING, verified hash, version file, preview |
 | P02-14 | `CODED_NOT_DB_VERIFIED` | Inbox append-only, cần test replay/scope/tính đúng người nhận; chưa có đánh dấu đã đọc |
-| P02-16 | `PARTIAL` | Pure unit tests đã thêm; DB/browser tests chưa chạy |
+| P02-16 | `PARTIAL` | Pure/source tests đã thêm; DB/browser tests chưa chạy |
 
 **Chưa làm:** Không áp Supabase cloud, không thay đổi tài khoản/dữ liệu, không deploy Vercel, không tự merge `main` hoặc Phase 1.
 

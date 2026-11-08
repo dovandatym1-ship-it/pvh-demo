@@ -2,10 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getRequestContext } from "@/lib/auth/request-context";
 import { assertRoutePermission } from "@/config/navigation";
-import { getAssignees, getWorkItemDetail } from "@/features/m01-core-work/server/queries";
+import { getActiveHamlets, getAssignees, getWorkItemDetail } from "@/features/m01-core-work/server/queries";
 import { TransitionActionBar } from "@/features/m01-core-work/components/transition-action-bar";
 import { AssignWorkItemForm } from "@/features/m01-core-work/components/assign-work-item-form";
 import { EvidenceUploader } from "@/features/m01-core-work/components/evidence-uploader";
+import { UpdateWorkItemDetailsForm } from "@/features/m01-core-work/components/update-work-item-details-form";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,10 @@ export default async function WorkItemDetailPage({ params }: { params: Promise<{
   if (!detail) notFound();
   const { item, timeline, assignments, evidence } = detail;
   const canAssign = ctx.permissions.includes("m01:work:assign");
-  const assignees = canAssign ? await getAssignees(ctx) : [];
+  const [assignees, hamlets]: [
+    Awaited<ReturnType<typeof getAssignees>>,
+    Awaited<ReturnType<typeof getActiveHamlets>>,
+  ] = canAssign ? await Promise.all([getAssignees(ctx, item.id), getActiveHamlets(ctx)]) : [[], []];
   const mayReview = ctx.permissions.includes("m01:work:review") &&
     (item.createdBy === ctx.userId || ctx.permissions.includes("m01:work:read_all"));
   const mayUpload = ctx.permissions.includes("m01:work:update") &&
@@ -44,6 +48,7 @@ export default async function WorkItemDetailPage({ params }: { params: Promise<{
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       {canAssign && <AssignWorkItemForm item={item} assignees={assignees} />}
       {mayUpload && <EvidenceUploader workItemId={item.id} />}
+      {canAssign && <UpdateWorkItemDetailsForm key={item.version} item={item} hamlets={hamlets} />}
     </div>
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <section className="rounded-xl border bg-white p-5 space-y-3">

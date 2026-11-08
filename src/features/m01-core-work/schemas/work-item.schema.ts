@@ -35,3 +35,14 @@ export const AssignWorkItemSchema = z.object({
 }).strict();
 
 export type AssignWorkItemInput = z.infer<typeof AssignWorkItemSchema>;
+
+export const UpdateWorkItemDetailsSchema = z.object({
+  id: uuid,
+  expectedVersion: z.number().int().min(1),
+  dueDate: z.string().datetime({ offset: true }).nullable(),
+  hamletId: uuid.nullable(),
+  reason: z.string().trim().min(3, "Cần lý do điều chỉnh").max(2000),
+  idempotencyKey: key,
+}).strict();
+
+export type UpdateWorkItemDetailsInput = z.infer<typeof UpdateWorkItemDetailsSchema>;

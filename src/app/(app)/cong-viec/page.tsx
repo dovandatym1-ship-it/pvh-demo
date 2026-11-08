@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getRequestContext } from "@/lib/auth/request-context";
 import { assertRoutePermission } from "@/config/navigation";
-import { getAssignees, getWorkItemsPage, type WorkFilter } from "@/features/m01-core-work/server/queries";
+import { getActiveHamlets, getAssignees, getWorkItemsPage, type WorkFilter } from "@/features/m01-core-work/server/queries";
 import { CreateWorkItemForm } from "@/features/m01-core-work/components/create-work-item-form";
 
 export const dynamic = "force-dynamic";
@@ -22,9 +22,10 @@ export default async function CongViecPage({ searchParams }: {
   const selectedView = view === "all" && !showAll ? "mine" : view;
   const pageNum = Math.max(1, Number.parseInt(params.page || "1", 10) || 1);
   const search = (params.q || "").slice(0, 100);
-  const [list, assignees] = await Promise.all([
+  const [list, assignees, hamlets] = await Promise.all([
     getWorkItemsPage(ctx, { filter: selectedView, page: pageNum, search }),
     ctx.permissions.includes("m01:work:create") ? getAssignees(ctx) : Promise.resolve([]),
+    ctx.permissions.includes("m01:work:create") ? getActiveHamlets(ctx) : Promise.resolve([]),
   ]);
   const linkTo = (nextPage: number) => `/cong-viec?view=${selectedView}&page=${nextPage}&q=${encodeURIComponent(search)}`;
 
@@ -32,7 +33,7 @@ export default async function CongViecPage({ searchParams }: {
     <div className="space-y-6">
       <header><h1 className="text-xl font-bold text-slate-900">Quản lý công việc</h1>
         <p className="text-sm text-slate-500">Tạo, giao, theo dõi và rà soát nhiệm vụ theo phân quyền</p></header>
-      {ctx.permissions.includes("m01:work:create") && <CreateWorkItemForm assignees={assignees} />}
+      {ctx.permissions.includes("m01:work:create") && <CreateWorkItemForm assignees={assignees} hamlets={hamlets} />}
       <section className="rounded-xl border border-slate-200 bg-white overflow-hidden">
         <div className="p-4 border-b space-y-3">
           <nav aria-label="Bộ lọc công việc" className="flex gap-2 flex-wrap text-sm">

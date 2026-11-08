@@ -3,7 +3,7 @@ import "server-only";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { type Result, ok, fail } from "@/lib/types/result";
 import type { RequestContext } from "@/lib/auth/request-context";
-import type { CreateWorkItemInput, TransitionWorkItemInput, AssignWorkItemInput } from "../schemas/work-item.schema";
+import type { CreateWorkItemInput, TransitionWorkItemInput, AssignWorkItemInput, UpdateWorkItemDetailsInput } from "../schemas/work-item.schema";
 import type { WorkItemDTO } from "../types";
 
 function dbFailure(error: { message: string; code?: string }): Result<never> {
@@ -81,6 +81,18 @@ export const workItemRepository = {
       const { data, error } = await db.schema("app").rpc("assign_work_item", {
         p_id: input.id, p_assigned_to: input.assignedTo, p_expected_version: input.expectedVersion,
         p_reason: input.reason || null, p_idempotency_key: input.idempotencyKey,
+      });
+      return error ? dbFailure(error) : mutationResult(data);
+    } catch { return fail("INTERNAL", "Không kết nối được cơ sở dữ liệu"); }
+  },
+
+  async updateWorkItemDetails(_ctx: RequestContext, input: UpdateWorkItemDetailsInput): Promise<Result<Mutation>> {
+    try {
+      const db = await createServerSupabaseClient();
+      const { data, error } = await db.schema("app").rpc("update_work_item_details", {
+        p_id: input.id, p_expected_version: input.expectedVersion,
+        p_due_date: input.dueDate, p_hamlet_id: input.hamletId,
+        p_reason: input.reason, p_idempotency_key: input.idempotencyKey,
       });
       return error ? dbFailure(error) : mutationResult(data);
     } catch { return fail("INTERNAL", "Không kết nối được cơ sở dữ liệu"); }

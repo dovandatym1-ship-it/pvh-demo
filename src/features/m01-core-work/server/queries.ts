@@ -94,13 +94,29 @@ export async function getWorkItemDetail(ctx: RequestContext, id: string) {
   return { item, timeline, assignments: assignments.data || [], evidence: evidence.data || [] };
 }
 
-export async function getAssignees(ctx: RequestContext): Promise<{ userId: string; fullName: string }[]> {
+export async function getAssignees(ctx: RequestContext, workItemId?: string): Promise<{
+  userId: string; fullName: string; allowedHamlets: string[] | null;
+}[]> {
   if (!ctx.permissions.includes("m01:work:assign")) return [];
   const db = await createServerSupabaseClient();
-  const { data, error } = await db.schema("app").rpc("list_work_assignees");
+  const { data, error } = await db.schema("app").rpc("list_work_assignees", {
+    p_work_item_id: workItemId || null,
+  });
   if (error) throw new Error(`DB_ERROR: Không tải được người nhận việc (${error.code})`);
-  return (data || []).map((r: { user_id: string; full_name: string }) =>
-    ({ userId: r.user_id, fullName: r.full_name }));
+  return (data || []).map((r: { user_id: string; full_name: string; allowed_hamlets: string[] | null }) =>
+    ({ userId: r.user_id, fullName: r.full_name, allowedHamlets: r.allowed_hamlets }));
+}
+
+export async function getActiveHamlets(ctx: RequestContext): Promise<{ id: string; name: string }[]> {
+  requireRead(ctx);
+  const db = await createServerSupabaseClient();
+  const { data, error } = await db.from("org_units")
+    .select("id,name").eq("tenant_id", ctx.tenantId).eq("kind", "HAMLET")
+    .eq("is_active", true).order("name");
+  if (error) throw new Error(`DB_ERROR: Không tải được địa bàn công tác (${error.code})`);
+  const scopedIds = (ctx.scopes as { org_unit_ids?: readonly string[] }).org_unit_ids;
+  return (data || []).filter(row => !scopedIds || scopedIds.includes(row.id))
+    .map(row => ({ id: row.id, name: row.name }));
 }
 
 export async function getDashboardStats(ctx: RequestContext) {
