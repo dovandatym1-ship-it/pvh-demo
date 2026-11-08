@@ -19,8 +19,9 @@
 
 - `node --test tests/security/*.test.mjs`: 7/7 passing in the scratch reconstruction (Node 24).
 - `NODE_ENV=production NEXT_PUBLIC_DEMO_MODE=true node next.config.mjs`: correctly fails to load; false passes. Production build must re-run this guard in CI.
+- GitHub Actions [CI run 42471572177](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42471572177) on merge commit `1c8d3ee4`: **PASS** (npm ci, seven security boundary tests, TypeScript typecheck, lint, architectural fitness and Next.js build; Node 22).
 - GitHub code inspections against commit `1b948f6`, Supabase cloud migration list and read-only security advisor.
-- **Not run:** full Next.js build/typecheck, browser E2E, local Supabase reset/pgTAP; private GitHub Git transport and local Supabase CLI/node dependencies are unavailable in this execution environment.
+- **Not run:** browser E2E, local Supabase reset/pgTAP and multi-role auth/Storage tests against an isolated database; local Supabase CLI is unavailable in this execution environment. Cloud data was not mutated.
 - **Still blocked:** complete audit event transaction contract, permission provisioning and UI, scoped RLS adversarial tests, executable local DB migration verification, private Storage upload tests, CI and advisor remediation.
 - Live Supabase Security Advisor: `auth_leaked_password_protection` WARN; configuration remediation requires project operator approval.
 - The old `audit-logger.ts` still swallows database write errors; its audit guarantees must not be considered verified. Do not use this branch in production before P01-09 is addressed.
