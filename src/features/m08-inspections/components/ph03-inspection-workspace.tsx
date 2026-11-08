@@ -16,7 +16,10 @@ export function InspectionWorkspace({records,recommendations,hamlets,assignees,c
  const [code,setCode]=useState("");const [target,setTarget]=useState("");
  const [category,setCategory]=useState("VAN_HOA");const [hamlet,setHamlet]=useState(hamlets[0]?.id??"");
  const [inspector,setInspector]=useState("");const [checklist,setChecklist]=useState("ILLUSTRATIVE-v1");
- const [inspectionDate,setInspectionDate]=useState(new Date().toISOString().slice(0,10));
+ const [inspectionDate,setInspectionDate]=useState(()=>{
+  const now=new Date();
+  return new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,10);
+ });
  const [authority,setAuthority]=useState("");const [notes,setNotes]=useState("");
  const [inspectionId,setInspectionId]=useState("");
  const [recCode,setRecCode]=useState("");const [recTitle,setRecTitle]=useState("");
