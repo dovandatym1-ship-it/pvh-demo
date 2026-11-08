@@ -36,7 +36,7 @@ function executeResetTenant(
     entityId: targetCode,
     details: {
       message: `Khôi phục toàn bộ bảng dữ liệu ${
-        targetCode === "XA_A" ? "Xã Thịnh Đức (Xã A)" : "Xã Tân Cương (Xã B)"
+        targetCode === "XA_A" ? "Xã Giả định A (TN-DEMO-A)" : "Xã Giả định B (TN-DEMO-B)"
       } về trạng thái Golden Seed ban đầu`,
       preservedTenant: targetCode === "XA_A" ? "XA_B" : "XA_A",
     },
@@ -114,10 +114,10 @@ test("Multi-tenancy Isolation: resetTenant('XA_A') resets Xã A and leaves Xã B
   const mutatedTaskB: TaskItem = {
     id: "TB-MUTATED-99",
     code: "TASK-B-MUTATED",
-    title: "Nhiệm vụ riêng của Xã B đã được cán bộ Tân Cương tạo mới",
+    title: "Nhiệm vụ riêng của Xã B đã được cán bộ Giả định B tạo mới",
     domain: "Văn hóa & Gia đình",
     entityTag: "Đặc sản Chè",
-    assignee: "Cán bộ Tân Cương",
+    assignee: "Cán bộ Giả định B",
     dueText: "Hôm nay",
     isOverdue: false,
     status: "Đang xử lý",
@@ -147,11 +147,11 @@ test("Multi-tenancy Isolation: resetTenant('XA_A') resets Xã A and leaves Xã B
         {
           id: "SUB-B-NEW",
           code: "CDB-999",
-          fullName: "Công dân mới Xã Tân Cương",
+          fullName: "Công dân mới Xã Giả định B",
           cccd: "019099998888",
           phone: "0988776655",
-          address: "Xóm Chè Tân Cương",
-          hamlet: "Xóm Chè Đặc Sản",
+          address: "Xóm B1",
+          hamlet: "Xóm B1",
           subjectType: "CITIZEN",
           status: "ACTIVE",
           membersCount: 3,
@@ -311,8 +311,8 @@ test("Audit Log Generation: AUDIT_RESET_TENANT is created with exact contract pr
     "Details must specify preservedTenant: 'XA_B'"
   );
   assert.ok(
-    (topLog.details as any).message.includes("Thịnh Đức"),
-    "Details message must describe restoring Thịnh Đức"
+    (topLog.details as any).message.includes("Giả định A"),
+    "Details message must describe restoring Giả định A"
   );
 });
 

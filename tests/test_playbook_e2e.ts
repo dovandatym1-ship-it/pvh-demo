@@ -53,18 +53,18 @@ import { maskPII, type PIIType } from "../src/lib/authorization/pii-mask";
 import { DemoProvider, useDemoContext } from "../src/lib/tenancy/demo-context";
 
 // Page & UI Component imports
-import PlaybookPage from "../src/app/(dashboard)/playbook/page";
-import BanLamViecPage from "../src/app/(dashboard)/ban-lam-viec/page";
-import VanHoaGiaDinhPage from "../src/app/(dashboard)/van-hoa-gia-dinh/page";
-import KhcnChuyenDoiSoPage from "../src/app/(dashboard)/khcn-chuyen-doi-so/page";
-import KiemTraPage from "../src/app/(dashboard)/kiem-tra/page";
-import BaoCaoPage from "../src/app/(dashboard)/bao-cao/page";
-import NoiVuPage from "../src/app/(dashboard)/noi-vu/page";
-import GiaoDucPage from "../src/app/(dashboard)/giao-duc/page";
-import YTeAnSinhPage from "../src/app/(dashboard)/y-te-an-sinh/page";
-import DanTocTonGiaoPage from "../src/app/(dashboard)/dan-toc-ton-giao/page";
-import QuanTriPage from "../src/app/(dashboard)/quan-tri/page";
-import DuLieuDungChungPage from "../src/app/(dashboard)/du-lieu-dung-chung/page";
+import PlaybookPage from "../src/app/(legacy)/playbook/page";
+import BanLamViecPage from "../src/app/(legacy)/ban-lam-viec/page";
+import VanHoaGiaDinhPage from "../src/app/(legacy)/van-hoa-gia-dinh/page";
+import KhcnChuyenDoiSoPage from "../src/app/(legacy)/khcn-chuyen-doi-so/page";
+import KiemTraPage from "../src/app/(legacy)/kiem-tra/page";
+import BaoCaoPage from "../src/app/(legacy)/bao-cao/page";
+import NoiVuPage from "../src/app/(legacy)/noi-vu/page";
+import GiaoDucPage from "../src/app/(legacy)/giao-duc/page";
+import YTeAnSinhPage from "../src/app/(legacy)/y-te-an-sinh/page";
+import DanTocTonGiaoPage from "../src/app/(legacy)/dan-toc-ton-giao/page";
+import QuanTriPage from "../src/app/(legacy)/quan-tri/page";
+import DuLieuDungChungPage from "../src/app/(legacy)/du-lieu-dung-chung/page";
 import { Header } from "../src/components/layout/header";
 
 // ============================================================================
@@ -131,11 +131,11 @@ console.log("╚═════════════════════�
 // ============================================================================
 step(1, "Khởi tạo Ngữ cảnh Đa xã & Persona Switcher (P1..P6)");
 
-verify("BƯỚC 1", "1.1 Cấu hình 2 đơn vị hành chính độc lập (Xã A Thịnh Đức vs Xã B Tân Cương)", () => {
-  assert.ok(TENANTS.xa_a, "Xã A Thịnh Đức phải được cấu hình");
-  assert.ok(TENANTS.xa_b, "Xã B Tân Cương phải được cấu hình");
-  assert.equal(TENANTS.xa_a.code, "XA_A");
-  assert.equal(TENANTS.xa_b.code, "XA_B");
+verify("BƯỚC 1", "1.1 Cấu hình 2 đơn vị hành chính độc lập (Xã A Giả định A vs Xã B Giả định B)", () => {
+  assert.ok(TENANTS.xa_a, "Xã A Giả định A phải được cấu hình");
+  assert.ok(TENANTS.xa_b, "Xã B Giả định B phải được cấu hình");
+  assert.equal(TENANTS.xa_a.code, "TN-DEMO-A");
+  assert.equal(TENANTS.xa_b.code, "TN-DEMO-B");
   assert.equal(TENANTS.xa_a.province, "Thái Nguyên");
   assert.equal(TENANTS.xa_b.province, "Thái Nguyên");
   assert.equal(TENANTS.xa_a.officerMode, "CONCURRENT", "Xã A: cán bộ kiêm nhiệm");
@@ -690,7 +690,7 @@ verify("BƯỚC 6", "6.2 Omnisearch hỗ trợ tìm kiếm Tiếng Việt có d�
   assert.equal(removeDiacritics(queryAccented), "hoang van nam");
   assert.equal(removeDiacritics("Nội vụ"), "noi vu");
   assert.equal(removeDiacritics("Giáo dục"), "giao duc");
-  assert.equal(removeDiacritics("Thịnh Đức"), "thinh duc");
+  assert.equal(removeDiacritics("Giả định A"), "gia dinh a");
 });
 
 verify("BƯỚC 6", "6.3 Render SSR Header component với AppRouterContext và Breadcrumbs", () => {
@@ -746,7 +746,7 @@ verify("BƯỚC 7", "7.1 Đột biến dữ liệu cả 2 xã, sau đó gọi re
     action: "AUDIT_RESET_TENANT",
     entityType: "TENANT_DATA",
     entityId: "XA_A",
-    details: { message: "Reset demo Xã Thịnh Đức thành công" },
+    details: { message: "Reset demo Xã Giả định A (TN-DEMO-A) thành công" },
   });
 
   // Verify Xã A is fully restored:
@@ -770,7 +770,7 @@ verify("BƯỚC 7", "7.2 Ghi log kiểm toán tự động AUDIT_RESET_TENANT v�
     entityType: "TENANT_DATA",
     entityId: "XA_A",
     details: {
-      message: "Khôi phục dữ liệu Xã Thịnh Đức (XA_A) về hạt giống Golden Oracle ban đầu",
+      message: "Khôi phục dữ liệu Xã Giả định A (TN-DEMO-A) về hạt giống Golden Oracle ban đầu",
       resetTenant: "XA_A",
     },
   });

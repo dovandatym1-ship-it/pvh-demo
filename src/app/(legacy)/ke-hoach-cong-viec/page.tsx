@@ -48,7 +48,7 @@ const INITIAL_TASKS: TaskItem[] = [
     dueDate: "2026-11-20",
     priority: "HIGH",
     status: "IN_PROGRESS",
-    hamlet: "Xóm Tân Thịnh",
+    hamlet: "Xóm A1",
     sourceRef: "KH-UBND-12/2026",
     tenantCode: "XA_A",
     version: 2,
@@ -69,13 +69,13 @@ const INITIAL_TASKS: TaskItem[] = [
   {
     id: "task-3",
     code: "NV-KH-2026-003",
-    title: "Kiểm tra thực tế hiện trạng đình làng Đình Tân Thịnh",
+    title: "Kiểm tra thực tế hiện trạng đình làng Đình A1",
     category: "Di tích & Lễ hội",
     assignee: "Đỗ Minh Đức (P6)",
     dueDate: "2026-11-15",
     priority: "MEDIUM",
     status: "COMPLETED",
-    hamlet: "Xóm Đồng Thịnh",
+    hamlet: "Xóm A2",
     tenantCode: "XA_A",
     version: 3,
   },
@@ -96,13 +96,13 @@ const INITIAL_TASKS: TaskItem[] = [
   {
     id: "task-b-1",
     code: "NV-KH-B-2026-001",
-    title: "Tổ chức Lễ hội Hương chè Tân Cương và bình xét nếp sống văn minh",
+    title: "Tổ chức Lễ hội Nông sản Giả định B và bình xét nếp sống văn minh",
     category: "Văn hóa & Lễ hội",
     assignee: "Dương Đình Khang (P2)",
     dueDate: "2026-11-28",
     priority: "HIGH",
     status: "IN_PROGRESS",
-    hamlet: "Xóm Chè Đặc Sản",
+    hamlet: "Xóm B1",
     tenantCode: "XA_B",
     version: 1,
   },
@@ -115,7 +115,7 @@ const INITIAL_TASKS: TaskItem[] = [
     dueDate: "2026-11-20",
     priority: "MEDIUM",
     status: "TODO",
-    hamlet: "Xóm Chè Đặc Sản",
+    hamlet: "Xóm B1",
     tenantCode: "XA_B",
     version: 1,
   },
@@ -241,7 +241,7 @@ export default function KeHoachCongViecPage() {
       <div className="p-3.5 bg-gov-50 border border-gov-200 rounded-lg flex items-start gap-3 text-xs text-gov-800">
         <Info className="w-4 h-4 text-gov-600 shrink-0 mt-0.5" />
         <div>
-          <span className="font-semibold">Kiểm soát tiến độ 2 hạn (AC-19/20):</span> Mọi công việc chuyển sang trạng thái "Đã hoàn thành" đều lưu vết phiên bản (versioning) và kiểm tra quyền phê duyệt của Lãnh đạo UBND (Checker). Dữ liệu được cô lập 100% cho {tenant.name}.
+          <span className="font-semibold">Kiểm soát tiến độ 2 hạn (AC-19/20):</span> Mọi công việc chuyển sang trạng thái &quot;Đã hoàn thành&quot; đều lưu vết phiên bản (versioning) và kiểm tra quyền phê duyệt của Lãnh đạo UBND (Checker). Dữ liệu được cô lập 100% cho {tenant.name}.
         </div>
       </div>
 

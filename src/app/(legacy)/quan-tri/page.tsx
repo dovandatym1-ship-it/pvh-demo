@@ -623,7 +623,7 @@ export default function QuanTriPage() {
                       const isTenantB =
                         a.tenantId.toLowerCase().includes("b") ||
                         (a.details?.preservedTenant && a.details.preservedTenant === "XA_A");
-                      const tenantLabel = isTenantB ? "Xã Tân Cương (B)" : "Xã Thịnh Đức (A)";
+                      const tenantLabel = isTenantB ? "Xã Giả định B (TN-DEMO-B)" : "Xã Giả định A (TN-DEMO-A)";
 
                       return (
                         <TableRow key={a.id} className="hover:bg-slate-50/80">

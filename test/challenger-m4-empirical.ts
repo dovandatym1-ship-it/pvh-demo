@@ -811,7 +811,7 @@ console.log("=======================================================");
   );
 
   // Test 4.6: Facilities category search
-  const schoolRes = executeOmnisearchAsImplemented("Trường Tiểu học Thịnh Đức", data, persona);
+  const schoolRes = executeOmnisearchAsImplemented("Trường Tiểu học Giả định A", data, persona);
   assert(
     "OMNISEARCH",
     "TC-O.8",
@@ -821,7 +821,7 @@ console.log("=======================================================");
     schoolRes.map((r) => r.title).join(",")
   );
 
-  const religionRes = executeOmnisearchAsImplemented("Chùa Thịnh Đức", data, persona);
+  const religionRes = executeOmnisearchAsImplemented("Chùa Phúc Lâm", data, persona);
   assert(
     "OMNISEARCH",
     "TC-O.9",
@@ -942,21 +942,21 @@ console.log("=======================================================");
     "HIGH"
   );
 
-  // Adversarial Test 4.13: Search facility with unaccented query "thinh duc"
-  const unaccentedThinhDucRes = executeOmnisearchAsImplemented("thinh duc", data, persona);
+  // Adversarial Test 4.13: Search facility with unaccented query "gia dinh a"
+  const unaccentedThinhDucRes = executeOmnisearchAsImplemented("gia dinh a", data, persona);
   const foundThinhDucFacility = unaccentedThinhDucRes.some((r) => r.category === "FACILITY");
   assert(
     "OMNISEARCH",
     "TC-O.19_ADV",
-    "Unaccented search 'thinh duc' matches Facility 'Trường Tiểu học Thịnh Đức'",
+    "Unaccented search 'gia dinh a' matches Facility 'Trường Tiểu học Giả định A'",
     foundThinhDucFacility,
     true,
     foundThinhDucFacility,
     "HIGH"
   );
 
-  // Adversarial Test 4.14: Search hamlet with unaccented query "tan thinh"
-  const unaccentedTanThinhRes = executeOmnisearchAsImplemented("tan thinh", data, persona);
+  // Adversarial Test 4.14: Search hamlet with unaccented query "xom a1"
+  const unaccentedTanThinhRes = executeOmnisearchAsImplemented("xom a1", data, persona);
   const foundTanThinhCitizen = unaccentedTanThinhRes.some((r) => r.category === "CITIZEN");
   assert(
     "OMNISEARCH",

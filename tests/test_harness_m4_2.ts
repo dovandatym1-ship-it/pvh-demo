@@ -594,7 +594,7 @@ test("M4-4.3: Generated expression oracle verifies mathematical correctness agai
 console.log("\n--- SUITE 5: PII Protection Hardening & Persona Matrix ---");
 
 test("M4-5.1: Static AST/Regex check: y-te-an-sinh/page.tsx line 444 tooltip uses maskPII for diagnosis", () => {
-  const yTePagePath = path.resolve(__dirname, "../src/app/(dashboard)/y-te-an-sinh/page.tsx");
+  const yTePagePath = path.resolve(__dirname, "../src/app/(legacy)/y-te-an-sinh/page.tsx");
   const yTeContent = fs.readFileSync(yTePagePath, "utf-8");
 
   // Check that title attribute on diagnosis cell calls maskPII(item.diagnosis, "medical", persona)
@@ -614,7 +614,7 @@ test("M4-5.1: Static AST/Regex check: y-te-an-sinh/page.tsx line 444 tooltip use
 });
 
 test("M4-5.2: Static AST/Regex check: dan-toc-ton-giao/page.tsx line 658 table cell masks 1719 CCCD", () => {
-  const dtPagePath = path.resolve(__dirname, "../src/app/(dashboard)/dan-toc-ton-giao/page.tsx");
+  const dtPagePath = path.resolve(__dirname, "../src/app/(legacy)/dan-toc-ton-giao/page.tsx");
   const dtContent = fs.readFileSync(dtPagePath, "utf-8");
 
   const cccdMaskRegex = /maskPII\(\s*a\.cccd\s*,\s*["']cccd["']\s*,\s*persona\s*\)/;
@@ -732,7 +732,7 @@ test("M4-5.5: Adversarial Edge Cases & Stress Testing for maskPII", () => {
 });
 
 test("M4-5.6: Security Audit Discovery: Dan-Toc-Ton-Giao Disbursement Modal CCCD Exposure (Finding)", () => {
-  const dtPagePath = path.resolve(__dirname, "../src/app/(dashboard)/dan-toc-ton-giao/page.tsx");
+  const dtPagePath = path.resolve(__dirname, "../src/app/(legacy)/dan-toc-ton-giao/page.tsx");
   const dtContent = fs.readFileSync(dtPagePath, "utf-8");
 
   // Check line 966 in the modal: <span className="font-mono text-slate-800">{selectedAllocation.cccd}</span>

@@ -770,8 +770,8 @@ test("3.4 Lookup residence history for single-event citizen (SUB-03)", () => {
   assert.strictEqual(events[0].id, "RH-A-03");
   assert.strictEqual(events[0].actionType, "IN_MIGRATION");
   assert.strictEqual(events[0].actionTypeName, "Chuyển đến từ ngoài xã");
-  assert.strictEqual(events[0].oldHamlet, "Xã Phúc Trìu");
-  assert.strictEqual(events[0].newHamlet, "Xóm Đồng Thịnh");
+  assert.strictEqual(events[0].oldHamlet, "Xã Ngoại vi 1");
+  assert.strictEqual(events[0].newHamlet, "Xóm A2");
 });
 
 test("3.5 Lookup residence history for citizen without history (SUB-04) returns empty array", () => {
@@ -826,9 +826,9 @@ test("4.2 Omnisearch returns results across all 4 categories (ROUTE, CITIZEN, FA
   assert.ok(citizens[0].title.includes("Hoàng Văn Nam"));
 
   // 3. FACILITY match (School, Religious, Medical, Food Safety)
-  const schoolResults = executeOmnisearch("Thịnh Đức", GOLDEN_SEED_XA_A);
+  const schoolResults = executeOmnisearch("Giả định A", GOLDEN_SEED_XA_A);
   const facilities = schoolResults.filter((r) => r.category === "FACILITY");
-  assert.ok(facilities.length >= 1, "Must return FACILITY for 'Thịnh Đức'");
+  assert.ok(facilities.length >= 1, "Must return FACILITY for 'Giả định A'");
 
   const medicalResults = executeOmnisearch("Bích Ngọc", GOLDEN_SEED_XA_A);
   assert.ok(

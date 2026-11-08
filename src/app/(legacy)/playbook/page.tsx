@@ -134,7 +134,7 @@ export default function PlaybookPage() {
 
   const handleExecuteReset = () => {
     resetTenant("XA_A");
-    setResetSuccessMessage("Đã khôi phục toàn bộ bảng dữ liệu Xã Thịnh Đức (Xã A) về trạng thái hạt giống Golden Oracle ban đầu (LocalStorage pvh_demo_state_v1 & Audit Log AUDIT_RESET_TENANT). Dữ liệu Xã Tân Cương (Xã B) được giữ nguyên vẹn 100%.");
+    setResetSuccessMessage("Đã khôi phục toàn bộ bảng dữ liệu Xã Giả định A (TN-DEMO-A) về trạng thái hạt giống Golden Oracle ban đầu (LocalStorage pvh_demo_state_v1 & Audit Log AUDIT_RESET_TENANT). Dữ liệu Xã Giả định B (TN-DEMO-B) được giữ nguyên vẹn 100%.");
     setResetModalOpen(false);
     setTimeout(() => {
       setResetSuccessMessage(null);
@@ -300,7 +300,7 @@ export default function PlaybookPage() {
 
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
                   <div className="text-xs font-bold text-gov-800">PVH-Q-005 • Gói quy tắc bình xét văn hóa</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">Nghị định 86/2023/NĐ-CP và QĐ 74 Thái Nguyên — chạy gói minh họa có nhãn.</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5">Nghị định 86/2023/NĐ-CP và QĐ 74 — chạy gói minh họa có nhãn.</div>
                 </div>
 
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
@@ -346,7 +346,7 @@ export default function PlaybookPage() {
       <Modal
         isOpen={resetModalOpen}
         onClose={() => setResetModalOpen(false)}
-        title="Xác nhận Reset Dữ liệu Demo Xã Thịnh Đức (Xã A)"
+        title="Xác nhận Reset Dữ liệu Demo Xã Giả định A (TN-DEMO-A)"
         description="Khôi phục toàn bộ bảng dữ liệu Xã A về trạng thái ban đầu để chuẩn bị ca diễn mới"
       >
         <div className="space-y-4 text-xs">
@@ -356,7 +356,7 @@ export default function PlaybookPage() {
               Cảnh báo khôi phục môi trường thử nghiệm:
             </div>
             <p className="text-[11px] leading-relaxed">
-              Thao tác này sẽ xóa các hồ sơ, nhiệm vụ, biên bản kiểm tra mới phát sinh trong phiên demo tại <strong>Xã Thịnh Đức (Xã A)</strong> và nạp lại toàn bộ hạt giống dữ liệu Golden Oracle ban đầu. Dữ liệu của <strong>Xã Tân Cương (Xã B)</strong> hoàn toàn không bị ảnh hưởng.
+              Thao tác này sẽ xóa các hồ sơ, nhiệm vụ, biên bản kiểm tra mới phát sinh trong phiên demo tại <strong>Xã Giả định A (TN-DEMO-A)</strong> và nạp lại toàn bộ hạt giống dữ liệu Golden Oracle ban đầu. Dữ liệu của <strong>Xã Giả định B (TN-DEMO-B)</strong> hoàn toàn không bị ảnh hưởng.
             </p>
           </div>
 

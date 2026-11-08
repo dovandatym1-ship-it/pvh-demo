@@ -39,7 +39,7 @@ demo-pvh/
 ├── src/
 │   ├── app/
 │   │   ├── (auth)/login/
-│   │   ├── (dashboard)/
+│   │   ├── (legacy)/
 │   │   │   ├── ban-lam-viec/
 │   │   │   ├── ke-hoach-cong-viec/
 │   │   │   └── <route-module>/       # Đủ các route trong bảng M00–M10
@@ -98,7 +98,7 @@ demo-pvh/
 
 ### Danh mục module và route
 
-| Feature | Route trong `(dashboard)` | Phạm vi |
+| Feature | Route trong `(legacy)` | Phạm vi |
 |---|---|---|
 | `m00-platform` | `quan-tri/` | Quản trị, tổ chức, phân công và cấu hình |
 | `m01-core-work` | `du-lieu-dung-chung/` | Chủ thể, cơ sở, hồ sơ, kế hoạch và công việc |
@@ -112,7 +112,7 @@ demo-pvh/
 | `m09-reporting` | `bao-cao/` | Thu thập chỉ tiêu, báo cáo và snapshot |
 | `m10-integrations` | `tich-hop/` | Nhập dữ liệu, tích hợp và đối soát |
 
-M01 còn sử dụng route `ke-hoach-cong-viec/`. Route group `(dashboard)` chỉ tổ chức layout, không phải cơ chế phân quyền.
+M01 còn sử dụng route `ke-hoach-cong-viec/`. Route group `(legacy)` chỉ tổ chức layout, không phải cơ chế phân quyền.
 
 ### Khi một module có nhiều nghiệp vụ
 

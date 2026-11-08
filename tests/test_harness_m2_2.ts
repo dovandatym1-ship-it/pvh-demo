@@ -42,9 +42,9 @@ import {
 } from "../src/lib/tenancy/demo-context";
 
 // Import components under test
-import KiemTraPage from "../src/app/(dashboard)/kiem-tra/page";
-import VanHoaGiaDinhPage from "../src/app/(dashboard)/van-hoa-gia-dinh/page";
-import BaoCaoPage from "../src/app/(dashboard)/bao-cao/page";
+import KiemTraPage from "../src/app/(legacy)/kiem-tra/page";
+import VanHoaGiaDinhPage from "../src/app/(legacy)/van-hoa-gia-dinh/page";
+import BaoCaoPage from "../src/app/(legacy)/bao-cao/page";
 
 // Mock LocalStorage
 class MockLocalStorage {

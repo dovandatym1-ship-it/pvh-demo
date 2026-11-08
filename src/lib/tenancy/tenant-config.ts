@@ -1,6 +1,6 @@
 export interface TenantConfig {
   id: string;
-  code: string;
+  code: "TN-DEMO-A" | "TN-DEMO-B" | string;
   name: string;
   province: string;
   hamlets: Array<{ id: string; name: string }>;
@@ -16,14 +16,14 @@ export interface TenantConfig {
 
 export const TENANTS: Record<string, TenantConfig> = {
   xa_a: {
-    id: "tenant-xa-a-uuid",
-    code: "XA_A",
-    name: "UBND Xã Thịnh Đức (Xã A mô phỏng)",
+    id: "a0000000-0000-0000-0000-000000000001",
+    code: "TN-DEMO-A",
+    name: "UBND Xã Giả định A",
     province: "Thái Nguyên",
     hamlets: [
-      { id: "xom-1", name: "Xóm Tân Thịnh" },
-      { id: "xom-2", name: "Xóm Đồng Thịnh" },
-      { id: "xom-3", name: "Xóm Đức Hòa" },
+      { id: "xom-a1", name: "Xóm A1" },
+      { id: "xom-a2", name: "Xóm A2" },
+      { id: "xom-a3", name: "Xóm A3" },
     ],
     features: {
       digitalTransformation: true,
@@ -35,12 +35,12 @@ export const TENANTS: Record<string, TenantConfig> = {
     status: "ACTIVE",
   },
   xa_b: {
-    id: "tenant-xa-b-uuid",
-    code: "XA_B",
-    name: "UBND Xã Tân Cương (Xã B mô phỏng)",
+    id: "a0000000-0000-0000-0000-000000000002",
+    code: "TN-DEMO-B",
+    name: "UBND Xã Giả định B",
     province: "Thái Nguyên",
     hamlets: [
-      { id: "xom-che", name: "Xóm Chè Đặc Sản" },
+      { id: "xom-b1", name: "Xóm B1" },
     ],
     features: {
       digitalTransformation: false, // Tắt CĐS
@@ -53,8 +53,18 @@ export const TENANTS: Record<string, TenantConfig> = {
   },
 };
 
+// Aliases for TN-DEMO-A and TN-DEMO-B
+TENANTS.tn_demo_a = TENANTS.xa_a;
+TENANTS.tn_demo_b = TENANTS.xa_b;
+
 export function getTenant(idOrCode?: string): TenantConfig {
   if (!idOrCode) return TENANTS.xa_a;
-  const key = idOrCode.toLowerCase().replace("-", "_");
-  return TENANTS[key] || TENANTS.xa_a;
+  const normalized = idOrCode.toLowerCase().replace(/-/g, "_");
+  if (normalized === "tn_demo_a" || normalized === "xa_a" || idOrCode === "a0000000-0000-0000-0000-000000000001" || idOrCode === "tenant-xa-a-uuid") {
+    return TENANTS.xa_a;
+  }
+  if (normalized === "tn_demo_b" || normalized === "xa_b" || idOrCode === "a0000000-0000-0000-0000-000000000002" || idOrCode === "tenant-xa-b-uuid") {
+    return TENANTS.xa_b;
+  }
+  return TENANTS[normalized] || TENANTS.xa_a;
 }

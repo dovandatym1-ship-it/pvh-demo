@@ -72,7 +72,7 @@ export const PERSONAS: Record<string, Persona> = {
     code: "P4",
     name: "Hoàng Văn Tuấn",
     role: "HAMLET_LEADER",
-    roleTitle: "Trưởng thôn / Xóm trưởng Tân Thịnh",
+    roleTitle: "Trưởng thôn / Xóm trưởng Xóm A1",
     tenantId: "xa_a",
     permissions: [
       "m01:hamlet_view",

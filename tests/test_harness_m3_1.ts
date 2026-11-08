@@ -46,10 +46,10 @@ import { maskPII } from "../src/lib/authorization/pii-mask";
 import { DemoProvider } from "../src/lib/tenancy/demo-context";
 
 // Import UI Page Components Under Test
-import NoiVuPage from "../src/app/(dashboard)/noi-vu/page";
-import GiaoDucPage from "../src/app/(dashboard)/giao-duc/page";
-import YTeAnSinhPage from "../src/app/(dashboard)/y-te-an-sinh/page";
-import DanTocTonGiaoPage from "../src/app/(dashboard)/dan-toc-ton-giao/page";
+import NoiVuPage from "../src/app/(legacy)/noi-vu/page";
+import GiaoDucPage from "../src/app/(legacy)/giao-duc/page";
+import YTeAnSinhPage from "../src/app/(legacy)/y-te-an-sinh/page";
+import DanTocTonGiaoPage from "../src/app/(legacy)/dan-toc-ton-giao/page";
 
 let passedCount = 0;
 let totalCount = 0;
@@ -223,7 +223,7 @@ runAssertion("2.3 Collective dispute successfully escalates to ESCALATED_DISTRIC
       ? {
           ...d,
           status: "ESCALATED_DISTRICT" as const,
-          outcomeSummary: "Đã chuyển hồ sơ đình công lên Phòng LĐTBXH & LĐLĐ Thành phố Thái Nguyên giải quyết theo thẩm quyền (D03)",
+          outcomeSummary: "Đã chuyển hồ sơ đình công lên Cơ quan Quản lý Lao động cấp trên giải quyết theo thẩm quyền (D03)",
         }
       : d
   );
@@ -231,7 +231,7 @@ runAssertion("2.3 Collective dispute successfully escalates to ESCALATED_DISTRIC
   const escalated = updatedDisputes.find((d) => d.id === "DISP-03")!;
   assert.equal(escalated.status, "ESCALATED_DISTRICT");
   assert(escalated.outcomeSummary && escalated.outcomeSummary.includes("D03"));
-  assert(escalated.outcomeSummary && escalated.outcomeSummary.includes("Thành phố Thái Nguyên"));
+  assert(escalated.outcomeSummary && escalated.outcomeSummary.includes("Cơ quan Quản lý Lao động cấp trên"));
 
   // Audit log verification
   const auditLog: AuditLogEntry = {
@@ -244,7 +244,7 @@ runAssertion("2.3 Collective dispute successfully escalates to ESCALATED_DISTRIC
     entityType: "LABOR_DISPUTE",
     entityId: targetDispute.code,
     details: {
-      message: `Chuyển hồ sơ tranh chấp tập thể (${targetDispute.requesterName}) lên UBND Thành phố Thái Nguyên`,
+      message: `Chuyển hồ sơ tranh chấp tập thể (${targetDispute.requesterName}) lên Cơ quan Quản lý Lao động cấp trên`,
       disputeCode: targetDispute.code,
     },
   };
@@ -263,7 +263,7 @@ runAssertion("3.1 Minimum wage detection accurately identifies underpaying busin
   const compliant = contracts.filter((c) => !c.isUnderMinWage);
   const violators = contracts.filter((c) => c.isUnderMinWage);
 
-  assert.equal(compliant.length, 2, "2 businesses pay >= minimum wage (HTX Chè 3.65M, May Thịnh Đức 4.5M)");
+  assert.equal(compliant.length, 2, "2 businesses pay >= minimum wage (HTX Chè 3.65M, May Giả định A 4.5M)");
   assert.equal(violators.length, 1, "1 business violates minimum wage (Xưởng Mộc An Phát 3.2M < 3.45M)");
   assert.equal(violators[0].businessName, "Xưởng Mộc Thủ công An Phát");
   assert(violators[0].minWagePaid < violators[0].regionalMinWage);
@@ -411,7 +411,7 @@ console.log("\n--- SUITE 5: M03 Educational School Year vs Civil Year Filtering 
 
 runAssertion("5.1 Format separation between School Year ('YYYY-YYYY') and Civil Year (Integer)", () => {
   const schools = GOLDEN_SEED_XA_A.domainRecords.giaoDuc.schools;
-  assert.equal(schools.length, 3, "3 public schools in Thịnh Đức");
+  assert.equal(schools.length, 3, "3 public schools in Giả định A");
 
   schools.forEach((s) => {
     assert(s.schoolYear.includes("-"), `School year '${s.schoolYear}' must contain hyphen`);
@@ -595,7 +595,7 @@ runAssertion("8.2 GiaoDucPage (M03) renders cleanly via ReactDOMServer with AC-1
   assert(html.includes("TTHTCĐ &amp; Miễn giảm học phí"), "Contains Subtab 3 Trigger");
   assert(html.includes("Bộ lọc AC-10:"), "Contains AC-10 filter switcher");
   assert(html.includes("cơ sở vi phạm/đình chỉ"), "Contains non-compliant private facility count in KPI card");
-  assert(html.includes("Trường Tiểu học Thịnh Đức"), "Contains public school row in initial tab");
+  assert(html.includes("Trường Tiểu học Giả định A"), "Contains public school row in initial tab");
 });
 
 runAssertion("8.3 YTeAnSinhPage (M06) renders cleanly via ReactDOMServer with PII and outbreak alert", () => {

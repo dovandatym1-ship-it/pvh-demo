@@ -163,7 +163,7 @@ export default function NoiVuPage() {
               ...d,
               status: "ESCALATED_DISTRICT" as const,
               outcomeSummary:
-                "Đã chuyển hồ sơ đình công lên Phòng LĐTBXH & LĐLĐ Thành phố Thái Nguyên giải quyết theo thẩm quyền (D03)",
+                "Đã chuyển hồ sơ đình công lên Cơ quan Quản lý Lao động cấp trên giải quyết theo thẩm quyền (D03)",
             }
           : d
       );
@@ -184,7 +184,7 @@ export default function NoiVuPage() {
       entityType: "LABOR_DISPUTE",
       entityId: selectedDispute.code,
       details: {
-        message: `Chuyển hồ sơ tranh chấp tập thể / nguy cơ đình công (${selectedDispute.requesterName}) lên UBND Thành phố Thái Nguyên theo ranh giới thẩm quyền D03`,
+        message: `Chuyển hồ sơ tranh chấp tập thể / nguy cơ đình công (${selectedDispute.requesterName}) lên Cơ quan Quản lý Lao động cấp trên theo ranh giới thẩm quyền D03`,
         disputeCode: selectedDispute.code,
         requester: selectedDispute.requesterName,
         employer: selectedDispute.respondentName,
@@ -434,7 +434,7 @@ export default function NoiVuPage() {
                         <TableCell className="font-mono text-xs text-slate-600">
                           {maskPII(item.cccd || "019088001234", "cccd", persona)}
                         </TableCell>
-                        <TableCell className="text-xs text-slate-600">{item.hamlet || "Xã Thịnh Đức"}</TableCell>
+                        <TableCell className="text-xs text-slate-600">{item.hamlet || "Xã Giả định A"}</TableCell>
                         <TableCell>
                           <Badge variant={item.category === "BA_ME_VNAH" ? "danger" : item.category === "THUONG_BINH" ? "info" : "neutral"}>
                             {item.category === "BA_ME_VNAH"
@@ -655,7 +655,7 @@ export default function NoiVuPage() {
               </div>
               <p className="text-amber-800 leading-relaxed">
                 Hòa giải viên lao động cấp xã chỉ có thẩm quyền tiến hành hòa giải các vụ <strong>tranh chấp lao động cá nhân</strong> giữa người lao động và người sử dụng lao động.
-                Đối với <strong>tranh chấp lao động tập thể về quyền hoặc lợi ích dẫn đến nguy cơ đình công</strong> (COLLECTIVE), hệ thống <strong>TUYỆT ĐỐI CẤM</strong> hòa giải thành tại cấp xã; bắt buộc phải lập biên bản và bấm nút <strong>Chuyển hồ sơ đình công lên Cấp huyện</strong> (Phòng LĐTBXH & LĐLĐ Thành phố Thái Nguyên) xử lý.
+                Đối với <strong>tranh chấp lao động tập thể về quyền hoặc lợi ích dẫn đến nguy cơ đình công</strong> (COLLECTIVE), hệ thống <strong>TUYỆT ĐỐI CẤM</strong> hòa giải thành tại cấp xã; bắt buộc phải lập biên bản và bấm nút <strong>Chuyển hồ sơ đình công lên Cơ quan cấp trên</strong> (theo ranh giới thẩm quyền D03) xử lý.
               </p>
             </div>
           </div>
@@ -917,7 +917,7 @@ export default function NoiVuPage() {
                 CẢNH BÁO TRANH CHẤP LAO ĐỘNG TẬP THỂ (D03)
               </div>
               <p className="text-rose-800 leading-relaxed">
-                Hồ sơ <strong>{selectedDispute.code}</strong> có sự tham gia của tập thể người lao động với nguy cơ ngừng việc / đình công tại cơ sở <strong>{selectedDispute.respondentName}</strong>. Cấp xã có trách nhiệm báo cáo khẩn cấp và chuyển toàn bộ hồ sơ lên Phòng LĐTBXH & LĐLĐ Thành phố Thái Nguyên giải quyết.
+                Hồ sơ <strong>{selectedDispute.code}</strong> có sự tham gia của tập thể người lao động với nguy cơ ngừng việc / đình công tại cơ sở <strong>{selectedDispute.respondentName}</strong>. Cấp xã có trách nhiệm báo cáo khẩn cấp và chuyển toàn bộ hồ sơ lên Cơ quan Quản lý Lao động cấp trên theo ranh giới thẩm quyền D03 giải quyết.
               </p>
             </div>
 

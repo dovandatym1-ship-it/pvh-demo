@@ -263,7 +263,7 @@ try {
   assert(false, "DemoProvider throws during SSR renderToString", String(err));
 }
 
-assert(ssrOutput.includes("Thịnh Đức"), "SSR output contains initial tenant name 'Thịnh Đức'");
+assert(ssrOutput.includes("Giả định A"), "SSR output contains initial tenant name 'Giả định A'");
 assert(ssrOutput.includes("XA_A"), "SSR output contains currentTenantCode 'XA_A'");
 assert(ssrOutput.includes("03"), "SSR output contains MET-01 '03'");
 assert(ssrOutput.includes("01"), "SSR output contains MET-02 '01'");

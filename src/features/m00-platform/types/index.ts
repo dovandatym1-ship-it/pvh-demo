@@ -3,7 +3,6 @@ export interface TenantEntity {
   code: string;
   name: string;
   province: string;
-  district: string;
   officerMode: "CONCURRENT" | "SPECIALIZED";
   features: {
     digitalTransformation: boolean;

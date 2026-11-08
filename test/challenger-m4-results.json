@@ -359,7 +359,7 @@
       "name": "Search finds School facility in FACILITY category",
       "passed": true,
       "expected": true,
-      "actual": "Trường Tiểu học Thịnh Đức",
+      "actual": "Trường Tiểu học Giả định A",
       "criticality": "HIGH"
     },
     {
@@ -461,7 +461,7 @@
     {
       "id": "TC-O.19_ADV",
       "suite": "OMNISEARCH",
-      "name": "Unaccented search 'thinh duc' matches Facility 'Trường Tiểu học Thịnh Đức'",
+      "name": "Unaccented search 'gia dinh a' matches Facility 'Trường Tiểu học Giả định A'",
       "passed": false,
       "expected": true,
       "actual": false,
@@ -471,7 +471,7 @@
     {
       "id": "TC-O.20_ADV",
       "suite": "OMNISEARCH",
-      "name": "Unaccented search 'tan thinh' matches Citizens in 'Xóm Tân Thịnh'",
+      "name": "Unaccented search 'xom a1' matches Citizens in 'Xóm A1'",
       "passed": false,
       "expected": true,
       "actual": false,

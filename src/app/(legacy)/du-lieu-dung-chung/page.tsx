@@ -52,28 +52,28 @@ const INITIAL_FACILITIES: FacilityItem[] = [
   {
     id: "fac-1",
     code: "CS-VH-001",
-    name: "Nhà văn hóa Xóm Tân Thịnh",
+    name: "Nhà văn hóa Xóm A1",
     category: "Nhà văn hóa xóm",
     capacity: "150 chỗ ngồi",
-    hamlet: "Xóm Tân Thịnh",
+    hamlet: "Xóm A1",
     status: "Hoạt động tốt",
     builtYear: 2021,
     manager: "Trưởng xóm Đỗ Minh Đức (P6)",
-    formerName: "Hội trường thôn Tân Thịnh",
+    formerName: "Hội trường thôn A1",
     tenantCode: "XA_A",
     interDepartmentFiles: ["Hồ sơ đất công số 142/QĐ", "Biên bản bàn giao thiết bị âm thanh", "Sổ kiểm tra PCCC 2026"],
   },
   {
     id: "fac-2",
     code: "CS-VH-002",
-    name: "Đình làng Tân Thịnh",
+    name: "Đình làng A1",
     category: "Di tích lịch sử cấp tỉnh",
     capacity: "Khuôn viên 800m2",
-    hamlet: "Xóm Tân Thịnh",
+    hamlet: "Xóm A1",
     status: "Bảo tồn tốt",
     builtYear: 1890,
     manager: "Ban khánh tiết Đình làng",
-    formerName: "Đình Thượng Tân Thịnh",
+    formerName: "Đình Thượng A1",
     tenantCode: "XA_A",
     interDepartmentFiles: ["Bằng xếp hạng di tích cấp tỉnh", "Quy hoạch khoanh vùng bảo vệ di tích", "Kế hoạch tổ chức Lễ hội đầu xuân"],
   },
@@ -83,7 +83,7 @@ const INITIAL_FACILITIES: FacilityItem[] = [
     name: "Sân thể thao trung tâm xã",
     category: "Khu thể thao đa năng",
     capacity: "Sân bóng đá mini & bóng chuyền",
-    hamlet: "Xóm Đồng Thịnh",
+    hamlet: "Xóm A2",
     status: "Đang sử dụng",
     builtYear: 2023,
     manager: "Đoàn Thanh niên xã",
@@ -94,10 +94,10 @@ const INITIAL_FACILITIES: FacilityItem[] = [
   {
     id: "fac-b-1",
     code: "CS-VH-B-001",
-    name: "Nhà văn hóa Xóm Chè Đặc Sản",
+    name: "Nhà văn hóa Xóm B1",
     category: "Nhà văn hóa xóm",
     capacity: "120 chỗ ngồi",
-    hamlet: "Xóm Chè Đặc Sản",
+    hamlet: "Xóm B1",
     status: "Hoạt động tốt",
     builtYear: 2022,
     manager: "Trưởng xóm Chè (P6-B)",
@@ -107,10 +107,10 @@ const INITIAL_FACILITIES: FacilityItem[] = [
   {
     id: "fac-b-2",
     code: "CS-VH-B-002",
-    name: "Không gian Trưng bày Văn hóa Trà Tân Cương",
+    name: "Không gian Trưng bày Văn hóa Trà Giả định B",
     category: "Thiết chế du lịch & Di sản",
     capacity: "Khuôn viên 1.500m2",
-    hamlet: "Xóm Chè Đặc Sản",
+    hamlet: "Xóm B1",
     status: "Bảo tồn tốt",
     builtYear: 2020,
     manager: "HTX Chè Hảo Đạt & UBND Xã",
@@ -247,7 +247,7 @@ export default function DuLieuDungChungPage() {
 
   const handleSimulateDuplicate = () => {
     setDuplicateWarning(
-      "CẢNH BÁO TRÙNG LẶP (AC-04): Cơ sở 'Đình làng Tân Thịnh' có tọa độ GPS và tên gốc trùng khớp 95% với di tích lịch sử 'Đình Thượng' trong CSDL di sản Sở VHTT&DL Thái Nguyên (Mã DS-TN-042). Hệ thống kiến nghị liên kết thay vì tạo mới."
+      "CẢNH BÁO TRÙNG LẶP (AC-04): Cơ sở 'Đình làng A1' có tọa độ GPS và tên gốc trùng khớp 95% với di tích lịch sử 'Đình Thượng' trong CSDL di sản Sở VHTT&DL (Mã DS-TN-042). Hệ thống kiến nghị liên kết thay vì tạo mới."
     );
   };
 

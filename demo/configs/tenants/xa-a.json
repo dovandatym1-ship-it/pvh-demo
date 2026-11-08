@@ -1,8 +1,7 @@
 {
-  "code": "XA_A",
-  "name": "UBND Xã Thịnh Đức",
+  "code": "TN-DEMO-A",
+  "name": "UBND Xã Giả định A",
   "province": "Thái Nguyên",
-  "district": "TP. Thái Nguyên",
   "officerMode": "CONCURRENT",
   "features": {
     "digitalTransformation": true,
@@ -11,8 +10,8 @@
     "interDepartmentalCoordination": true
   },
   "hamlets": [
-    { "id": "xom-1", "name": "Xóm Tân Thịnh", "households": 240 },
-    { "id": "xom-2", "name": "Xóm Đồng Thịnh", "households": 180 },
-    { "id": "xom-3", "name": "Xóm Đức Hòa", "households": 100 }
+    { "id": "xom-a1", "name": "Xóm A1", "households": 240 },
+    { "id": "xom-a2", "name": "Xóm A2", "households": 180 },
+    { "id": "xom-a3", "name": "Xóm A3", "households": 100 }
   ]
 }

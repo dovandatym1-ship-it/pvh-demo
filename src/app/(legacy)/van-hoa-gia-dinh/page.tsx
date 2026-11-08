@@ -328,7 +328,7 @@ export default function VanHoaGiaDinhPage() {
       code: newCode,
       regType,
       festivalName,
-      organizerName: organizerName || "UBND Xã Thịnh Đức",
+      organizerName: organizerName || "UBND Xã Giả định A",
       scale: "Cấp xã",
       startDate,
       endDate,
@@ -520,7 +520,7 @@ export default function VanHoaGiaDinhPage() {
       <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-lg flex items-start gap-3 text-xs text-emerald-900">
         <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
         <div>
-          <span className="font-bold">Nguyên tắc thiết kế (AC-07, QĐ 74 Thái Nguyên & D03 Thẩm quyền):</span>{" "}
+          <span className="font-bold">Nguyên tắc thiết kế (AC-07, QĐ 74/2026 & D03 Thẩm quyền):</span>{" "}
           Với thủ tục thông báo lễ hội, kết quả là biên nhận ghi nhận (không sinh giấy phép cấp phép trái thẩm quyền). Bình xét GĐVH áp dụng khống chế trần 50% số hộ đạt danh hiệu xuất sắc. Dữ liệu phòng chống bạo lực gia đình áp dụng RLS bảo vệ danh tính nạn nhân nghiêm ngặt.
         </div>
       </div>
@@ -1434,7 +1434,7 @@ export default function VanHoaGiaDinhPage() {
             </div>
 
             <div className="space-y-2">
-              <h4 className="font-bold text-slate-900 text-xs">Bộ tiêu chí bình xét (Theo QĐ 74 Thái Nguyên)</h4>
+              <h4 className="font-bold text-slate-900 text-xs">Bộ tiêu chí bình xét (Theo QĐ 74/2026)</h4>
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between p-2 rounded bg-emerald-50 text-emerald-900">
                   <span>1. Gương mẫu chấp hành chủ trương, chính sách pháp luật</span>
@@ -1603,7 +1603,7 @@ export default function VanHoaGiaDinhPage() {
           <div>
             <label className="text-xs font-semibold text-slate-700 block mb-1">Đơn vị / Ban tổ chức</label>
             <Input
-              placeholder="VD: Hội Nông dân Xã Thịnh Đức"
+              placeholder="VD: Hội Nông dân Xã Giả định A"
               value={organizerName}
               onChange={(e) => setOrganizerName(e.target.value)}
               className="text-xs"

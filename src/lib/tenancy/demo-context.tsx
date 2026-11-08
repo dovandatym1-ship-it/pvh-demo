@@ -286,7 +286,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
           entityId: targetCode,
           details: {
             message: `Khôi phục toàn bộ bảng dữ liệu ${
-              targetCode === "XA_A" ? "Xã Thịnh Đức (Xã A)" : "Xã Tân Cương (Xã B)"
+              targetCode === "XA_A" ? "Xã Giả định A (TN-DEMO-A)" : "Xã Giả định B (TN-DEMO-B)"
             } về trạng thái Golden Seed ban đầu`,
             preservedTenant: targetCode === "XA_A" ? "XA_B" : "XA_A",
           },

@@ -3,7 +3,7 @@ import test from "node:test";
 import { getInitialGoldenSeed, TaskItem } from "../src/lib/store/demo-state";
 import { MetricFilter } from "../src/lib/tenancy/demo-context";
 
-// Pure logic matching filteredTasks in src/app/(dashboard)/ban-lam-viec/page.tsx
+// Pure logic matching filteredTasks in src/app/(legacy)/ban-lam-viec/page.tsx
 function filterQueue(
   tasks: TaskItem[],
   recommendations: any[] = [],
