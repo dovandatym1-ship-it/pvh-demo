@@ -44,7 +44,7 @@
 - Tables M04/M05/M08 mới có RLS+FORCE RLS, chỉ GRANT SELECT scoped cho authenticated; mutations qua RPC kiểm tra `auth.uid`, membership đang hiệu lực, quyền chính xác, địa bàn và audit atomic.
 - **Không** cấp quyền nghiệp vụ cho SYSTEM_ADMIN mặc định; không seed PII thật; không tạo user; không sửa cloud/live.
 - Không tự coi rule demo hay nguồn thẩm quyền không xác minh là quyết định hợp lệ.
-- M04 evidence vẫn phải được gắn chặt với đúng hồ sơ chứ không chỉ là tệp M01 có quyền đọc: cần hardening thêm trước G3.
+- M04 evidence kiểm tra phải gắn với `submissions.work_item_id` M01 tương ứng; vì chưa có RPC liên kết work item có kiểm toán, `DAT` **đang bị khóa** kể cả khi pack VERIFIED. Cần hoàn thiện liên kết trước G3.
 
 ## 5. Rủi ro / việc bắt buộc trước Gate G3
 
