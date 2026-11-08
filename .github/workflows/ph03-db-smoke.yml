@@ -1,0 +1,37 @@
+name: PH03 DB migration smoke (local only)
+
+on:
+  push:
+    branches: ['feat/pvh-ph03-domain-verticals']
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/ph03-db-smoke.yml'
+  pull_request:
+    branches: ['feat/pvh-ph02-core-workflow']
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/ph03-db-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  local-db:
+    name: Reproduce migrations and pgTAP locally
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Supabase CLI v3 (no project login)
+        uses: supabase/setup-cli@v3
+        with:
+          version: 3.0.0
+      - name: Discover local-only CLI commands
+        run: |
+          supabase --version
+          supabase db start --help
+          supabase test db --help
+      - name: Start isolated local PostgreSQL and apply migrations
+        run: supabase db start
+      - name: Run database contract tests
+        run: supabase test db
