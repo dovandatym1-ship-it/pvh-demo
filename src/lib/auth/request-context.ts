@@ -34,6 +34,30 @@ export const getRequestContext = React.cache(async (): Promise<RequestContext> =
 
   // In demo mode without cloud auth account, provide authorized test profile
   if ((authError || !user) && isDemo && demoPersona) {
+    if (demoPersona === "ADMIN") {
+      return {
+        userId: "user-admin",
+        tenantId: "TN-DEMO-A",
+        membershipId: "mem-admin",
+        roles: ["SYSTEM_ADMIN", "LANH_DAO_XA", "admin"],
+        permissions: [
+          "m00:admin",
+          "*",
+          "m01:full",
+          "m02:full",
+          "m03:full",
+          "m04:full",
+          "m05:full",
+          "m06:full",
+          "m07:full",
+          "m08:full",
+          "m09:full",
+          "m10:full",
+          "health:view_pii",
+        ],
+        scopes: {},
+      };
+    }
     if (demoPersona === "P2") {
       return {
         userId: "user-p2",
@@ -56,6 +80,26 @@ export const getRequestContext = React.cache(async (): Promise<RequestContext> =
           "m01:work:transition",
         ],
         scopes: { hamletIds: ["xom-a1", "xom-a2"], sectorIds: ["van-hoa", "xa-hoi"] },
+      };
+    }
+    if (demoPersona === "P3") {
+      return {
+        userId: "user-p3",
+        tenantId: "TN-DEMO-A",
+        membershipId: "mem-p3",
+        roles: ["CONG_CHUC_VHXH", "CAN_BO_CHUYEN_TRACH"],
+        permissions: ["m01:view", "m04:full", "m05:view", "m09:draft", "health:view_pii"],
+        scopes: {},
+      };
+    }
+    if (demoPersona === "P4") {
+      return {
+        userId: "user-p4",
+        tenantId: "TN-DEMO-A",
+        membershipId: "mem-p4",
+        roles: ["TRUONG_THON"],
+        permissions: ["m01:hamlet_view", "m04:propose_title", "m06:propose_aid"],
+        scopes: { hamletIds: ["xom-a1"] },
       };
     }
     if (demoPersona === "P5") {
