@@ -7,7 +7,7 @@ export function isDemoAuthEnabled(): boolean {
   );
 }
 
-export const DEMO_PERSONA_CODES = ["P1", "P2", "P3", "P4", "P5", "P6"] as const;
+export const DEMO_PERSONA_CODES = ["ADMIN", "P1", "P2", "P3", "P4", "P5", "P6"] as const;
 
 export function isValidDemoPersona(value: string | undefined): boolean {
   return value !== undefined && DEMO_PERSONA_CODES.some((code) => code === value);

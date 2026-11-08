@@ -13,6 +13,7 @@
 4. Restrict demo session to opt-in local development, validate persona allowlist, and reject demo cookies in production middleware.
 5. Protect file downloads by looking up evidence metadata under existing database RLS; no user-controlled storage path or blanket same-commune role override.
 6. Make M01 repository RPC calls explicit to `app` schema, matching the deployed SQL contract. Transition RPC is still absent in cloud.
+7. Incorporated the concurrent `main` change for a dedicated ADMIN persona, but only as an opt-in local demo role with scoped M00 permissions. Removed the new production fallback that accepted a fixed `Password123!` without a verified cloud account. Real SYSTEM_ADMIN remains a Supabase Auth account with DB role membership.
 
 ## Evidence and limits
 

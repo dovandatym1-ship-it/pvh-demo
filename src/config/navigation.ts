@@ -141,7 +141,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         route: "/quan-tri",
         iconName: "ShieldCheck",
         moduleKey: "m00",
-        requiredPermission: "m00:admin",
+        requiredPermission: "m00:membership:read",
         status: "LEGACY_MOCK",
       },
     ],

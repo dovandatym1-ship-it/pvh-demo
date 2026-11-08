@@ -26,9 +26,10 @@ test("production cannot authenticate through demo cookies, even if flags are set
 });
 
 test("unrecognized persona never falls back to P1", () => {
+  assert.equal(isValidDemoPersona("ADMIN"), true);
   assert.equal(isValidDemoPersona("P1"), true);
   assert.equal(isValidDemoPersona("P6"), true);
-  for (const value of [undefined, "ADMIN", "P7", "P2;P1", "", "p1"]) {
+  for (const value of [undefined, "P7", "P2;P1", "", "p1"]) {
     assert.equal(isValidDemoPersona(value), false);
   }
 });

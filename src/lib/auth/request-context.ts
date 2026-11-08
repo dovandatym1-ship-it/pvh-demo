@@ -36,6 +36,16 @@ export const getRequestContext = React.cache(async (): Promise<RequestContext> =
 
   // In demo mode without cloud auth account, provide authorized test profile
   if ((authError || !user) && isDemo && isValidDemoPersona(demoPersona)) {
+    if (demoPersona === "ADMIN") {
+      return {
+        userId: "user-admin",
+        tenantId: "TN-DEMO-A",
+        membershipId: "mem-admin",
+        roles: ["SYSTEM_ADMIN"],
+        permissions: ["m00:membership:read", "m00:audit:read", "m00:jobs:read"],
+        scopes: {},
+      };
+    }
     if (demoPersona === "P2") {
       return {
         userId: "user-p2",
@@ -78,6 +88,26 @@ export const getRequestContext = React.cache(async (): Promise<RequestContext> =
         roles: ["CAN_BO_THANH_TRA", "AUDITOR"],
         permissions: ["m08:full", "m04:inspect", "m06:inspect", "m09:view", "health:view_pii"],
         scopes: {},
+      };
+    }
+    if (demoPersona === "P3") {
+      return {
+        userId: "user-p3",
+        tenantId: "TN-DEMO-A",
+        membershipId: "mem-p3",
+        roles: ["CONG_CHUC_VHXH", "CAN_BO_CHUYEN_TRACH"],
+        permissions: ["m01:work:read", "m04:culture:read", "m05:digital:read"],
+        scopes: {},
+      };
+    }
+    if (demoPersona === "P4") {
+      return {
+        userId: "user-p4",
+        tenantId: "TN-DEMO-A",
+        membershipId: "mem-p4",
+        roles: ["TRUONG_THON"],
+        permissions: ["m04:culture:read"],
+        scopes: { hamletIds: ["xom-a1"] },
       };
     }
     if (demoPersona !== "P1") {
