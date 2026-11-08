@@ -95,7 +95,7 @@ create table public.submissions (
  status text not null default 'CHO_RA_SOAT'
    check(status in ('CHO_RA_SOAT','THIEU_MINH_CHUNG','YEU_CAU_BO_SUNG','DAT','KHONG_DAT')),
  score numeric(7,2), criteria_scores jsonb not null default '[]'::jsonb,
- evidence_id uuid, reviewer_comment text, source_ref text not null,
+ work_item_id uuid, evidence_id uuid, reviewer_comment text, source_ref text not null,
  idempotency_key text not null check(length(btrim(idempotency_key)) between 1 and 200),
  request_hash text not null,
  version integer not null default 1 check(version>0),
@@ -107,6 +107,7 @@ create table public.submissions (
  foreign key(tenant_id,campaign_id) references public.campaigns(tenant_id,id),
  foreign key(tenant_id,rule_pack_id) references public.culture_rule_packs(tenant_id,id),
  foreign key(tenant_id,hamlet_id) references public.org_units(tenant_id,id),
+ foreign key(tenant_id,work_item_id) references public.work_items(tenant_id,id),
  foreign key(tenant_id,evidence_id) references public.evidence_files(tenant_id,id),
  check(jsonb_typeof(criteria_scores)='array')
 );
@@ -413,10 +414,13 @@ begin
  if length(btrim(coalesce(p_reason,'')))<5 then raise exception 'REASON_REQUIRED' using errcode='22023'; end if;
  select * into strict v_pack from public.culture_rule_packs
  where tenant_id=v_tenant and id=v_row.rule_pack_id and version=v_row.rule_pack_version;
- if p_evidence_id is not null and not exists(
+ -- A file from any unrelated M01 work item must not satisfy M04 evidence.
+ -- Linking a dedicated M04 case work item is a later, audited operation.
+ if p_evidence_id is not null and (v_row.work_item_id is null or not exists(
   select 1 from public.evidence_files e
   where e.id=p_evidence_id and e.tenant_id=v_tenant and e.status='UPLOADED'
-  and pvh_private.can_access_work(e.tenant_id,e.work_item_id,'read')) then
+  and e.work_item_id=v_row.work_item_id
+  and pvh_private.can_access_work(e.tenant_id,e.work_item_id,'read'))) then
   raise exception 'FORBIDDEN_EVIDENCE' using errcode='42501';
  end if;
  if p_status='DAT' then
@@ -424,9 +428,10 @@ begin
      or p_score is null or p_score<v_pack.min_score then
    raise exception 'UNVERIFIED_LEGAL_RULE_OR_THRESHOLD' using errcode='42501';
   end if;
-  if coalesce(p_evidence_id,v_row.evidence_id) is null or not exists(
+  if v_row.work_item_id is null or coalesce(p_evidence_id,v_row.evidence_id) is null or not exists(
    select 1 from public.evidence_files e where e.id=coalesce(p_evidence_id,v_row.evidence_id)
      and e.tenant_id=v_tenant and e.status='UPLOADED'
+     and e.work_item_id=v_row.work_item_id
      and pvh_private.can_access_work(e.tenant_id,e.work_item_id,'read')) then
    raise exception 'VERIFIED_EVIDENCE_REQUIRED' using errcode='22023';
   end if;
