@@ -73,7 +73,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         iconName: "GraduationCap",
         moduleKey: "m03",
         requiredPermission: "m03:education:read",
-        status: "LEGACY_MOCK",
+        status: "DEEP",
       },
       {
         title: "Văn hóa & Gia đình (M04)",
