@@ -1,224 +1,114 @@
 import "server-only";
-
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { type Result, ok, fail } from "@/lib/types/result";
 import type { RequestContext } from "@/lib/auth/request-context";
-import type { ReportSnapshotDTO, SnapshotLineageDTO, SnapshotStatus } from "../types";
+import type { CreateReportSnapshotInput, AdvanceReportSnapshotInput } from "../schemas";
+import type { ReportSnapshotDTO, SnapshotLineageDTO, ReportCatalogEntry } from "../types";
 
-export interface CreateSnapshotRepoInput {
-  readonly id?: string;
-  readonly reportCode: string;
-  readonly title: string;
-  readonly period: string;
-  readonly year: number;
-  readonly status: SnapshotStatus;
-  readonly payload: Record<string, unknown>;
-  readonly sha256: string;
-  readonly isFinalized: boolean;
-  readonly idempotencyKey?: string | null;
-  readonly watermark?: string;
+function mapError<T>(error: {code?: string; message: string}): Result<T> {
+  const msg = error.message || "";
+  if (error.code === "42501" || /FORBIDDEN|PERIOD_LOCKED/.test(msg)) return fail("FORBIDDEN", "Không có quyền hoặc kỳ đã khóa");
+  if (error.code === "40001" || /VERSION_CONFLICT/.test(msg)) return fail("VERSION_CONFLICT", "Dữ liệu đã thay đổi, vui lòng tải lại");
+  if (/IDEMPOTENCY_CONFLICT|SOURCE_VERSION_CONFLICT/.test(msg)) return fail("DUPLICATE_REQUEST", "Khóa yêu cầu đã dùng với dữ liệu khác");
+  if (error.code === "22023") return fail("VALIDATION", "Dữ liệu báo cáo không hợp lệ");
+  if (error.code === "P0002") return fail("NOT_FOUND", "Không tìm thấy bản ghi");
+  return fail("INTERNAL", "Không thể truy cập CSDL báo cáo");
 }
-
-export interface LineageRepoInput {
-  readonly sourceTable: string;
-  readonly sourceId: string;
-  readonly sourceVersion: number;
-}
-
-function mapSnapshotRow(row: Record<string, unknown>): ReportSnapshotDTO {
+export function mapSnapshot(row: Record<string, unknown>): ReportSnapshotDTO {
   return {
-    id: String(row.id),
-    tenantId: String(row.tenant_id),
-    reportCode: String(row.report_code),
-    title: String(row.title),
-    period: String(row.period),
-    year: Number(row.year),
-    status: row.status as SnapshotStatus,
-    payload: (row.payload as Record<string, unknown>) || {},
-    sha256: String(row.sha256 || ""),
-    watermark: String(row.watermark || "[MÔ PHỎNG DEMO — KHÔNG CÓ GIÁ TRỊ PHÁP LÝ]"),
-    isFinalized: Boolean(row.is_finalized),
-    idempotencyKey: (row.idempotency_key as string) || null,
-    finalizedAt: (row.finalized_at as string) || null,
-    finalizedBy: (row.finalized_by as string) || null,
-    createdAt: String(row.created_at),
-    updatedAt: (row.updated_at as string) || undefined,
-    // Compat
-    code: String(row.report_code),
-    indicatorsData: (row.payload as Record<string, unknown>) || {},
-    sha256Hash: String(row.sha256 || ""),
-    signedBy: (row.finalized_by as string) || undefined,
-    signedAt: (row.finalized_at as string) || undefined,
+    id: String(row.id), tenantId: String(row.tenant_id),
+    reportCode: row.report_code as ReportSnapshotDTO["reportCode"], title: String(row.title),
+    period: String(row.period), year: Number(row.year), revision: Number(row.revision),
+    previousSnapshotId: row.previous_snapshot_id ? String(row.previous_snapshot_id) : null,
+    version: Number(row.version), createdBy: String(row.created_by), status: row.status as ReportSnapshotDTO["status"],
+    payload: row.payload as Record<string, unknown>,
+    canonicalText: String(row.canonical_text), sha256: String(row.sha256),
+    hashAlgorithm: "PG_JSONB_TEXT_V1", watermark: String(row.watermark),
+    isFinalized: row.status === "FINALIZED",
+    finalizedAt: row.finalized_at ? String(row.finalized_at) : null,
+    finalizedBy: row.finalized_by ? String(row.finalized_by) : null,
+    createdAt: String(row.created_at), updatedAt: String(row.updated_at),
   };
 }
-
 export const reportingRepository = {
-  async createSnapshotRecord(
-    ctx: RequestContext,
-    input: CreateSnapshotRepoInput
-  ): Promise<Result<ReportSnapshotDTO>> {
+  async createDraft(ctx: RequestContext, input: CreateReportSnapshotInput): Promise<Result<ReportSnapshotDTO>> {
     try {
-      const supabase = await createServerSupabaseClient();
-      const snapshotId = input.id || crypto.randomUUID();
-
-      const { data, error } = await supabase
-        .from("report_snapshots")
-        .insert({
-          id: snapshotId,
-          tenant_id: ctx.tenantId,
-          report_code: input.reportCode,
-          title: input.title,
-          period: input.period,
-          year: input.year,
-          status: input.status,
-          payload: input.payload,
-          sha256: input.sha256,
-          watermark: input.watermark || "[MÔ PHỎNG DEMO — KHÔNG CÓ GIÁ TRỊ PHÁP LÝ]",
-          is_finalized: input.isFinalized,
-          idempotency_key: input.idempotencyKey || null,
-          created_by: ctx.userId,
-          finalized_at: input.isFinalized ? new Date().toISOString() : null,
-          finalized_by: input.isFinalized ? ctx.userId : null,
-        })
-        .select()
-        .single();
-
-      if (error) {
-        if (error.code === "23505") {
-          return fail("DUPLICATE_REQUEST", "Snapshot với idempotency key này đã tồn tại", error);
-        }
-        return fail("INTERNAL", `Lỗi CSDL khi tạo snapshot: ${error.message}`, error);
-      }
-
-      return ok(mapSnapshotRow(data as Record<string, unknown>));
-    } catch (err: unknown) {
-      return fail("INTERNAL", "Lỗi ngoại lệ tại reportingRepository.createSnapshotRecord", err);
-    }
+      const db = await createServerSupabaseClient();
+      const { data, error } = await db.schema("app").rpc("create_report_snapshot", {
+        p_report_code: input.reportCode, p_title: input.title, p_period: input.period,
+        p_year: input.year, p_idempotency_key: input.idempotencyKey,
+        p_previous_snapshot_id: input.previousSnapshotId ?? null,
+      });
+      if (error) return mapError<ReportSnapshotDTO>(error);
+      if (!data || typeof data !== "object" || !("id" in data)) return fail("INTERNAL", "RPC không trả lại bản ghi đã tạo");
+      const row = mapSnapshot(data as Record<string, unknown>);
+      if (row.tenantId !== ctx.tenantId) return fail("FORBIDDEN", "Phạm vi đơn vị không hợp lệ");
+      return ok(row);
+    } catch { return fail("INTERNAL", "Không thể tạo bản nháp báo cáo"); }
   },
-
-  async finalizeSnapshotViaRpc(
-    ctx: RequestContext,
-    snapshotId: string,
-    canonicalPayload: Record<string, unknown>,
-    sha256?: string
-  ): Promise<Result<{ id: string; sha256: string; status: string }>> {
+  async advance(ctx: RequestContext, input: AdvanceReportSnapshotInput): Promise<Result<ReportSnapshotDTO>> {
     try {
-      const supabase = await createServerSupabaseClient();
-      const rpcParams: Record<string, unknown> = {
-        p_snapshot_id: snapshotId,
-        p_canonical_payload: canonicalPayload,
-      };
-      if (sha256) {
-        rpcParams.p_sha256 = sha256;
-      }
-      const { data, error } = await supabase.rpc("finalize_report_snapshot", rpcParams);
-
-      if (error) {
-        if (error.message.includes("FORBIDDEN")) {
-          return fail("FORBIDDEN", "Không có quyền chốt snapshot báo cáo", error);
-        }
-        if (error.message.includes("NOT_FOUND")) {
-          return fail("NOT_FOUND", "Không tìm thấy snapshot báo cáo", error);
-        }
-        return fail("INTERNAL", `Lỗi RPC finalize_report_snapshot: ${error.message}`, error);
-      }
-
-      const res = data as { ok: boolean; id: string; sha256: string; status: string };
-      return ok({ id: res.id, sha256: res.sha256, status: res.status });
-    } catch (err: unknown) {
-      return fail("INTERNAL", "Lỗi ngoại lệ khi gọi RPC finalize_report_snapshot", err);
-    }
+      const db = await createServerSupabaseClient();
+      const { data, error } = await db.schema("app").rpc("advance_report_snapshot", {
+        p_snapshot_id: input.snapshotId, p_expected_version: input.expectedVersion,
+        p_transition: input.transition,
+      });
+      if (error) return mapError<ReportSnapshotDTO>(error);
+      if (!data || typeof data !== "object" || !("id" in data)) return fail("INTERNAL", "RPC không xác nhận trạng thái");
+      const row = mapSnapshot(data as Record<string, unknown>);
+      if (row.tenantId !== ctx.tenantId) return fail("FORBIDDEN", "Sai đơn vị");
+      return ok(row);
+    } catch { return fail("INTERNAL", "Không thể chuyển trạng thái báo cáo"); }
   },
-
-  async recordLineage(
-    ctx: RequestContext,
-    snapshotId: string,
-    items: LineageRepoInput[]
-  ): Promise<Result<true>> {
+  async findSnapshotById(ctx: RequestContext, id: string): Promise<Result<ReportSnapshotDTO>> {
     try {
-      if (items.length === 0) return ok(true);
-      const supabase = await createServerSupabaseClient();
-      const rows = items.map((item) => ({
-        tenant_id: ctx.tenantId,
-        snapshot_id: snapshotId,
-        source_table: item.sourceTable,
-        source_id: item.sourceId,
-        source_version: item.sourceVersion,
-      }));
-
-      const { error } = await supabase.from("report_snapshot_lineage").insert(rows);
-      if (error) {
-        return fail("INTERNAL", `Lỗi CSDL khi ghi vết lineage: ${error.message}`, error);
+      const db = await createServerSupabaseClient();
+      const {data,error} = await db.from("report_snapshots").select("*")
+        .eq("tenant_id", ctx.tenantId).eq("id",id).maybeSingle();
+      if (error) return mapError<ReportSnapshotDTO>(error);
+      return data ? ok(mapSnapshot(data)) : fail("NOT_FOUND", "Không tìm thấy snapshot được phép đọc");
+    } catch { return fail("INTERNAL", "Lỗi truy vấn snapshot"); }
+  },
+  async listSnapshots(ctx: RequestContext): Promise<Result<ReportSnapshotDTO[]>> {
+    try {
+      const db = await createServerSupabaseClient();
+      const {data,error} = await db.from("report_snapshots").select("*")
+        .eq("tenant_id",ctx.tenantId).order("created_at",{ascending:false}).limit(200);
+      if (error) return mapError<ReportSnapshotDTO[]>(error);
+      return ok((data ?? []).map(row => mapSnapshot(row)));
+    } catch { return fail("INTERNAL", "Lỗi truy vấn danh sách báo cáo"); }
+  },
+  async listCatalog(): Promise<Result<ReportCatalogEntry[]>> {
+    try {
+      const db = await createServerSupabaseClient();
+      const {data,error} = await db.from("report_catalog")
+        .select("code,title,metric_definitions").eq("active",true).order("code");
+      if (error) return mapError<ReportCatalogEntry[]>(error);
+      return ok((data ?? []).map(row => ({
+        code: row.code as ReportCatalogEntry["code"], title: row.title,
+        metricDefinitions: row.metric_definitions as ReportCatalogEntry["metricDefinitions"],
+      })));
+    } catch { return fail("INTERNAL", "Lỗi truy vấn danh mục báo cáo"); }
+  },
+  async getLineage(ctx: RequestContext, snapshotId: string): Promise<Result<SnapshotLineageDTO[]>> {
+    try {
+      const db = await createServerSupabaseClient();
+      const all: SnapshotLineageDTO[] = [];
+      // Paginate until exhaustion; returned rows are additionally filtered by source-specific RLS.
+      for (let offset = 0; offset < 100000; offset += 500) {
+        const {data,error} = await db.from("report_snapshot_lineage").select("*")
+          .eq("tenant_id",ctx.tenantId).eq("snapshot_id",snapshotId)
+          .order("id").range(offset,offset+499);
+        if (error) return mapError<SnapshotLineageDTO[]>(error);
+        for (const row of data ?? []) all.push({
+          id:String(row.id),snapshotId:String(row.snapshot_id),sourceTable:String(row.source_table),
+          sourceId:String(row.source_id),sourceVersion:Number(row.source_version),
+          metricGroup:String(row.metric_group),
+          contribution:row.contribution as Record<string,unknown>,createdAt:String(row.created_at),
+        });
+        if ((data ?? []).length < 500) return ok(all);
       }
-      return ok(true);
-    } catch (err: unknown) {
-      return fail("INTERNAL", "Lỗi ngoại lệ tại recordLineage", err);
-    }
-  },
-
-  async findSnapshotById(
-    ctx: RequestContext,
-    snapshotId: string
-  ): Promise<Result<ReportSnapshotDTO>> {
-    try {
-      const supabase = await createServerSupabaseClient();
-      const { data, error } = await supabase
-        .from("report_snapshots")
-        .select("*")
-        .eq("id", snapshotId)
-        .eq("tenant_id", ctx.tenantId)
-        .single();
-
-      if (error || !data) {
-        return fail("NOT_FOUND", `Không tìm thấy snapshot ID ${snapshotId}`);
-      }
-
-      return ok(mapSnapshotRow(data as Record<string, unknown>));
-    } catch (err: unknown) {
-      return fail("INTERNAL", "Lỗi ngoại lệ tại findSnapshotById", err);
-    }
-  },
-
-  async listSnapshots(ctx: RequestContext): Promise<ReportSnapshotDTO[]> {
-    try {
-      const supabase = await createServerSupabaseClient();
-      const { data, error } = await supabase
-        .from("report_snapshots")
-        .select("*")
-        .eq("tenant_id", ctx.tenantId)
-        .order("created_at", { ascending: false });
-
-      if (error || !data) return [];
-      return data.map((r) => mapSnapshotRow(r as Record<string, unknown>));
-    } catch {
-      return [];
-    }
-  },
-
-  async getLineage(
-    ctx: RequestContext,
-    snapshotId: string
-  ): Promise<SnapshotLineageDTO[]> {
-    try {
-      const supabase = await createServerSupabaseClient();
-      const { data, error } = await supabase
-        .from("report_snapshot_lineage")
-        .select("*")
-        .eq("tenant_id", ctx.tenantId)
-        .eq("snapshot_id", snapshotId)
-        .order("created_at", { ascending: true });
-
-      if (error || !data) return [];
-      return data.map((row) => ({
-        id: String(row.id),
-        snapshotId: String(row.snapshot_id),
-        sourceTable: String(row.source_table),
-        sourceId: String(row.source_id),
-        sourceVersion: Number(row.source_version),
-        createdAt: String(row.created_at),
-      }));
-    } catch {
-      return [];
-    }
+      return fail("INTERNAL", "Vượt giới hạn truy vấn lineage; cần phân trang máy chủ");
+    } catch { return fail("INTERNAL", "Lỗi truy vấn nguồn dữ liệu"); }
   },
 };
