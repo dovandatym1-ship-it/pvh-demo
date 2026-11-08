@@ -25,6 +25,7 @@ export function InspectionWorkspace({records,recommendations,hamlets,assignees,c
  const [reviewStatus,setReviewStatus]=useState("FEEDBACK_UNVERIFIED");
  const [reviewReason,setReviewReason]=useState("");
  const retryKey=useRef<string|null>(null);
+ const resetRetryKey=()=>{retryKey.current=null;};
  const reviewItem=recommendations.find(r=>r.id===reviewId);
  async function invoke(fn:()=>Promise<{ok:boolean;error?:{message:string}}>,success:string){
   setBusy(true);setMessage("");
@@ -81,15 +82,15 @@ export function InspectionWorkspace({records,recommendations,hamlets,assignees,c
     });
    }}>
     <h2 className="font-semibold">Kiến nghị và giao việc M01</h2>
-    <select className={field} value={inspectionId} onChange={e=>setInspectionId(e.target.value)} required>
+    <select className={field} value={inspectionId} onChange={e=>{setInspectionId(e.target.value);resetRetryKey();}} required>
      <option value="">Chọn cuộc kiểm tra</option>
      {records.map(r=><option key={r.id} value={r.id}>{r.code} – {r.targetName}</option>)}
     </select>
-    <input className={field} required placeholder="Mã kiến nghị" value={recCode} onChange={e=>setRecCode(e.target.value)}/>
+    <input className={field} required placeholder="Mã kiến nghị" value={recCode} onChange={e=>{setRecCode(e.target.value);resetRetryKey();}}/>
     <textarea className={field} required minLength={5} placeholder="Nội dung khắc phục" value={recTitle}
-     onChange={e=>setRecTitle(e.target.value)}/>
-    <input className={field} type="date" required value={recDue} onChange={e=>setRecDue(e.target.value)}/>
-    <select className={field} required value={assignedTo} onChange={e=>setAssignedTo(e.target.value)}>
+     onChange={e=>{setRecTitle(e.target.value);resetRetryKey();}}/>
+    <input className={field} type="date" required value={recDue} onChange={e=>{setRecDue(e.target.value);resetRetryKey();}}/>
+    <select className={field} required value={assignedTo} onChange={e=>{setAssignedTo(e.target.value);resetRetryKey();}}>
      <option value="">Đầu mối nhận việc M01</option>
      {assignees.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}
     </select>
@@ -124,7 +125,7 @@ export function InspectionWorkspace({records,recommendations,hamlets,assignees,c
      <td className="p-3"><a className="text-emerald-800 underline"
       href={"/cong-viec/"+r.workItemId}>Mở công việc</a></td>
      <td className="p-3">{canReview&&r.status!=="RESOLVED_CLOSED"&&
-      <button className="text-emerald-800 underline" onClick={()=>setReviewId(r.id)}>Đối soát</button>}</td>
+      <button type="button" className="text-emerald-800 underline" onClick={()=>setReviewId(r.id)}>Đối soát</button>}</td>
     </tr>)}</tbody>
    </table>
    {!recommendations.length&&<p className="p-5 text-sm text-slate-500">Chưa có kiến nghị.</p>}
