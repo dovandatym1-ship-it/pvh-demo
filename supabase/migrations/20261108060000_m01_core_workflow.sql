@@ -4,6 +4,11 @@
 alter table public.work_items
   add column workflow_version integer not null default 1 check (workflow_version > 0);
 
+-- Supports tenant-scoped server paging and overdue counts without full scans.
+create index work_items_tenant_created_at_idx on public.work_items(tenant_id,created_at desc);
+create index work_items_open_due_idx on public.work_items(tenant_id,due_date)
+  where due_date is not null and status not in ('COMPLETED','CANCELLED');
+
 alter table public.evidence_files
   add column status text not null default 'PENDING' check (status in ('PENDING','UPLOADED')),
   add column content_type text,
@@ -38,6 +43,7 @@ create index work_item_assignments_work_idx
 create index work_item_assignments_assignee_idx
   on public.work_item_assignments(tenant_id, assignee);
 create index work_item_assignments_actor_idx on public.work_item_assignments(actor_id);
+create index work_item_assignments_previous_idx on public.work_item_assignments(previous_assignee);
 
 -- Transactional in-app notifications; no external email/SMS is sent.
 create table public.work_item_inbox (
