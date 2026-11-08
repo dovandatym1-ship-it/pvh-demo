@@ -25,32 +25,15 @@ export async function resolveInspectionRecommendationAction(
     const { recommendationId, status, idempotencyKey } = parsed.data;
     const supabase = await createServerSupabaseClient();
 
-    const { error } = await supabase.rpc("resolve_inspection_recommendation", {
+    const { data, error } = await supabase.schema("app").rpc("resolve_inspection_recommendation", {
       p_tenant_id: ctx.tenantId,
       p_recommendation_id: recommendationId,
       p_status: status,
       p_idempotency_key: idempotencyKey ?? null,
     });
 
-    if (error) {
-      await supabase
-        .from("inspection_recommendations")
-        .update({
-          status,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("tenant_id", ctx.tenantId)
-        .eq("id", recommendationId);
-
-      await supabase.from("audit_log").insert({
-        tenant_id: ctx.tenantId,
-        user_id: ctx.userId,
-        action: "m08.recommendation.resolve",
-        entity_type: "inspection_recommendation",
-        entity_id: recommendationId,
-        changes: { status },
-        idempotency_key: idempotencyKey,
-      });
+    if (error || !data) {
+      return fail("INTERNAL", "CSDL chưa xác nhận xử lý kiến nghị; không có thay đổi được ghi nhận");
     }
 
     revalidatePath("/kiem-tra");

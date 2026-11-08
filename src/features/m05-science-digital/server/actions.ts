@@ -25,7 +25,7 @@ export async function updateDigitalIndicatorStatusAction(
     const { indicatorId, status, value, idempotencyKey } = parsed.data;
     const supabase = await createServerSupabaseClient();
 
-    const { error } = await supabase.rpc("update_digital_indicator_status", {
+    const { data, error } = await supabase.schema("app").rpc("update_digital_indicator_status", {
       p_tenant_id: ctx.tenantId,
       p_indicator_id: indicatorId,
       p_status: status,
@@ -33,27 +33,8 @@ export async function updateDigitalIndicatorStatusAction(
       p_idempotency_key: idempotencyKey ?? null,
     });
 
-    if (error) {
-      await supabase
-        .from("digital_indicators")
-        .update({
-          status,
-          value,
-          is_confirmed_zero: status === "CONFIRMED_ZERO",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("tenant_id", ctx.tenantId)
-        .eq("id", indicatorId);
-
-      await supabase.from("audit_log").insert({
-        tenant_id: ctx.tenantId,
-        user_id: ctx.userId,
-        action: "m05.indicator.update_status",
-        entity_type: "digital_indicator",
-        entity_id: indicatorId,
-        changes: { status, value },
-        idempotency_key: idempotencyKey,
-      });
+    if (error || !data) {
+      return fail("INTERNAL", "CSDL chưa xác nhận cập nhật chỉ tiêu; không có thay đổi được ghi nhận");
     }
 
     revalidatePath("/khcn-chuyen-doi-so");

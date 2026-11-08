@@ -25,7 +25,7 @@ export async function resolveLaborDisputeAction(
     const { disputeId, status, outcome, idempotencyKey } = parsed.data;
     const supabase = await createServerSupabaseClient();
 
-    const { error } = await supabase.rpc("resolve_labor_dispute", {
+    const { data, error } = await supabase.schema("app").rpc("resolve_labor_dispute", {
       p_tenant_id: ctx.tenantId,
       p_dispute_id: disputeId,
       p_status: status,
@@ -33,26 +33,9 @@ export async function resolveLaborDisputeAction(
       p_idempotency_key: idempotencyKey ?? null,
     });
 
-    if (error) {
-      await supabase
-        .from("labor_disputes")
-        .update({
-          status,
-          outcome_summary: outcome,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("tenant_id", ctx.tenantId)
-        .eq("id", disputeId);
-
-      await supabase.from("audit_log").insert({
-        tenant_id: ctx.tenantId,
-        user_id: ctx.userId,
-        action: "m02.labor_dispute.resolve",
-        entity_type: "labor_dispute",
-        entity_id: disputeId,
-        changes: { status, outcome },
-        idempotency_key: idempotencyKey,
-      });
+    if (error || !data) {
+      // Never change state directly after the audited RPC failed.
+      return fail("INTERNAL", "CSDL chưa xác nhận xử lý tranh chấp; không có thay đổi được ghi nhận");
     }
 
     revalidatePath("/noi-vu");
