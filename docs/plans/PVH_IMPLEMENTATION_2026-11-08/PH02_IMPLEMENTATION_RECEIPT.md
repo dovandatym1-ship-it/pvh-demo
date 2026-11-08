@@ -25,7 +25,13 @@
 - `P02-07/10`: Bổ sung danh sách người phối hợp đọc-only theo scope; người điều phối thay đổi tối đa 20 người với OCC/idempotency/lý do/event/audit/inbox; RLS không cấp thêm quyền cập nhật/phê duyệt cho người phối hợp.
 - `P02-16`: pgTAP structural contract tăng từ 13 lên 38 assertion; Node tests tăng từ 5 lên 15, CI chạy `tests/m01-*.test.mjs`. **Đây là kiểm thử ở mức source/contract, chưa phải DB E2E.**
 
-**Trạng thái:** `CODED_AWAITING_CI_AND_DB_TEST`. Chưa có bằng chứng Gate G2 PASS; không áp migration trên Supabase thật.
+**Trạng thái:** `CODED_CI_PASS_AWAITING_STAGING`. Chưa có bằng chứng Gate G2 PASS; không áp migration trên Supabase thật.
+
+### CI sau hardening
+
+- [GitHub Actions #42478821475](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42478821475) tại commit `fca1c7298a8a0c13b16fcf7d3cd67a2833acbb6a`: **PASS** TypeScript, lint, architectural fitness, Next build, security regressions và 15 Node tests.
+- Test pgTAP đã mở rộng thành **38 assertions** nhưng **chưa thực thi trên Postgres**; CI xanh không nâng trạng thái G2.
+- Bộ thao tác/SQL đọc lại để người duyệt kiểm tra: [PH02_GATE_G2_VERIFICATION.md](./PH02_GATE_G2_VERIFICATION.md).
 
 ## Chưa nghiệm thu / phụ thuộc
 
