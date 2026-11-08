@@ -15,6 +15,7 @@ export function CreateWorkItemForm({ assignees, hamlets }: { assignees: Assignee
   const [error, setError] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [sourceRef, setSourceRef] = useState("");
   const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH" | "URGENT">("MEDIUM");
   const [category, setCategory] = useState("CHUNG");
   const [dueDate, setDueDate] = useState("");
@@ -33,6 +34,7 @@ export function CreateWorkItemForm({ assignees, hamlets }: { assignees: Assignee
     try {
       const result = await createWorkItemAction({
         title, description, category, priority, ...(assignedTo ? { assignedTo } : {}),
+        ...(sourceRef.trim() ? { sourceRef: sourceRef.trim() } : {}),
         ...(hamletId ? { hamletId } : {}),
         ...(dueDate ? { dueDate: new Date(dueDate).toISOString() } : {}),
         idempotencyKey: intentKey.current,
@@ -54,6 +56,11 @@ export function CreateWorkItemForm({ assignees, hamlets }: { assignees: Assignee
       <label className="block text-sm font-medium text-slate-700">Mô tả
         <textarea value={description} maxLength={5000} onChange={e => change(() => setDescription(e.target.value))}
           className="mt-1 block w-full rounded-md border border-slate-300 p-2" rows={3} />
+      </label>
+      <label className="block text-sm font-medium text-slate-700">Nguồn giao việc / số văn bản tham chiếu
+        <input maxLength={500} value={sourceRef} onChange={e => change(() => setSourceRef(e.target.value))}
+          className="mt-1 block w-full rounded-md border border-slate-300 p-2"
+          placeholder="VD: Công văn 123/UBND-VHXH hoặc đường dẫn hồ sơ" />
       </label>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <label className="block text-sm font-medium text-slate-700">Lĩnh vực

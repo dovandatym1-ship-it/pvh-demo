@@ -2,7 +2,8 @@
 -- This migration is NOT applied to the production Supabase project by a Git push.
 
 alter table public.work_items
-  add column workflow_version integer not null default 1 check (workflow_version > 0);
+  add column workflow_version integer not null default 1 check (workflow_version > 0),
+  add column source_ref text check (source_ref is null or length(btrim(source_ref)) between 1 and 500);
 
 -- Supports tenant-scoped server paging and overdue counts without full scans.
 create index work_items_tenant_created_at_idx on public.work_items(tenant_id,created_at desc);
@@ -144,6 +145,25 @@ create policy inbox_own_read on public.work_item_inbox for select to authenticat
 create trigger immutable_inbox before update or delete or truncate on public.work_item_inbox
   for each statement execute function pvh_private.reject_log_mutation();
 
+-- Read markers live outside the append-only notification log. Marking an item
+-- read does not rewrite or destroy the original business event.
+create table public.work_item_inbox_reads (
+  inbox_id uuid primary key references public.work_item_inbox(id) on delete restrict,
+  tenant_id uuid not null references public.tenants(id) on delete restrict,
+  recipient_id uuid not null references auth.users(id) on delete restrict,
+  read_at timestamptz not null default now()
+);
+create index work_item_inbox_reads_user_idx
+  on public.work_item_inbox_reads(tenant_id,recipient_id,read_at desc);
+alter table public.work_item_inbox_reads enable row level security;
+alter table public.work_item_inbox_reads force row level security;
+revoke all on public.work_item_inbox_reads from public,anon,authenticated;
+grant select on public.work_item_inbox_reads to authenticated;
+create policy own_inbox_receipts on public.work_item_inbox_reads for select to authenticated
+  using(recipient_id=(select auth.uid()) and tenant_id in(select app.user_tenant_ids()));
+create trigger immutable_inbox_reads before update or delete or truncate on public.work_item_inbox_reads
+  for each statement execute function pvh_private.reject_log_mutation();
+
 create table public.work_item_mutation_requests (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null references public.tenants(id) on delete restrict,
@@ -229,6 +249,38 @@ insert into public.work_item_assignments
   (tenant_id,work_item_id,previous_assignee,assignee,actor_id,work_item_version,created_at)
 select tenant_id,id,null,assigned_to,created_by,1,created_at
 from public.work_items where assigned_to is not null;
+
+-- Wrap PH01 create in the same database transaction so source_ref is recorded
+-- before the response. On replay, detect changes to source_ref even though the
+-- PH01 request hash predates this additional structured field.
+create function app.create_work_item_v2(
+  p_idempotency_key text,p_title text,p_description text,p_priority text,
+  p_assigned_to uuid,p_due_date timestamptz,p_category text,p_hamlet_id uuid,
+  p_tenant_id uuid,p_source_ref text
+) returns jsonb language plpgsql security definer set search_path = '' as $$
+declare v_original jsonb; v_id uuid; v_source_ref text; v_current text; v_result jsonb;
+begin
+  v_source_ref:=nullif(btrim(p_source_ref),'');
+  if p_source_ref is not null and (v_source_ref is null or length(v_source_ref)>500) then
+    raise exception 'VALIDATION: source reference invalid' using errcode='22023';
+  end if;
+  v_original:=app.create_work_item(p_idempotency_key,p_title,p_description,p_priority,
+    p_assigned_to,p_due_date,p_category,p_hamlet_id,p_tenant_id);
+  v_id:=(v_original->>'id')::uuid;
+  select source_ref into v_current from public.work_items where id=v_id for update;
+  if coalesce((v_original->>'cached')::boolean,false) then
+    if v_current is distinct from v_source_ref then
+      raise exception 'IDEMPOTENCY_CONFLICT' using errcode='PV409';
+    end if;
+  else
+    update public.work_items set source_ref=v_source_ref where id=v_id;
+  end if;
+  select to_jsonb(w) into v_result from public.work_items w where w.id=v_id;
+  if coalesce((v_original->>'cached')::boolean,false) then
+    return v_result || jsonb_build_object('cached',true);
+  end if;
+  return v_result;
+end; $$;
 
 -- Do not expose membership lists to ordinary read roles; allow only an
 -- actor with the explicit assignment capability to discover viable assignees.
@@ -604,20 +656,43 @@ begin
   return jsonb_build_object('id',p_id,'abandoned',true);
 end; $$;
 
+create function app.mark_work_inbox_read(p_inbox_id uuid)
+returns jsonb language plpgsql security definer set search_path = '' as $$
+declare v_inbox public.work_item_inbox%rowtype; v_count integer;
+begin
+  if auth.uid() is null then raise exception 'UNAUTHENTICATED' using errcode='28000'; end if;
+  select * into v_inbox from public.work_item_inbox
+  where id=p_inbox_id and recipient_id=auth.uid()
+    and tenant_id in(select app.user_tenant_ids());
+  if not found then raise exception 'NOT_FOUND' using errcode='P0002'; end if;
+  insert into public.work_item_inbox_reads(inbox_id,tenant_id,recipient_id)
+    values(v_inbox.id,v_inbox.tenant_id,auth.uid()) on conflict(inbox_id) do nothing;
+  get diagnostics v_count = row_count;
+  if v_count>0 then
+    insert into public.audit_log(tenant_id,actor_id,action,entity_type,entity_id)
+    values(v_inbox.tenant_id,auth.uid(),'MARK_INBOX_READ','work_item_inbox',p_inbox_id::text);
+  end if;
+  return jsonb_build_object('id',p_inbox_id,'read',true,'cached',v_count=0);
+end; $$;
+
 -- Never let authenticated users mutate business rows directly.
 revoke all on function pvh_private.member_has_work_permission(uuid,uuid,text) from public,anon,authenticated;
 revoke all on function pvh_private.is_eligible_work_assignee(uuid,uuid,uuid) from public,anon,authenticated;
 revoke all on function pvh_private.validate_work_assignee() from public,anon,authenticated;
 revoke all on function app.list_work_assignees(uuid) from public,anon,authenticated;
+revoke all on function app.create_work_item_v2(text,text,text,text,uuid,timestamptz,text,uuid,uuid,text) from public,anon,authenticated;
 revoke all on function app.assign_work_item(uuid,uuid,integer,text,text) from public,anon,authenticated;
 revoke all on function app.transition_work_item(uuid,text,integer,text,text) from public,anon,authenticated;
 revoke all on function app.update_work_item_details(uuid,integer,timestamptz,uuid,text,text) from public,anon,authenticated;
 revoke all on function app.finalize_evidence(uuid,text) from public,anon,authenticated;
 revoke all on function app.abandon_pending_evidence(uuid) from public,anon,authenticated;
+revoke all on function app.mark_work_inbox_read(uuid) from public,anon,authenticated;
 grant execute on function app.list_work_assignees(uuid) to authenticated;
+grant execute on function app.create_work_item_v2(text,text,text,text,uuid,timestamptz,text,uuid,uuid,text) to authenticated;
 grant execute on function app.assign_work_item(uuid,uuid,integer,text,text) to authenticated;
 grant execute on function app.transition_work_item(uuid,text,integer,text,text) to authenticated;
 grant execute on function app.update_work_item_details(uuid,integer,timestamptz,uuid,text,text) to authenticated;
 grant execute on function app.finalize_evidence(uuid,text) to authenticated;
 grant execute on function app.abandon_pending_evidence(uuid) to authenticated;
+grant execute on function app.mark_work_inbox_read(uuid) to authenticated;
 notify pgrst,'reload schema';

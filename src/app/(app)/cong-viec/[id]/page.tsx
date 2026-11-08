@@ -34,6 +34,7 @@ export default async function WorkItemDetailPage({ params }: { params: Promise<{
     <header className="rounded-xl border bg-white p-5 space-y-2">
       <h1 className="text-xl font-bold text-slate-900">{item.title}</h1>
       <p className="text-sm text-slate-600 whitespace-pre-wrap">{item.description || "Chưa có mô tả"}</p>
+      {item.sourceRef && <p className="text-sm text-slate-700">Nguồn tham chiếu: <span className="font-medium break-all">{item.sourceRef}</span></p>}
       <div className="flex flex-wrap gap-3 text-sm text-slate-700">
         <span>Trạng thái: <strong>{item.status}</strong></span><span>Phiên bản: v{item.version}</span>
         <span>Ưu tiên: {item.priority}</span><span>Lĩnh vực: {item.category}</span>

@@ -19,7 +19,9 @@
 - `P1`: Backfill file PH01 có Storage object thật sang `UPLOADED`, không mặc định khóa mọi minh chứng cũ.
 - `P02-10`: Thêm `app.update_work_item_details` đổi hạn/địa bàn có reason/OCC/idempotency/event/audit/inbox; UI thao tác quản lý.
 - `P02-11`: Thêm Storage RLS chỉ cho chủ file đọc/xóa bản PENDING, RPC cleanup chỉ xóa metadata sau khi object không tồn tại; retry finalize cùng receipt, không tự tạo metadata mới khi xác nhận lỗi.
-- `P02-16`: pgTAP structural contract tăng từ 13 lên 27 assertion; Node tests tăng từ 5 lên 12, CI chạy `tests/m01-*.test.mjs`. **Đây là kiểm thử ở mức source/contract, chưa phải DB E2E.**
+- `P02-07`: Thêm `source_ref` cấu trúc, RPC tạo v2 giữ transaction và đối chiếu giá trị nguồn khi replay idempotent.
+- `P02-14`: Giữ notification append-only, thêm receipts riêng có RLS và RPC idempotent đánh dấu đã đọc; bàn làm việc có thao tác xác nhận đọc.
+- `P02-16`: pgTAP structural contract tăng từ 13 lên 32 assertion; Node tests tăng từ 5 lên 14, CI chạy `tests/m01-*.test.mjs`. **Đây là kiểm thử ở mức source/contract, chưa phải DB E2E.**
 
 **Trạng thái:** `CODED_AWAITING_CI_AND_DB_TEST`. Chưa có bằng chứng Gate G2 PASS; không áp migration trên Supabase thật.
 
@@ -40,7 +42,7 @@
 | P02-07–09, P02-12–13, P02-15 | `CODED_NOT_BROWSER_VERIFIED` | Build, UI browser E2E với 3 personas và 375px |
 | P02-10 | `PARTIAL` | Đổi hạn/địa bàn đã code, chưa kiểm thử DB; người phối hợp và delegation history chưa hoàn thành |
 | P02-11 | `PARTIAL` | Có xử lý cleanup/retry trong phiên, còn cron cleanup stale PENDING, verified hash, version file, preview |
-| P02-14 | `CODED_NOT_DB_VERIFIED` | Inbox append-only, cần test replay/scope/tính đúng người nhận; chưa có đánh dấu đã đọc |
+| P02-14 | `CODED_NOT_DB_VERIFIED` | Inbox append-only + read receipt đã code, cần test replay/scope/tính đúng người nhận |
 | P02-16 | `PARTIAL` | Pure/source tests đã thêm; DB/browser tests chưa chạy |
 
 **Chưa làm:** Không áp Supabase cloud, không thay đổi tài khoản/dữ liệu, không deploy Vercel, không tự merge `main` hoặc Phase 1.

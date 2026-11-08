@@ -75,3 +75,22 @@ test("pending upload cleanup refuses to remove metadata while an object exists",
   assert.match(sql, /pvh_evidence_pending_owner_delete/);
   assert.match(sql, /pvh_evidence_pending_owner_read/);
 });
+
+test("source reference is atomic and checked on an idempotency replay", () => {
+  const body = definition("app.create_work_item_v2(");
+  assert.match(sql, /add column source_ref text check/);
+  assert.match(body, /v_original:=app.create_work_item\(/);
+  assert.match(body, /if v_current is distinct from v_source_ref then/);
+  assert.match(body, /raise exception 'IDEMPOTENCY_CONFLICT'/);
+  assert.match(body, /update public.work_items set source_ref=v_source_ref/);
+});
+
+test("inbox read receipts preserve immutable notifications and RLS", () => {
+  const body = definition("app.mark_work_inbox_read(");
+  assert.match(sql, /create table public.work_item_inbox_reads/);
+  assert.match(sql, /alter table public.work_item_inbox_reads force row level security/);
+  assert.match(body, /recipient_id=auth.uid\(\)/);
+  assert.match(body, /on conflict\(inbox_id\) do nothing/);
+  assert.match(body, /MARK_INBOX_READ/);
+  assert.doesNotMatch(body, /update public.work_item_inbox /);
+});

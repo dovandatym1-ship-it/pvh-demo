@@ -116,3 +116,22 @@ export async function abandonPendingEvidenceAction(input: unknown): Promise<Resu
     return { ok: true, data: { id: parsed.data.id } };
   } catch { return fail("INTERNAL", "Không thể kết nối kho minh chứng"); }
 }
+
+export async function markWorkInboxReadAction(input: unknown): Promise<Result<{ id: string }>> {
+  const parsed = z.object({ id: z.string().uuid() }).strict().safeParse(input);
+  if (!parsed.success) return fail("VALIDATION", "Mã thông báo không hợp lệ");
+  const ctx = await authenticatedContext();
+  if (!ctx || !ctx.permissions.includes("m01:work:read")) {
+    return fail("FORBIDDEN", "Không có quyền xem thông báo công việc");
+  }
+  try {
+    const db = await createServerSupabaseClient();
+    const { data, error } = await db.schema("app").rpc("mark_work_inbox_read", {
+      p_inbox_id: parsed.data.id,
+    });
+    if (error) return fail(error.code === "42501" ? "FORBIDDEN" : "INTERNAL", "Không thể đánh dấu thông báo đã đọc");
+    if (data?.read !== true) return fail("INTERNAL", "Chưa xác nhận cập nhật thông báo");
+    revalidatePath("/ban-lam-viec");
+    return { ok: true, data: { id: parsed.data.id } };
+  } catch { return fail("INTERNAL", "Không thể kết nối tới thông báo"); }
+}

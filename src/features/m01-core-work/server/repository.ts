@@ -34,7 +34,7 @@ export const workItemRepository = {
   async createWorkItem(ctx: RequestContext, input: CreateWorkItemInput): Promise<Result<WorkItemDTO>> {
     try {
       const db = await createServerSupabaseClient();
-      const { data, error } = await db.schema("app").rpc("create_work_item", {
+      const { data, error } = await db.schema("app").rpc("create_work_item_v2", {
         p_idempotency_key: input.idempotencyKey,
         p_title: input.title,
         p_description: input.description || null,
@@ -44,6 +44,7 @@ export const workItemRepository = {
         p_category: input.category,
         p_hamlet_id: input.hamletId || null,
         p_tenant_id: ctx.tenantId,
+        p_source_ref: input.sourceRef?.trim() || null,
       });
       if (error) return dbFailure(error);
       if (!data || typeof data !== "object" || Array.isArray(data)) return fail("INTERNAL", "RPC tạo công việc không trả bản ghi");
@@ -52,6 +53,7 @@ export const workItemRepository = {
       return ok({
         id: String(r.id), tenantId: String(r.tenant_id), title: String(r.title),
         description: r.description ? String(r.description) : null,
+        sourceRef: r.source_ref ? String(r.source_ref) : null,
         status: r.status as WorkItemDTO["status"],
         priority: r.priority as WorkItemDTO["priority"], category: String(r.category),
         assignedTo: r.assigned_to ? String(r.assigned_to) : null,

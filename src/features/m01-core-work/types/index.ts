@@ -3,6 +3,7 @@ export interface WorkItemDTO {
   readonly tenantId: string;
   readonly title: string;
   readonly description?: string | null;
+  readonly sourceRef?: string | null;
   readonly status:
     | "NEW"
     | "ASSIGNED"

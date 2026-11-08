@@ -10,6 +10,7 @@ function mapWork(r: RawWork): WorkItemDTO {
   return {
     id: String(r.id), tenantId: String(r.tenant_id), title: String(r.title),
     description: r.description ? String(r.description) : null,
+    sourceRef: r.source_ref ? String(r.source_ref) : null,
     status: r.status as WorkItemDTO["status"],
     priority: r.priority as WorkItemDTO["priority"],
     category: String(r.category), assignedTo: r.assigned_to ? String(r.assigned_to) : null,
@@ -39,7 +40,14 @@ export async function getWorkItemsPage(ctx: RequestContext, opts: {
   let query = db.from("work_items").select("*", { count: "exact" }).eq("tenant_id", ctx.tenantId);
   if (filter === "mine") query = query.eq("assigned_to", ctx.userId);
   if (filter === "created") query = query.eq("created_by", ctx.userId);
-  if (filter === "review") query = query.eq("status", "UNDER_REVIEW");
+  if (filter === "review") {
+    // A reviewer cannot approve work currently assigned to themselves.
+    if (!ctx.permissions.includes("m01:work:review")) {
+      return { items: [], total: 0, page, pageSize };
+    }
+    query = query.eq("status", "UNDER_REVIEW").neq("assigned_to", ctx.userId);
+    if (!ctx.permissions.includes("m01:work:read_all")) query = query.eq("created_by", ctx.userId);
+  }
   if (filter === "all" && !ctx.permissions.includes("m01:work:read_all")) {
     throw new Error("FORBIDDEN: Thiếu quyền xem toàn đơn vị");
   }
@@ -126,9 +134,11 @@ export async function getDashboardStats(ctx: RequestContext) {
   const base = () => db.from("work_items").select("id", { count: "exact", head: true })
     .eq("tenant_id", ctx.tenantId);
   const now = new Date().toISOString();
+  let reviewerQuery = base().eq("status", "UNDER_REVIEW").neq("assigned_to", ctx.userId);
+  if (!ctx.permissions.includes("m01:work:read_all")) reviewerQuery = reviewerQuery.eq("created_by", ctx.userId);
   const [mine, review, overdue] = await Promise.all([
     base().eq("assigned_to", ctx.userId).in("status", ["ASSIGNED", "IN_PROGRESS", "RETURNED"]),
-    base().eq("status", "UNDER_REVIEW"),
+    reviewerQuery,
     base().lt("due_date", now).neq("status", "COMPLETED").neq("status", "CANCELLED"),
   ]);
   if (mine.error || review.error || overdue.error) throw new Error("DB_ERROR: Không thống kê được công việc");
@@ -138,7 +148,7 @@ export async function getDashboardStats(ctx: RequestContext) {
 }
 
 export async function getWorkInbox(ctx: RequestContext): Promise<{
-  id: string; workItemId: string; kind: string; createdAt: string;
+  id: string; workItemId: string; kind: string; createdAt: string; readAt: string | null;
 }[]> {
   requireRead(ctx);
   const db = await createServerSupabaseClient();
@@ -147,6 +157,11 @@ export async function getWorkInbox(ctx: RequestContext): Promise<{
     .eq("tenant_id", ctx.tenantId).eq("recipient_id", ctx.userId)
     .order("created_at", { ascending: false }).limit(10);
   if (error) throw new Error(`DB_ERROR: Không tải được thông báo (${error.code})`);
+  const ids = (data || []).map(r => r.id);
+  const { data: receipts, error: receiptError } = ids.length ? await db.from("work_item_inbox_reads")
+    .select("inbox_id,read_at").eq("tenant_id",ctx.tenantId).in("inbox_id",ids) : { data: [], error: null };
+  if (receiptError) throw new Error(`DB_ERROR: Không tải được tình trạng thông báo (${receiptError.code})`);
+  const readAt = new Map((receipts || []).map(r => [r.inbox_id,r.read_at]));
   return (data || []).map(r => ({ id: r.id, workItemId: r.work_item_id,
-    kind: r.kind, createdAt: r.created_at }));
+    kind: r.kind, createdAt: r.created_at, readAt: readAt.get(r.id) || null }));
 }

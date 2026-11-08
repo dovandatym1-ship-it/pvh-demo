@@ -1,7 +1,7 @@
 -- PH02 pgTAP structural contract only. This is NOT a substitute for E2E-WORK-001.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(27);
+select plan(32);
 
 select has_table('public','work_item_assignments','Assignment history exists');
 select has_table('public','work_item_inbox','Transactional inbox exists');
@@ -60,6 +60,17 @@ select ok(exists(select 1 from pg_policies where schemaname='storage'
 select ok(exists(select 1 from pg_policies where schemaname='storage'
   and tablename='objects' and policyname='pvh_evidence_pending_owner_read'),
   'Pending Storage owner read policy exists');
+select ok(to_regprocedure('app.create_work_item_v2(text,text,text,text,uuid,timestamptz,text,uuid,uuid,text)') is not null,
+  'Create work RPC v2 accepts structured source_ref');
+select ok(not has_function_privilege('anon',
+  'app.create_work_item_v2(text,text,text,text,uuid,timestamptz,text,uuid,uuid,text)','EXECUTE'),
+  'Anon cannot create work through v2');
+select has_table('public','work_item_inbox_reads','Separate append-only notification receipts exist');
+select ok((select relrowsecurity and relforcerowsecurity from pg_class
+  where oid='public.work_item_inbox_reads'::regclass),
+  'Read receipts have forced RLS');
+select ok(to_regprocedure('app.mark_work_inbox_read(uuid)') is not null,
+  'Idempotent mark-read RPC exists');
 
 select * from finish();
 rollback;

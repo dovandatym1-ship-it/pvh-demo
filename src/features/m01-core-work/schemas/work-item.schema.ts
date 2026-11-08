@@ -6,6 +6,7 @@ const uuid = z.string().uuid();
 export const CreateWorkItemSchema = z.object({
   title: z.string().trim().min(3, "Tiêu đề tối thiểu 3 ký tự").max(500),
   description: z.string().trim().max(5000).optional().default(""),
+  sourceRef: z.string().trim().max(500).optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).default("MEDIUM"),
   category: z.string().trim().min(1).max(100).default("CHUNG"),
   assignedTo: uuid.optional(),
