@@ -73,8 +73,29 @@ select extensions.throws_ok(
  $$select app.create_inspection_record('CI-KT-002','Đối tượng kiểm thử','Văn hóa',
    '55555555-5555-4555-8555-555555555555','Đầu mối A','ILLUSTRATIVE-v1',current_date)$$,
  '42501',null,'M08 cannot write outside assigned hamlet');
+select extensions.lives_ok(
+ $$select app.create_inspection_recommendation(
+   (select id from public.inspection_records where code='CI-KT-001'),
+   'CI-REC-001','Khắc phục lỗi thử nghiệm',current_date+3,
+   '22222222-2222-4222-8222-222222222222','CI-REC-IDEMP')$$,
+ 'M08 recommendation creates M01 work atomically');
+select extensions.is((select count(*)::integer from public.inspection_recommendations
+ where code='CI-REC-001'),1,'M08 recommendation has one linked work item');
+
+set local request.jwt.claim.sub='33333333-3333-4333-8333-333333333333';
+select extensions.is_empty(
+ $$select * from public.inspection_records where code='CI-KT-001'$$,
+ 'Third persona cannot see out-of-scope inspection records');
+select extensions.throws_ok(
+ $$select app.create_digital_plan('Kế hoạch trái quyền','2026-Q4','CI-SOURCE')$$,
+ '42501',null,'Third persona cannot invoke a domain write RPC');
 
 set local request.jwt.claim.sub='22222222-2222-4222-8222-222222222222';
+select extensions.throws_ok(
+ $$select app.resolve_inspection_recommendation(
+   (select id from public.inspection_recommendations where code='CI-REC-001'),
+   'RESOLVED_CLOSED','Đề nghị đóng sớm',1)$$,
+ '22023',null,'M08 cannot close before M01 work is completed');
 select extensions.lives_ok(
  $$select app.update_digital_indicator_status(
    (select id from public.digital_indicators where code='CI-M05-001'),

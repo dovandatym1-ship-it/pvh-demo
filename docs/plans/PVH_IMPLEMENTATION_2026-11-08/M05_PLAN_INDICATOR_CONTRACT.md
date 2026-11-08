@@ -16,6 +16,7 @@ Không dùng chỉ tiêu địa phương chưa được xác nhận làm mặc �
 ## Semantics bắt buộc
 
 - `NOT_REPORTED`: chưa nộp; `numeric_value IS NULL`.
+- Khi chuyển về `NOT_REPORTED`, nguồn số liệu của lần đối soát trước không được giữ lại làm căn cứ của trạng thái chưa nộp.
 - `UNVERIFIED`: có thể có số tạm, chưa được đối soát.
 - `CONFIRMED_ZERO`: giá trị số phải **bằng 0** và có `source_ref`, không suy từ chuỗi chứa ký tự 0.
 - `CONFIRMED`: giá trị số khác NULL, có nguồn.
@@ -28,3 +29,5 @@ Không dùng chỉ tiêu địa phương chưa được xác nhận làm mặc �
 Mỗi plan có thể có nhiều work item M01 thông qua `digital_plan_tasks`; tham chiếu tenant và quyền đọc công việc được xác minh ở DB. Không dựng engine nhiệm vụ thứ hai.
 
 **Còn thiếu:** giao việc 3 nhiệm vụ tự động có idempotency cho một kế hoạch, workflow trình/duyệt/chốt kỳ, kế hoạch có phiên bản, công thức cấu hình hóa, snapshot chỉ tiêu bất biến, dashboard contributor/drill-down M09 và E2E-PLAN-001 đa tài khoản. Không gọi G3 PASS.
+
+**Kiểm thử local PostgreSQL:** pgTAP multi-actor PASS ở run `42478969666`: tác giả nộp giá trị zero chưa xác minh, tự xác nhận bị chặn, reviewer độc lập xác nhận được; `expected_version=NULL` bị từ chối.
