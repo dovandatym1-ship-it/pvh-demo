@@ -84,6 +84,14 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
+        title: "Thôn / Xóm văn hóa",
+        route: "/van-hoa/thon-van-hoa",
+        iconName: "Landmark",
+        moduleKey: "m04",
+        requiredPermission: "m04:culture:read",
+        status: "DEEP",
+      },
+      {
         title: "KHCN & CĐS (M05)",
         route: "/khcn-chuyen-doi-so",
         iconName: "Cpu",
@@ -126,7 +134,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         iconName: "BarChart3",
         moduleKey: "m09",
         requiredPermission: "m09:report:read",
-        status: "LEGACY_MOCK",
+        status: "DEEP",
       },
       {
         title: "Dữ liệu dùng chung (M01)",
