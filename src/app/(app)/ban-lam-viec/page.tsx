@@ -1,9 +1,11 @@
 import React from "react";
 import { getRequestContext } from "@/lib/auth/request-context";
 import { getWorkItems } from "@/features/m01-core-work/server/queries";
+import { transitionWorkItemAction } from "@/features/m01-core-work/server/actions";
 import { WorkItemTable } from "@/features/m01-core-work/components/work-item-table";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Clock, AlertTriangle, CheckCircle, ListTodo } from "lucide-react";
+import type { WorkItemDTO } from "@/features/m01-core-work/types";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +16,15 @@ export default async function WorkbenchPage() {
   const myTasks = items.filter((item) => item.status === "ASSIGNED" || item.status === "IN_PROGRESS");
   const overdueTasks = items.filter((item) => item.priority === "URGENT");
   const reviewTasks = items.filter((item) => item.status === "UNDER_REVIEW");
+
+  async function handleTransition(item: WorkItemDTO, toState: string) {
+    "use server";
+    await transitionWorkItemAction({
+      id: item.id,
+      toState,
+      expectedVersion: item.version,
+    });
+  }
 
   return (
     <div className="space-y-6">
@@ -68,7 +79,11 @@ export default async function WorkbenchPage() {
             <p className="text-sm text-gray-400 mt-1">Hiện không có nhiệm vụ công việc nào cần xử lý</p>
           </div>
         ) : (
-          <WorkItemTable items={items} userPermissions={ctx.permissions} />
+          <WorkItemTable
+            items={items}
+            userPermissions={ctx.permissions}
+            onTransition={handleTransition}
+          />
         )}
       </div>
     </div>

@@ -165,20 +165,21 @@ BEGIN
     RAISE EXCEPTION 'FORBIDDEN: Access to tenant % is forbidden', v_tenant_id;
   END IF;
 
-  -- 4. Idempotency Check: if already transitioned with this idempotency key
+  -- 4. Idempotency Check: if already transitioned with this idempotency key for this work item and target state
   IF p_idempotency_key IS NOT NULL AND p_idempotency_key <> '' THEN
     SELECT payload INTO v_existing_audit_payload
       FROM public.audit_log
      WHERE tenant_id = v_tenant_id
+       AND entity_id = p_id::text
        AND payload->>'idempotency_key' = p_idempotency_key
-     LIMIT 1;
+       AND (payload->>'to_status' = p_to_state OR payload->>'to_state' = p_to_state);
 
     IF v_existing_audit_payload IS NOT NULL THEN
       RETURN jsonb_build_object(
         'ok', true,
         'cached', true,
         'id', p_id,
-        'status', v_existing_audit_payload->>'to_state',
+        'status', COALESCE(v_existing_audit_payload->>'to_status', v_existing_audit_payload->>'to_state'),
         'version', (v_existing_audit_payload->>'version')::int
       );
     END IF;
@@ -212,7 +213,7 @@ BEGIN
     RAISE EXCEPTION 'INVALID_TRANSITION: Cannot transition work item from % to %', v_current_status, p_to_state;
   END IF;
 
-  -- 7. Specific Rule Validation
+  -- 7. Specific Rule Validation & RBAC Authorization Checks
   -- When transitioning to RETURNED, reason is mandatory
   IF p_to_state = 'RETURNED' AND (p_reason IS NULL OR trim(p_reason) = '') THEN
     RAISE EXCEPTION 'VALIDATION: Reason is mandatory when returning work item for revision';
@@ -220,8 +221,29 @@ BEGIN
 
   -- When transitioning to COMPLETED, check for reviewer approval permission
   IF p_to_state = 'COMPLETED' THEN
-    IF NOT (SELECT app.has_permission(v_tenant_id, 'm01:work_item:approve')) THEN
+    IF NOT (SELECT (app.has_permission(v_tenant_id, 'm01:work_item:approve') OR app.has_permission(v_tenant_id, 'm01:work:approve'))) THEN
       RAISE EXCEPTION 'FORBIDDEN: User lacks permission to approve and complete work items';
+    END IF;
+  END IF;
+
+  -- When transitioning to RETURNED, check for reviewer approval permission
+  IF p_to_state = 'RETURNED' THEN
+    IF NOT (SELECT (app.has_permission(v_tenant_id, 'm01:work_item:approve') OR app.has_permission(v_tenant_id, 'm01:work:assign'))) THEN
+      RAISE EXCEPTION 'FORBIDDEN: User lacks permission to return work items for revision';
+    END IF;
+  END IF;
+
+  -- When transitioning to ASSIGNED, check for assign permission
+  IF p_to_state = 'ASSIGNED' THEN
+    IF NOT (SELECT (app.has_permission(v_tenant_id, 'm01:work_item:assign') OR app.has_permission(v_tenant_id, 'm01:work:assign'))) THEN
+      RAISE EXCEPTION 'FORBIDDEN: User lacks permission to assign work items';
+    END IF;
+  END IF;
+
+  -- When transitioning to CANCELLED, check for delete/cancel permission
+  IF p_to_state = 'CANCELLED' THEN
+    IF NOT (SELECT (app.has_permission(v_tenant_id, 'm01:work_item:delete') OR app.has_permission(v_tenant_id, 'm01:work:delete'))) THEN
+      RAISE EXCEPTION 'FORBIDDEN: User lacks permission to cancel work items';
     END IF;
   END IF;
 
@@ -241,25 +263,30 @@ BEGIN
   INSERT INTO public.work_item_events (
     tenant_id,
     work_item_id,
-    event_type,
-    from_state,
-    to_state,
+    from_status,
+    to_status,
     actor_id,
-    payload
+    reason,
+    payload,
+    version,
+    created_by
   ) VALUES (
     v_tenant_id,
     p_id,
-    'STATE_TRANSITION',
     v_current_status,
     p_to_state,
     v_user_id,
+    p_reason,
     jsonb_build_object(
-      'from_state', v_current_status,
-      'to_state', p_to_state,
+      'event_type', 'STATE_TRANSITION',
+      'from_status', v_current_status,
+      'to_status', p_to_state,
       'version', v_new_version,
       'reason', p_reason,
       'idempotency_key', p_idempotency_key
-    )
+    ),
+    v_new_version,
+    v_user_id
   );
 
   -- 11. Insert Audit Log (same transaction)
@@ -267,18 +294,26 @@ BEGIN
     tenant_id,
     actor_id,
     action,
-    target_type,
-    target_id,
-    payload
+    entity_type,
+    entity_id,
+    payload,
+    details
   ) VALUES (
     v_tenant_id,
     v_user_id,
     'm01:work_item:transition',
     'work_items',
-    p_id,
+    p_id::text,
     jsonb_build_object(
-      'from_state', v_current_status,
-      'to_state', p_to_state,
+      'from_status', v_current_status,
+      'to_status', p_to_state,
+      'version', v_new_version,
+      'reason', p_reason,
+      'idempotency_key', p_idempotency_key
+    ),
+    jsonb_build_object(
+      'from_status', v_current_status,
+      'to_status', p_to_state,
       'version', v_new_version,
       'reason', p_reason,
       'idempotency_key', p_idempotency_key

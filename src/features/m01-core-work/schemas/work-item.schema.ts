@@ -12,3 +12,21 @@ export const CreateWorkItemSchema = z.object({
 });
 
 export type CreateWorkItemInput = z.infer<typeof CreateWorkItemSchema>;
+
+export const TransitionWorkItemSchema = z.object({
+  id: z.string().uuid("ID công việc phải là UUID hợp lệ"),
+  toState: z.enum([
+    "NEW",
+    "ASSIGNED",
+    "IN_PROGRESS",
+    "UNDER_REVIEW",
+    "COMPLETED",
+    "RETURNED",
+    "CANCELLED",
+  ]),
+  expectedVersion: z.number().int().min(1, "Phiên bản kỳ vọng phải >= 1"),
+  reason: z.string().optional().nullable(),
+  idempotencyKey: z.string().optional().nullable(),
+});
+
+export type TransitionWorkItemInput = z.infer<typeof TransitionWorkItemSchema>;

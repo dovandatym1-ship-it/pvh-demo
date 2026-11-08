@@ -3,7 +3,7 @@ import "server-only";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { type Result, ok, fail } from "@/lib/types/result";
 import type { RequestContext } from "@/lib/auth/request-context";
-import type { CreateWorkItemInput } from "../schemas/work-item.schema";
+import type { CreateWorkItemInput, TransitionWorkItemInput } from "../schemas/work-item.schema";
 import type { WorkItemDTO } from "../types";
 
 export const workItemRepository = {
@@ -68,6 +68,61 @@ export const workItemRepository = {
       return ok(dto);
     } catch (err: unknown) {
       return fail("INTERNAL", "Đã xảy ra lỗi hệ thống tại repository layer", err);
+    }
+  },
+
+  /**
+   * Invokes PostgreSQL single-transaction RPC app.transition_work_item with OCC (expectedVersion).
+   */
+  async transitionWorkItem(
+    ctx: RequestContext,
+    params: {
+      id: string;
+      toState: string;
+      expectedVersion: number;
+      idempotencyKey?: string | null;
+      reason?: string | null;
+    }
+  ): Promise<Result<{ id: string; status: string; version: number; cached?: boolean }>> {
+    try {
+      const supabase = await createServerSupabaseClient();
+
+      const { data, error } = await supabase.rpc("transition_work_item", {
+        p_id: params.id,
+        p_to_state: params.toState,
+        p_expected_version: params.expectedVersion,
+        p_idempotency_key: params.idempotencyKey || null,
+        p_reason: params.reason || null,
+      });
+
+      if (error) {
+        if (error.message.includes("VERSION_CONFLICT") || error.code === "PV409") {
+          return fail("VERSION_CONFLICT", "Xung đột phiên bản dữ liệu khi chuyển trạng thái (PV409 / VERSION_CONFLICT)", error);
+        }
+        if (error.message.includes("FORBIDDEN") || error.code === "42501") {
+          return fail("FORBIDDEN", "Không có quyền chuyển trạng thái công việc (FORBIDDEN)", error);
+        }
+        if (error.message.includes("UNAUTHENTICATED") || error.code === "28000") {
+          return fail("UNAUTHENTICATED", "Chưa xác thực danh tính hợp lệ (UNAUTHENTICATED)", error);
+        }
+        if (error.message.includes("VALIDATION") || error.code === "22023") {
+          return fail("VALIDATION", `Lỗi xác thực dữ liệu: ${error.message}`, error);
+        }
+        if (error.message.includes("NOT_FOUND") || error.code === "P0002") {
+          return fail("NOT_FOUND", `Không tìm thấy công việc: ${error.message}`, error);
+        }
+        return fail("INTERNAL", `Lỗi CSDL khi gọi RPC transition_work_item: ${error.message}`, error);
+      }
+
+      const res = data as Record<string, unknown>;
+      return ok({
+        id: String(res.id),
+        status: String(res.status),
+        version: Number(res.version),
+        cached: Boolean(res.cached),
+      });
+    } catch (err: unknown) {
+      return fail("INTERNAL", "Đã xảy ra lỗi hệ thống tại repository layer khi chuyển trạng thái", err);
     }
   },
 };

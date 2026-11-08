@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS public.work_items (
   hamlet_id uuid,
   version int NOT NULL DEFAULT 1 CHECK (version >= 1),
   idempotency_key text,
+  request_hash text,
   created_at timestamptz NOT NULL DEFAULT now(),
   created_by uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
   updated_at timestamptz NOT NULL DEFAULT now(),
@@ -319,6 +320,7 @@ DECLARE
   v_tenant_id uuid;
   v_existing jsonb;
   v_new_work_item public.work_items%ROWTYPE;
+  v_request_hash text;
 BEGIN
   -- 1. Actor check via auth.uid()
   v_actor_id := auth.uid();
@@ -340,16 +342,22 @@ BEGIN
     RAISE EXCEPTION 'FORBIDDEN: Insufficient permissions to create work item' USING ERRCODE = '42501';
   END IF;
 
-  -- 4. Idempotency check: (tenant_id, idempotency_key)
+  -- Compute canonical request hash for payload drift detection
+  v_request_hash := encode(sha256(convert_to(jsonb_build_array(btrim(p_title), p_description, p_priority, p_assigned_to, p_due_date, coalesce(p_category, 'CHUNG'), p_hamlet_id)::text, 'UTF8')), 'hex');
+
+  -- 4. Idempotency check: (tenant_id, idempotency_key) with payload drift verification
   IF p_idempotency_key IS NOT NULL THEN
-    SELECT to_jsonb(w) || jsonb_build_object('cached', true)
-    INTO v_existing
+    SELECT *
+    INTO v_new_work_item
     FROM public.work_items w
     WHERE w.tenant_id = v_tenant_id
       AND w.idempotency_key = p_idempotency_key;
 
-    IF v_existing IS NOT NULL THEN
-      RETURN v_existing;
+    IF FOUND THEN
+      IF v_new_work_item.request_hash IS NOT NULL AND v_new_work_item.request_hash <> v_request_hash THEN
+        RAISE EXCEPTION 'IDEMPOTENCY_CONFLICT: Key reused with conflicting request payload' USING ERRCODE = '22023';
+      END IF;
+      RETURN to_jsonb(v_new_work_item) || jsonb_build_object('cached', true);
     END IF;
   END IF;
 
@@ -365,6 +373,7 @@ BEGIN
     hamlet_id,
     version,
     idempotency_key,
+    request_hash,
     created_by,
     updated_by
   ) VALUES (
@@ -378,6 +387,7 @@ BEGIN
     p_hamlet_id,
     1,
     p_idempotency_key,
+    v_request_hash,
     v_actor_id,
     v_actor_id
   )
