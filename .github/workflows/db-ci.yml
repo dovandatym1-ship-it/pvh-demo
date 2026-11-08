@@ -1,0 +1,23 @@
+name: PH01 Database Contract
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  singleton-schema-and-rls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 3.0.0
+      - name: Verify local-only CLI commands
+        run: |
+          supabase db --help
+          supabase test db --help
+      - name: Start isolated Postgres and replay canonical migrations
+        run: supabase db start
+      - name: Run PH01 pgTAP against the isolated database
+        run: supabase test db

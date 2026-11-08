@@ -3,7 +3,7 @@
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
 SET LOCAL search_path = public, extensions;
-SELECT plan(27);
+SELECT plan(32);
 
 SELECT has_table('public','tenants','Singleton tenant table exists');
 SELECT has_table('public','profiles','Auth-linked profiles exist');
@@ -25,7 +25,8 @@ INSERT INTO auth.users(id,instance_id,aud,role,email,encrypted_password,email_co
 ('00000000-0000-0000-0000-000000000101','00000000-0000-0000-0000-000000000000','authenticated','authenticated','ph01-officer@example.invalid','!',now()),
 ('00000000-0000-0000-0000-000000000102','00000000-0000-0000-0000-000000000000','authenticated','authenticated','ph01-other@example.invalid','!',now()),
 ('00000000-0000-0000-0000-000000000103','00000000-0000-0000-0000-000000000000','authenticated','authenticated','ph01-admin@example.invalid','!',now()),
-('00000000-0000-0000-0000-000000000104','00000000-0000-0000-0000-000000000000','authenticated','authenticated','ph01-unassigned@example.invalid','!',now());
+('00000000-0000-0000-0000-000000000104','00000000-0000-0000-0000-000000000000','authenticated','authenticated','ph01-unassigned@example.invalid','!',now()),
+('00000000-0000-0000-0000-000000000105','00000000-0000-0000-0000-000000000000','authenticated','authenticated','ph01-invited@example.invalid','!',now());
 
 INSERT INTO public.profiles(id,tenant_id,full_name)
 SELECT u.id,t.id, 'PH01 Test '||right(u.id::text,3)
@@ -65,6 +66,11 @@ SELECT is_empty('SELECT id FROM public.evidence_files','Another officer cannot r
 SELECT set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000103',true);
 SELECT is_empty('SELECT id FROM public.work_items','SYSTEM_ADMIN has no automatic business-data bypass');
 SELECT is((SELECT count(*)::int FROM public.audit_log),2,'Authorized auditor reads atomic work and evidence events');
+SELECT lives_ok('SELECT app.provision_membership(''00000000-0000-0000-0000-000000000105'',''Invited PH01 Officer'',''WORK_OFFICER'')','SYSTEM_ADMIN may provision an existing Auth identity atomically');
+SELECT ok(EXISTS(SELECT 1 FROM public.memberships WHERE user_id='00000000-0000-0000-0000-000000000105' AND is_active),'New assignment is active and visible to admin');
+SELECT lives_ok('SELECT app.set_membership_role(''00000000-0000-0000-0000-000000000105'',''WORK_VIEWER'',true)','Admin may grant an explicit additional role');
+SELECT throws_ok('SELECT app.revoke_membership(''00000000-0000-0000-0000-000000000103'')','42501',NULL,'SYSTEM_ADMIN cannot revoke own only admin account');
+SELECT lives_ok('SELECT app.revoke_membership(''00000000-0000-0000-0000-000000000105'')','Admin can revoke an assignment with an audited RPC');
 
 SELECT * FROM finish();
 ROLLBACK;

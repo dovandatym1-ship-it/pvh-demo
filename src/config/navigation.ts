@@ -144,6 +144,14 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         requiredPermission: "m00:membership:read",
         status: "LEGACY_MOCK",
       },
+      {
+        title: "Tài khoản & Phân quyền",
+        route: "/quan-tri/tai-khoan",
+        iconName: "Users",
+        moduleKey: "m00",
+        requiredPermission: "m00:membership:manage",
+        status: "DEEP",
+      },
     ],
   },
 ];
@@ -191,14 +199,17 @@ export function canAccessRoute(
   userPermissions: readonly string[] = [],
   userRoles: readonly string[] = []
 ): boolean {
+  // Evaluate the most specific registered route first. A parent /quan-tri
+  // permission must not shadow /quan-tri/tai-khoan's stricter manage grant.
+  let match: NavigationItem | undefined;
   for (const group of NAVIGATION_REGISTRY) {
     for (const item of group.items) {
       if (item.route === route || route.startsWith(item.route + "/")) {
-        return hasPermission(item, userPermissions, userRoles);
+        if (!match || item.route.length > match.route.length) match = item;
       }
     }
   }
-  return true;
+  return match ? hasPermission(match, userPermissions, userRoles) : true;
 }
 
 /**
