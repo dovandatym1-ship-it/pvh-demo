@@ -2,6 +2,7 @@ import "server-only";
 
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { assertPermission } from "@/lib/authorization/assert-permission";
+import { ph03HamletScope } from "@/lib/authorization/ph03-hamlet-scope";
 import type { RequestContext } from "@/lib/auth/request-context";
 
 export type InspectionRecord={
@@ -45,10 +46,11 @@ export async function getInspectionWorkspace(ctx:RequestContext){
    id:String(a.user_id),name:String(a.full_name),
   }));
  }
+ const scopeHamletIds=ph03HamletScope(ctx);
  return {
   records:inspected,recommendations:recs,
-  hamlets:(hamlets.data??[]).filter(h=>!ctx.scopes.hamletIds||
-   ctx.scopes.hamletIds.includes(h.id)).map(h=>({id:h.id,name:h.name})),
+  hamlets:(hamlets.data??[]).filter(h=>!scopeHamletIds||
+   scopeHamletIds.includes(h.id)).map(h=>({id:h.id,name:h.name})),
   assignees,
  };
 }
