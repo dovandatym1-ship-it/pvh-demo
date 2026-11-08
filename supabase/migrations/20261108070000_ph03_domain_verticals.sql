@@ -341,6 +341,29 @@ begin
 exception when no_data_found then raise exception 'RULE_PACK_NOT_FOUND' using errcode='P0002';
 end; $$;
 
+-- A single RPC keeps pack creation and campaign opening atomic. A failed
+-- campaign (e.g. duplicate year) must not leave an unused rule pack behind.
+create function app.open_illustrative_culture_campaign(
+ p_title_type text,p_year integer,p_title text,p_closes_at timestamptz)
+returns jsonb language plpgsql security definer set search_path='' as $$
+declare v_tenant uuid;v_version integer;v_pack jsonb;v_campaign jsonb;
+begin
+ v_tenant:=pvh_private.ph03_tenant('m04:culture:evaluate');
+ if p_title_type is null or p_title_type not in ('GIA_DINH','THON','XA_TIEU_BIEU') or
+    p_year is null or p_year not between 2000 and 2200 or
+    length(btrim(coalesce(p_title,''))) not between 3 and 250 or
+    p_closes_at is null or p_closes_at<=now() then
+  raise exception 'VALIDATION' using errcode='22023';
+ end if;
+ perform pg_advisory_xact_lock(hashtextextended(v_tenant::text||':culture_pack:'||p_title_type,0));
+ select coalesce(max(version),0)+1 into v_version from public.culture_rule_packs
+ where tenant_id=v_tenant and title_type=p_title_type;
+ v_pack:=app.create_culture_rule_pack(p_title_type,v_version,'MINH HỌA / CHƯA XÁC MINH',
+  '[]'::jsonb,null);
+ v_campaign:=app.create_culture_campaign((v_pack->>'id')::uuid,p_year,p_title,p_closes_at);
+ return v_campaign;
+end; $$;
+
 create function app.submit_culture_dossier(
  p_campaign_id uuid,p_subject_ref text,p_subject_name text,p_hamlet_id uuid,
  p_source_ref text,p_idempotency_key text)
@@ -672,6 +695,7 @@ end; $$;
 revoke all on function
  app.create_culture_rule_pack(text,integer,text,jsonb,numeric),
  app.create_culture_campaign(uuid,integer,text,timestamptz),
+ app.open_illustrative_culture_campaign(text,integer,text,timestamptz),
  app.submit_culture_dossier(uuid,text,text,uuid,text,text),
  app.review_culture_dossier(uuid,text,numeric,text,integer,uuid),
  app.create_digital_plan(text,text,text),
@@ -685,6 +709,7 @@ from public,anon,authenticated;
 grant execute on function
  app.create_culture_rule_pack(text,integer,text,jsonb,numeric),
  app.create_culture_campaign(uuid,integer,text,timestamptz),
+ app.open_illustrative_culture_campaign(text,integer,text,timestamptz),
  app.submit_culture_dossier(uuid,text,text,uuid,text,text),
  app.review_culture_dossier(uuid,text,numeric,text,integer,uuid),
  app.create_digital_plan(text,text,text),
