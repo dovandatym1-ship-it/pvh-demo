@@ -11,7 +11,7 @@
 | P04-09–11 | PDF/XLSX thật có watermark, trang quản lý snapshot, lịch sử, chuyển trạng thái, diff, drill-down theo quyền | RPT-005 parser, `/bao-cao` |
 | P04-12 | Queue xuất file private Storage, retry/backoff, thuê worker theo mã invocation, receipt thật; không đụng job module khác | SQL job/lease tests, `/api/jobs/worker` |
 | P04-13–15 | CSV contract v1, preview lỗi từng dòng, duplicate, policy REJECT_ALL/ACCEPT_VALID, provenance và idempotency | INT-001/unit tests, `/nhap-chi-tieu` |
-| P04-16–17 | SIMULATED_ECHO_V1 có timeout/schema error/replay ledger; không kết nối nguồn ngoài thật | SQL smoke + UI/API |
+| P04-16–17 | SIMULATED_ECHO_V1 có timeout/schema error/replay ledger, retry tối đa 3 attempt có concurrency token; không kết nối nguồn ngoài thật | SQL smoke + API |
 | P04-18 | Giới hạn 2 MiB/5.000 dòng, UTF-8 strict, chặn CSV formula, permission checks, export private URL | Unit, SQL role/RLS; **malware scanning vẫn chờ hạ tầng** |
 
 ## Test evidence

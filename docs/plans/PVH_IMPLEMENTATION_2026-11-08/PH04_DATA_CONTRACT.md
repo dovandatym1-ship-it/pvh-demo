@@ -41,7 +41,7 @@ Parser kiểm BOM, quoted CSV, header, số cột, UTF-8, formula injection, t�
 
 ## Tích hợp và công việc nền
 
-- Adapter `SIMULATED_ECHO_V1` chỉ trả các trạng thái mô phỏng SUCCESS / TIMEOUT / SCHEMA_ERROR, có ledger/audit; không gọi hệ thống nhà nước.
+- Adapter `SIMULATED_ECHO_V1` chỉ trả các trạng thái mô phỏng SUCCESS / TIMEOUT / SCHEMA_ERROR, có ledger/audit; không gọi hệ thống nhà nước. Chỉ TIMEOUT cho retry (tối đa 3 attempt); tham số `expectedAttempts` khóa cập nhật cạnh tranh. API `POST /api/integrations/simulated` với `action: "RETRY"` dùng lại `externalId`.
 - Worker chỉ nhận `REPORT_EXPORT_ASYNC`, upload file vào private bucket `pvh-report-exports` rồi mới ghi SUCCEEDED có path/hash/byte. Job khác FAIL/retry, không trả receipt SUCCESS giả.
 - API cron yêu cầu `CRON_SECRET` dài tối thiểu 16, không fallback. Worker dùng service role server-only. Chủ job được tạo signed URL 60 giây.
 - Chưa bật scheduler trên cloud; cần cấu hình CRON_SECRET/Storage/schedule, quét mã độc theo hạ tầng và kiểm chứng staging trước G4.

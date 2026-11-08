@@ -48,6 +48,11 @@ try{
  const first=await one("select app.create_report_snapshot('RPT-WORK','Báo cáo công việc quý','Q4/2026',2026,'snapshot-idem-0001',null) as s");
  const snap=first.s;
  assert.equal(crypto.createHash("sha256").update(snap.canonical_text).digest("hex"),snap.sha256);
+ const hashVectors=await one("select ($1::jsonb)::text as a,($2::jsonb)::text as b,($3::jsonb)::text as c",
+  ['{"z":"Tiếng Việt","a":[1,{"n":2}]}','{"a":[1,{"n":2}],"z":"Tiếng Việt"}',
+   '{"a":[1,{"n":3}],"z":"Tiếng Việt"}']);
+ assert.equal(hashVectors.a,hashVectors.b,"PostgreSQL JSONB normalizes property order");
+ assert.notEqual(hashVectors.a,hashVectors.c,"Changed nested data changes canonical text");
  assert.equal(Number(snap.payload.metrics.tasksTotal),2);
  assert.equal(Number(snap.payload.metrics.tasksCompleted),1);
  assert.equal(Number(snap.payload.metrics.tasksOverdue),0);
@@ -109,6 +114,13 @@ try{
  assert.equal(adapter.s.status,"SIMULATED_TIMEOUT");
  await assert.rejects(db.query("select app.record_simulated_integration('external-demo-1','SUCCESS')"),
   /SIMULATION_REPLAY_CONFLICT/);
+ const retried=await one("select app.retry_simulated_integration('external-demo-1',1,'SUCCESS') as s");
+ assert.equal(retried.s.status,"SIMULATED_SUCCESS");
+ assert.equal(retried.s.attempts,2);
+ await assert.rejects(db.query("select app.retry_simulated_integration('external-demo-1',1,'SUCCESS')"),
+  /SIMULATION_VERSION_CONFLICT/);
+ await assert.rejects(db.query("select app.retry_simulated_integration('external-demo-1',2,'TIMEOUT')"),
+  /SIMULATION_NOT_RETRYABLE/);
  const queued=await one("select app.enqueue_report_export($1,'XLSX','export-idem-00001') as j",[snap.id]);
  assert.equal(queued.j.status,"PENDING");
  // Other module's jobs are out of scope for PH04 worker and must remain pending.
@@ -141,6 +153,8 @@ try{
  assert.ok((await one("select count(*)::integer as n from public.report_snapshots")).n>=1);
  assert.equal((await one("select count(*)::integer as n from public.report_snapshot_lineage")).n,0);
  await assert.rejects(db.query("select app.create_report_snapshot('RPT-WORK','Truy cập sai quyền','Q4/2026',2026,'no-permission-0001',null)"),
+  /FORBIDDEN/);
+ await assert.rejects(db.query("select app.retry_simulated_integration('external-demo-1',2,'TIMEOUT')"),
   /FORBIDDEN/);
  await db.exec("reset role");
  console.log("G4 local SQL tests: 7 migrations, RPT-001/002/003/004, full lineage/hash, imports 3+2/replay, simulation, job lease/isolation, audit, roles/RLS PASS");

@@ -179,7 +179,35 @@ begin
   jsonb_build_object('outcome',p_outcome,'liveConnection',false));
  return to_jsonb(v_row);
 end; $$;
+-- Explicit bounded retry on a simulated timeout. Expected attempts is a concurrency
+-- token; duplicate requests cannot silently bump the attempt counter twice.
+create function app.retry_simulated_integration(p_external_id text,p_expected_attempts integer,p_outcome text)
+returns jsonb language plpgsql security definer set search_path='' as $$
+declare v_tenant uuid;v_row public.integration_ledger%rowtype;v_status text;
+begin
+ v_tenant:=pvh_private.ph03_tenant('m10:integration:simulate');
+ if length(btrim(coalesce(p_external_id,''))) not between 1 and 150
+  or p_expected_attempts not between 1 and 2
+  or p_outcome not in ('SUCCESS','TIMEOUT','SCHEMA_ERROR')
+ then raise exception 'INVALID_SIMULATED_RETRY' using errcode='22023'; end if;
+ select * into v_row from public.integration_ledger
+ where tenant_id=v_tenant and adapter_code='SIMULATED_ECHO_V1' and external_id=p_external_id for update;
+ if not found then raise exception 'SIMULATION_NOT_FOUND' using errcode='P0002'; end if;
+ if v_row.attempts<>p_expected_attempts then raise exception 'SIMULATION_VERSION_CONFLICT' using errcode='40001'; end if;
+ if v_row.status<>'SIMULATED_TIMEOUT' or v_row.attempts>=3
+ then raise exception 'SIMULATION_NOT_RETRYABLE' using errcode='22023'; end if;
+ v_status:='SIMULATED_'||p_outcome;
+ update public.integration_ledger set status=v_status,attempts=attempts+1,
+  receipt=receipt||jsonb_build_object('retryAt',now(),'retryOutcome',p_outcome,'attempts',attempts+1)
+ where id=v_row.id returning * into v_row;
+ insert into public.audit_log(tenant_id,actor_id,action,entity_type,entity_id,payload)
+ values(v_tenant,auth.uid(),'M10_SIMULATED_RETRY','integration_ledger',v_row.id::text,
+  jsonb_build_object('attempts',v_row.attempts,'status',v_status,'liveConnection',false));
+ return to_jsonb(v_row);
+end; $$;
 revoke all on function app.commit_indicator_import(text,text,integer,text,jsonb),
- app.record_simulated_integration(text,text) from public,anon;
+ app.record_simulated_integration(text,text),
+ app.retry_simulated_integration(text,integer,text) from public,anon;
 grant execute on function app.commit_indicator_import(text,text,integer,text,jsonb),
- app.record_simulated_integration(text,text) to authenticated;
+ app.record_simulated_integration(text,text),
+ app.retry_simulated_integration(text,integer,text) to authenticated;
