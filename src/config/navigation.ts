@@ -65,7 +65,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         iconName: "Building",
         moduleKey: "m02",
         requiredPermission: "m02:internal:read",
-        status: "LEGACY_MOCK",
+        status: "DEEP",
       },
       {
         title: "Giáo dục & Đào tạo (M03)",
