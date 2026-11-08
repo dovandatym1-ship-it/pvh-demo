@@ -13,7 +13,7 @@
 ## Trạng thái và điều kiện
 
 1. Người có quyền `m04:culture:evaluate` tạo bộ tiêu chí có version, jurisdiction; mặc định `ILLUSTRATIVE_ONLY`, không có cờ xác minh pháp lý từ UI.
-2. Mở đợt ghi cố định `rule_pack_id`, năm, loại danh hiệu, hạn đóng; chỉ nhận hồ sơ khi `OPEN`, trong thời gian tiếp nhận.
+2. Mở đợt và tạo pack minh họa trong **một RPC transaction**, cấp phiên bản có advisory lock; nếu trùng năm/loại thì rollback cả pack. Đợt ghi cố định `rule_pack_id`, năm, loại danh hiệu, hạn đóng; chỉ nhận hồ sơ mới khi `OPEN`, trong thời gian tiếp nhận.
 3. Người có quyền `m04:culture:create` nộp mã nguồn, tên đại diện, địa bàn, `source_ref`, `idempotency_key`. DB kiểm tra quyền theo thôn và uniqueness theo (đợt, đối tượng).
 4. Người có quyền rà soát khác người nộp: `CHO_RA_SOAT` → `THIEU_MINH_CHUNG` / `YEU_CAU_BO_SUNG` / `KHONG_DAT` (kết luận nội bộ). Mọi chuyển trạng thái bắt buộc có reason, expected_version và audit.
 5. `DAT` bị chặn nếu chưa có rule pack `VERIFIED`, ngưỡng được xác minh và minh chứng Storage thật thuộc scope M01. **Ngay cả trạng thái `DAT` cũng không đồng nghĩa quyết định công nhận.**
@@ -34,7 +34,7 @@ Không dùng nguồn cũ chưa kiểm chứng để tự chuyển `VERIFIED`. C�
 ## Ngoại lệ và dữ liệu
 
 - Cùng đối tượng/đợt: unique constraint, không tạo hai hồ sơ; cùng key và payload là replay.
-- Hết hạn: DB chặn tiếp nhận; không có quyền "bỏ qua hạn" ngầm.
+- Hết hạn: DB chặn hồ sơ mới; retry với khóa và payload đã tiếp nhận vẫn trả cùng bản ghi sau khi kiểm tra quyền hiện hành.
 - Cùng người tạo và rà soát: 42501, không ghi kết quả.
 - Version xung đột: PV409, không ghi partial audit.
 - Thiếu file thật: không có `DAT`, không tự suy từ `evidencePath` do client cung cấp.
@@ -42,3 +42,5 @@ Không dùng nguồn cũ chưa kiểm chứng để tự chuyển `VERIFIED`. C�
 - PII: không seed dữ liệu cá nhân, không lưu CCCD; dữ liệu nguồn dùng tham chiếu có kiểm soát.
 
 **Còn thiếu để P03-01→11 và G3 PASS:** BPMN xác nhận thẩm quyền, nguồn pháp lý, import có receipt, attach/version file theo hồ sơ, lưu số quyết định từ nguồn, staging RLS/Storage, E2E-CULTURE-001 bằng 2 tài khoản và DB readback.
+
+**Kiểm thử local PostgreSQL:** `04_ph03_domain_contracts.sql` và `05_ph03_actor_workflows.sql` đã PASS trong CI run `42478969666`: có actor nộp/rà soát khác nhau, replay idempotent, không được công nhận khi pack minh họa. Đây là RPC/database integration, chưa thay thế browser/Storage E2E.
