@@ -22,18 +22,34 @@ test("M04 is illustrative until a verified legal pack and evidence exist",()=>{
  assert.match(migration,/SEPARATION_OF_DUTIES/);
  assert.doesNotMatch(action("m04-culture-family"),/85\s*(?:points|điểm|\)|,)/);
 });
+test("M04 campaign opening is atomic and retries do not create packs on failure",()=>{
+ assert.match(migration,/create function app\.open_illustrative_culture_campaign/);
+ assert.match(migration,/v_pack:=app\.create_culture_rule_pack/);
+ assert.match(migration,/v_campaign:=app\.create_culture_campaign/);
+ assert.match(migration,/pg_advisory_xact_lock/);
+ const ui=readFileSync("src/features/m04-culture-family/components/ph03-culture-workspace.tsx","utf8");
+ assert.match(ui,/openIllustrativeCultureCampaignAction/);
+ assert.doesNotMatch(ui,/createIllustrativeRulePackAction/);
+ assert.match(ui,/resetRetryKey/);
+});
 test("M05 treats zero, null and missing separately",()=>{
  assert.match(migration,/p_value<>0/);
  assert.match(migration,/VALUE_MUST_BE_NULL/);
  assert.match(migration,/REVIEWER_MUST_BE_DIFFERENT_ACTOR/);
  assert.match(action("m05-science-digital"),/numericValue!==0/);
  assert.doesNotMatch(action("m05-science-digital"),/from\("digital_indicators"\)\.update/);
+ const ui=readFileSync("src/features/m05-science-digital/components/ph03-digital-workspace.tsx","utf8");
+ assert.match(ui,/planSource/);
+ assert.match(ui,/indicatorSource/);
+ assert.match(ui,/requiresNumeric/);
 });
 test("M08 close requires completed M01 task, no fallback",()=>{
  assert.match(migration,/M01_WORK_NOT_COMPLETED/);
  assert.match(migration,/app\.create_work_item\(/);
  assert.match(migration,/p_expected_version is distinct from v_row.version/);
  assert.doesNotMatch(action("m08-inspections"),/from\("inspection_recommendations"\)\.update/);
+ const ui=readFileSync("src/features/m08-inspections/components/ph03-inspection-workspace.tsx","utf8");
+ assert.match(ui,/resetRetryKey/);
 });
 test("legacy mutators are blocked",()=>{
  for(const module of ["m04-culture-family","m05-science-digital","m08-inspections"]){
