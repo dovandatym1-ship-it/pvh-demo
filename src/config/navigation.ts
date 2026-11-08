@@ -97,7 +97,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         iconName: "HeartHandshake",
         moduleKey: "m06",
         requiredPermission: "m06:social:read",
-        status: "LEGACY_MOCK",
+        status: "DEEP",
       },
       {
         title: "Dân tộc & Tôn giáo (M07)",
