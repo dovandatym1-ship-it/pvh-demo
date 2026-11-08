@@ -1,0 +1,482 @@
+{
+  "timestamp": "2026-11-07T17:41:58.522Z",
+  "totalTests": 50,
+  "passedTests": 42,
+  "failedTests": 8,
+  "passRate": "84.00%",
+  "verdict": "REJECT",
+  "assertions": [
+    {
+      "id": "TC-09.1",
+      "suite": "AC-09",
+      "name": "Initial delegation state is not expired",
+      "passed": true,
+      "expected": false,
+      "actual": false,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-09.2",
+      "suite": "AC-09",
+      "name": "Warning banner is HIDDEN when delegationExpired=false",
+      "passed": true,
+      "expected": false,
+      "actual": false,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-09.3",
+      "suite": "AC-09",
+      "name": "delegationExpired state mutated to true",
+      "passed": true,
+      "expected": true,
+      "actual": true,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-09.4",
+      "suite": "AC-09",
+      "name": "Warning banner is DISPLAYED when delegationExpired=true",
+      "passed": true,
+      "expected": true,
+      "actual": true,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-09.5",
+      "suite": "AC-09",
+      "name": "Audit log recorded DELEGATION_EXPIRED_TRIGGERED action",
+      "passed": true,
+      "expected": "DELEGATION_EXPIRED_TRIGGERED",
+      "actual": "DELEGATION_EXPIRED_TRIGGERED",
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-09.6",
+      "suite": "AC-09",
+      "name": "Audit log recorded entityType DELEGATION_AUTHORITY and entityId AC-09",
+      "passed": true,
+      "expected": "DELEGATION_AUTHORITY:AC-09",
+      "actual": "DELEGATION_AUTHORITY:AC-09",
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-09.7",
+      "suite": "AC-09",
+      "name": "delegationExpired state toggled back to false",
+      "passed": true,
+      "expected": false,
+      "actual": false,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-09.8",
+      "suite": "AC-09",
+      "name": "Warning banner is HIDDEN after toggle to false",
+      "passed": true,
+      "expected": false,
+      "actual": false,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-09.9",
+      "suite": "AC-09",
+      "name": "Audit log recorded DELEGATION_RENEWED action via toggle",
+      "passed": true,
+      "expected": "DELEGATION_RENEWED",
+      "actual": "DELEGATION_RENEWED",
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-09.10",
+      "suite": "AC-09",
+      "name": "Renew via banner button sets delegationExpired=false and logs audit",
+      "passed": true,
+      "expected": true,
+      "actual": true,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-M.1",
+      "suite": "ATOMIC_MERGE",
+      "name": "Initial duplicate CCCD detection finds exactly 2 groups in Xa A",
+      "passed": true,
+      "expected": 2,
+      "actual": 2,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-M.2",
+      "suite": "ATOMIC_MERGE",
+      "name": "Group 019082001122 contains SUB-01 and SUB-05 (Hoàng Văn Nam)",
+      "passed": true,
+      "expected": "SUB-01,SUB-05",
+      "actual": "SUB-01,SUB-05",
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-M.3",
+      "suite": "ATOMIC_MERGE",
+      "name": "Group 019184003344 contains SUB-02 and SUB-06 (Nguyễn Thị Lan)",
+      "passed": true,
+      "expected": "SUB-02,SUB-06",
+      "actual": "SUB-02,SUB-06",
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-M.4",
+      "suite": "ATOMIC_MERGE",
+      "name": "executeMerge returned true for valid duplicate pair",
+      "passed": true,
+      "expected": true,
+      "actual": true,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-M.5",
+      "suite": "ATOMIC_MERGE",
+      "name": "Master record SUB-01 retains ACTIVE status and unchanged core info",
+      "passed": true,
+      "expected": true,
+      "actual": {
+        "status": "ACTIVE"
+      },
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-M.6",
+      "suite": "ATOMIC_MERGE",
+      "name": "Secondary record SUB-05 mutated to status=MERGED and mergedIntoId=SUB-01",
+      "passed": true,
+      "expected": {
+        "status": "MERGED",
+        "mergedIntoId": "SUB-01"
+      },
+      "actual": {
+        "status": "MERGED",
+        "mergedIntoId": "SUB-01"
+      },
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-M.7",
+      "suite": "ATOMIC_MERGE",
+      "name": "Audit log contains RPC prefix 'RPC merge_citizen_identities'",
+      "passed": true,
+      "expected": true,
+      "actual": "RPC merge_citizen_identities",
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-M.8",
+      "suite": "ATOMIC_MERGE",
+      "name": "Duplicate groups count reduced from 2 to 1 after merging SUB-05 into SUB-01",
+      "passed": true,
+      "expected": 1,
+      "actual": 1,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-M.9",
+      "suite": "ATOMIC_MERGE",
+      "name": "Guard prevents merge when fewer than 2 subjects provided",
+      "passed": true,
+      "expected": false,
+      "actual": false,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-M.10",
+      "suite": "ATOMIC_MERGE",
+      "name": "Execute merge on SUB-02 + SUB-06 succeeds",
+      "passed": true,
+      "expected": true,
+      "actual": true,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-M.11",
+      "suite": "ATOMIC_MERGE",
+      "name": "Secondary record SUB-06 mutated to status=MERGED and mergedIntoId=SUB-02",
+      "passed": true,
+      "expected": {
+        "status": "MERGED",
+        "mergedIntoId": "SUB-02"
+      },
+      "actual": {
+        "status": "MERGED",
+        "mergedIntoId": "SUB-02"
+      },
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-M.12",
+      "suite": "ATOMIC_MERGE",
+      "name": "Duplicate groups count becomes 0 when all duplicate records are merged",
+      "passed": true,
+      "expected": 0,
+      "actual": 0,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-RH.1",
+      "suite": "RESIDENCE_HISTORY",
+      "name": "Xa A has exactly 4 residence history events",
+      "passed": true,
+      "expected": 4,
+      "actual": 4,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-RH.2",
+      "suite": "RESIDENCE_HISTORY",
+      "name": "Citizen SUB-01 loads exactly 2 residence fluctuation records",
+      "passed": true,
+      "expected": 2,
+      "actual": 2,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-RH.3",
+      "suite": "RESIDENCE_HISTORY",
+      "name": "SUB-01 history records contain SPLIT_HOUSEHOLD and RELOCATE_HAMLET",
+      "passed": true,
+      "expected": true,
+      "actual": "SPLIT_HOUSEHOLD,RELOCATE_HAMLET",
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-RH.4",
+      "suite": "RESIDENCE_HISTORY",
+      "name": "Duplicate citizen SUB-05 correlates to 2 residence events via matching CCCD",
+      "passed": true,
+      "expected": 2,
+      "actual": 2,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-RH.5",
+      "suite": "RESIDENCE_HISTORY",
+      "name": "Citizen SUB-02 loads exactly 1 residence fluctuation record (MERGE_HOUSEHOLD)",
+      "passed": true,
+      "expected": true,
+      "actual": "MERGE_HOUSEHOLD",
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-RH.6",
+      "suite": "RESIDENCE_HISTORY",
+      "name": "Citizen SUB-04 with no history returns empty array safely without error",
+      "passed": true,
+      "expected": 0,
+      "actual": 0,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-RH.7",
+      "suite": "RESIDENCE_HISTORY",
+      "name": "Zero Xa B residence records leaked into Xa A seed",
+      "passed": true,
+      "expected": false,
+      "actual": false,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-RH.8",
+      "suite": "RESIDENCE_HISTORY",
+      "name": "Xa B has exactly 2 residence history events (RH-B-01, RH-B-02)",
+      "passed": true,
+      "expected": 2,
+      "actual": 2,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-O.1",
+      "suite": "OMNISEARCH",
+      "name": "Empty query returns all 14 routes",
+      "passed": true,
+      "expected": 14,
+      "actual": 14,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-O.2",
+      "suite": "OMNISEARCH",
+      "name": "Whitespace query returns all 14 routes without crashing",
+      "passed": true,
+      "expected": 14,
+      "actual": 14,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-O.3",
+      "suite": "OMNISEARCH",
+      "name": "Special regex/SQL characters handle safely without crashing",
+      "passed": true,
+      "expected": false,
+      "actual": false,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-O.4",
+      "suite": "OMNISEARCH",
+      "name": "All 14 routes discovered when searched with their exact accented names",
+      "passed": true,
+      "expected": true,
+      "actual": true,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-O.5",
+      "suite": "OMNISEARCH",
+      "name": "Search by CCCD 019082001122 finds citizen records (SUB-01 and SUB-05)",
+      "passed": true,
+      "expected": true,
+      "actual": "citizen-SUB-01,citizen-SUB-05",
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-O.6",
+      "suite": "OMNISEARCH",
+      "name": "Search by Citizen Code CD-001 finds SUB-01",
+      "passed": true,
+      "expected": true,
+      "actual": "citizen-SUB-01",
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-O.7",
+      "suite": "OMNISEARCH",
+      "name": "Search by accented name 'Hoàng Văn Nam' finds citizen records",
+      "passed": true,
+      "expected": true,
+      "actual": true,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-O.8",
+      "suite": "OMNISEARCH",
+      "name": "Search finds School facility in FACILITY category",
+      "passed": true,
+      "expected": true,
+      "actual": "Trường Tiểu học Thịnh Đức",
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-O.9",
+      "suite": "OMNISEARCH",
+      "name": "Search finds Religious facility in FACILITY category",
+      "passed": false,
+      "expected": true,
+      "actual": "",
+      "criticality": "HIGH",
+      "error": "Assertion failed: expected true, got \"\""
+    },
+    {
+      "id": "TC-O.10",
+      "suite": "OMNISEARCH",
+      "name": "Search finds Medical facility in FACILITY category",
+      "passed": true,
+      "expected": true,
+      "actual": "Phòng khám Răng Hàm Mặt Thẩm mỹ Minh Châu",
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-O.11",
+      "suite": "OMNISEARCH",
+      "name": "Search finds Food Safety facility in FACILITY category",
+      "passed": false,
+      "expected": true,
+      "actual": "",
+      "criticality": "HIGH",
+      "error": "Assertion failed: expected true, got \"\""
+    },
+    {
+      "id": "TC-O.12",
+      "suite": "OMNISEARCH",
+      "name": "Search finds Task item by code TASK-A-001 in TASK category",
+      "passed": true,
+      "expected": true,
+      "actual": "[TASK-A-001] Kiểm tra an toàn PCCC tại Nhà văn hóa thôn Đồng Tiến",
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-O.13",
+      "suite": "OMNISEARCH",
+      "name": "Search finds Task item by keyword 'PCCC'",
+      "passed": true,
+      "expected": true,
+      "actual": "[TASK-A-001] Kiểm tra an toàn PCCC tại Nhà văn hóa thôn Đồng Tiến",
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-O.14",
+      "suite": "OMNISEARCH",
+      "name": "UPPERCASE query matches lowercase data (case-insensitivity)",
+      "passed": true,
+      "expected": true,
+      "actual": true,
+      "criticality": "HIGH"
+    },
+    {
+      "id": "TC-O.15_ADV",
+      "suite": "OMNISEARCH",
+      "name": "Unaccented search 'noi vu' matches Route '/noi-vu' (Nội vụ & Lao động)",
+      "passed": false,
+      "expected": true,
+      "actual": false,
+      "criticality": "HIGH",
+      "error": "Assertion failed: expected true, got false"
+    },
+    {
+      "id": "TC-O.16_ADV",
+      "suite": "OMNISEARCH",
+      "name": "Unaccented search 'giao duc' matches Route '/giao-duc' (Giáo dục & Đào tạo)",
+      "passed": false,
+      "expected": true,
+      "actual": false,
+      "criticality": "HIGH",
+      "error": "Assertion failed: expected true, got false"
+    },
+    {
+      "id": "TC-O.17_ADV",
+      "suite": "OMNISEARCH",
+      "name": "Unaccented search 'hoang van nam' matches citizen 'Hoàng Văn Nam'",
+      "passed": false,
+      "expected": true,
+      "actual": false,
+      "criticality": "HIGH",
+      "error": "Assertion failed: expected true, got false"
+    },
+    {
+      "id": "TC-O.18_ADV",
+      "suite": "OMNISEARCH",
+      "name": "Unaccented search 'nguyen thi lan' matches citizen 'Nguyễn Thị Lan'",
+      "passed": false,
+      "expected": true,
+      "actual": false,
+      "criticality": "HIGH",
+      "error": "Assertion failed: expected true, got false"
+    },
+    {
+      "id": "TC-O.19_ADV",
+      "suite": "OMNISEARCH",
+      "name": "Unaccented search 'thinh duc' matches Facility 'Trường Tiểu học Thịnh Đức'",
+      "passed": false,
+      "expected": true,
+      "actual": false,
+      "criticality": "HIGH",
+      "error": "Assertion failed: expected true, got false"
+    },
+    {
+      "id": "TC-O.20_ADV",
+      "suite": "OMNISEARCH",
+      "name": "Unaccented search 'tan thinh' matches Citizens in 'Xóm Tân Thịnh'",
+      "passed": false,
+      "expected": true,
+      "actual": false,
+      "criticality": "HIGH",
+      "error": "Assertion failed: expected true, got false"
+    }
+  ]
+}

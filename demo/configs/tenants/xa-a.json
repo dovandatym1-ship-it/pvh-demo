@@ -1,0 +1,18 @@
+{
+  "code": "XA_A",
+  "name": "UBND Xã Thịnh Đức",
+  "province": "Thái Nguyên",
+  "district": "TP. Thái Nguyên",
+  "officerMode": "CONCURRENT",
+  "features": {
+    "digitalTransformation": true,
+    "fieldInspection": true,
+    "advancedCulturalTitles": true,
+    "interDepartmentalCoordination": true
+  },
+  "hamlets": [
+    { "id": "xom-1", "name": "Xóm Tân Thịnh", "households": 240 },
+    { "id": "xom-2", "name": "Xóm Đồng Thịnh", "households": 180 },
+    { "id": "xom-3", "name": "Xóm Đức Hòa", "households": 100 }
+  ]
+}

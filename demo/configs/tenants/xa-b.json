@@ -1,0 +1,16 @@
+{
+  "code": "XA_B",
+  "name": "UBND Xã Tân Cương",
+  "province": "Thái Nguyên",
+  "district": "TP. Thái Nguyên",
+  "officerMode": "SPECIALIZED",
+  "features": {
+    "digitalTransformation": false,
+    "fieldInspection": false,
+    "advancedCulturalTitles": true,
+    "interDepartmentalCoordination": true
+  },
+  "hamlets": [
+    { "id": "xom-che", "name": "Xóm Chè Đặc Sản", "households": 140 }
+  ]
+}
