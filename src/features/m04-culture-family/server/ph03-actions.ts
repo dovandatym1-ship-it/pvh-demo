@@ -24,6 +24,9 @@ const CampaignInput = z.object({
   title: z.string().trim().min(3).max(250),
   closesAt: z.string().datetime({ offset: true }),
 }).strict();
+const IllustrativeCampaignInput = CampaignInput.omit({ rulePackId:true }).extend({
+  titleType:z.enum(["GIA_DINH","THON","XA_TIEU_BIEU"]),
+});
 const SubmissionInput = z.object({
   campaignId: z.string().uuid(),
   subjectRef: z.string().trim().min(2).max(150),
@@ -84,6 +87,15 @@ export async function createCultureCampaignAction(raw: unknown): Promise<Result<
   const x=parsed.data;
   return mutation<{id:string}>("m04:culture:evaluate", "create_culture_campaign", {
     p_rule_pack_id:x.rulePackId,p_year:x.year,p_title:x.title,p_closes_at:x.closesAt,
+  });
+}
+
+export async function openIllustrativeCultureCampaignAction(raw: unknown): Promise<Result<{id:string}>> {
+  const parsed = IllustrativeCampaignInput.safeParse(raw);
+  if (!parsed.success) return fail("VALIDATION", "Đợt minh họa phải có loại danh hiệu, năm, tên và hạn hợp lệ");
+  const x=parsed.data;
+  return mutation<{id:string}>("m04:culture:evaluate", "open_illustrative_culture_campaign", {
+    p_title_type:x.titleType,p_year:x.year,p_title:x.title,p_closes_at:x.closesAt,
   });
 }
 
