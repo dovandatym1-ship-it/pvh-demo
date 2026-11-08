@@ -522,7 +522,8 @@ begin
  end if;
  update public.digital_indicators set status=p_status,
  numeric_value=case when p_status in ('NOT_REPORTED','NOT_APPLICABLE') then null else p_value end,
- source_ref=nullif(btrim(coalesce(p_source_ref,'')),''),
+ source_ref=case when p_status='NOT_REPORTED' then null
+   else nullif(btrim(coalesce(p_source_ref,'')),'') end,
  na_reason=case when p_status='NOT_APPLICABLE' then p_na_reason else null end,
  version=version+1,updated_by=auth.uid(),updated_at=now()
  where tenant_id=v_tenant and id=p_indicator_id returning * into v_row;
@@ -641,7 +642,7 @@ begin
   raise exception 'FORBIDDEN_SCOPE' using errcode='42501';
  end if;
  if length(btrim(coalesce(p_code,'')))<2 or length(btrim(coalesce(p_title,'')))<5
- or p_due_date is null or p_due_date<current_date
+ or p_due_date is null or p_due_date<current_date or p_due_date<v_case.inspection_date
  or length(btrim(coalesce(p_idempotency_key,''))) not between 1 and 200 then
   raise exception 'VALIDATION' using errcode='22023';
  end if;
