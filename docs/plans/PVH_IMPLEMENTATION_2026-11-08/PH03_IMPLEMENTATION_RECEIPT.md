@@ -35,8 +35,9 @@
 | TypeScript typecheck/lint/build toàn repo | **PASS** ở các lượt CI đã hoàn tất | GitHub Actions CI; chưa có browser E2E |
 | `supabase db start` / migration smoke | **PASS** trên PostgreSQL sạch | GitHub Actions `PH03 DB migration smoke (local only)` run `42478681309`, commit `e4e7da33` |
 | SQL pgTAP PH03 structural/RLS/anonymous | **PASS** | `supabase/tests/04_ph03_domain_contracts.sql`, cùng run `42478681309` |
-| SQL pgTAP PH03 multi-actor business workflow | **PASS** | `supabase/tests/05_ph03_actor_workflows.sql`; GitHub Actions run `42478969666` (cùng `04_*`), log xác nhận 2 suite `ok`, `All tests successful`, `Result: PASS` |
-| RLS 3 persona + Storage upload/download | NOT_RUN | Chưa có staging/tài khoản hoặc Storage E2E |
+| SQL pgTAP PH03 multi-actor business workflow | **PASS** | `supabase/tests/05_ph03_actor_workflows.sql`; GitHub Actions run `42479292082` (cùng `04_*`), log xác nhận 2 suite `ok`, `All tests successful`, `Result: PASS`; bao gồm actor thứ ba không có quyền, M08 kiến nghị tạo việc M01 và từ chối đóng sớm |
+| RLS 3 persona local DB | **PASS (synthetic)** | Actor A/B/C, scope thôn và quyền khác nhau trong `05_*`; rollback dữ liệu giả sau test |
+| RLS 3 persona + Storage upload/download trên staging | NOT_RUN | Chưa có staging/tài khoản hoặc Storage E2E |
 | Browser E2E CULT-*, PLAN-*, INSP-* và DB readback | NOT_RUN | Chưa có staging dữ liệu/tài khoản kiểm thử |
 | Legal rule/authority review | BLOCKED | LEG-M04-01→05 chưa verified |
 
