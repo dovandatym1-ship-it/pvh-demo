@@ -19,7 +19,7 @@ jobs:
           supabase test db --help
       - name: Reproduce pre-existing cloud RLS event trigger in ephemeral DB only
         run: |
-          cp supabase/tests/fixtures/rls_event_trigger.sql \
+          cp supabase/_ci_fixtures/rls_event_trigger.sql \
             supabase/migrations/20261108000000_ci_only_cloud_prerequisite.sql
       - name: Start isolated Postgres and replay canonical migrations
         run: supabase db start

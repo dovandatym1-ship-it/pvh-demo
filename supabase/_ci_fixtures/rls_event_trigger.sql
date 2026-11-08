@@ -1,4 +1,4 @@
--- TEST-ONLY ENVIRONMENT PRECONDITION; NOT a deployable migration.
+-- TEST-ONLY ENVIRONMENT PRECONDITION; NOT a deployable migration or pgTAP test.
 -- Reproduces the pre-existing public.rls_auto_enable / ensure_rls dependency
 -- observed read-only in cloud PostgreSQL on 2026-11-08.
 -- GitHub Actions copies this to an ephemeral migrations filename BEFORE replay;
