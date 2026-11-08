@@ -40,4 +40,4 @@ jobs:
       # Historical test suites in supabase/tests/01_* and 03_* predate the PH01/PH02
       # schema reset. They require separate fixture modernization; they are not PH03 evidence.
       - name: Run PH03 database contract tests
-        run: supabase test db supabase/tests/04_ph03_domain_contracts.sql
+        run: supabase test db supabase/tests/04_ph03_domain_contracts.sql supabase/tests/05_ph03_actor_workflows.sql
