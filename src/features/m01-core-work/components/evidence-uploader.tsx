@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/client";
+import { uploadEvidenceObject } from "@/lib/storage/browser-evidence-upload";
 import { finalizeEvidenceAction, registerEvidenceAction } from "../server/actions";
 
 const accepted = ["application/pdf", "image/png", "image/jpeg", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
@@ -29,10 +29,8 @@ export function EvidenceUploader({ workItemId }: { workItemId: string }) {
         workItemId, fileName: file.name, contentType: file.type, size: file.size,
       });
       if (!registration.ok) { setError(registration.error.message); return; }
-      const client = createClient();
-      const { error: storageError } = await client.storage.from("evidence")
-        .upload(registration.data.objectPath, file, { upsert: false, contentType: file.type });
-      if (storageError) { setError("Tải tệp thất bại. Bản ghi đang chờ lưu, chưa tính là minh chứng hợp lệ."); return; }
+      try { await uploadEvidenceObject(registration.data.objectPath, file); }
+      catch { setError("Tải tệp thất bại. Bản ghi đang chờ lưu, chưa tính là minh chứng hợp lệ."); return; }
       const final = await finalizeEvidenceAction({ id: registration.data.id, sha256 });
       if (!final.ok) { setError("Storage đã nhận tệp nhưng chưa xác nhận metadata: " + final.error.message); return; }
       setSuccess("Đã tải và xác nhận minh chứng"); setFile(null); router.refresh();
