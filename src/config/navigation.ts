@@ -121,6 +121,15 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
+        title: "Nhập chỉ tiêu có nguồn",
+        route: "/nhap-chi-tieu",
+        iconName: "FileInput",
+        moduleKey: "m10",
+        requiredPermission: "m10:indicator:import",
+        status: "DEEP",
+        description: "Nhập CSV mô phỏng có kiểm tra, đối soát và lịch sử nguồn.",
+      },
+      {
         title: "Dữ liệu dùng chung",
         route: "/du-lieu-dung-chung",
         iconName: "Database",

@@ -17,6 +17,7 @@ import {
   Compass,
   ClipboardList,
   BarChart3,
+  FileInput,
   RefreshCw,
   BookOpen,
   LucideIcon,
@@ -37,6 +38,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Compass,
   ClipboardList,
   BarChart3,
+  FileInput,
   RefreshCw,
   BookOpen,
 };
@@ -79,6 +81,7 @@ const DEFAULT_GROUPS: NavigationGroupDisplay[] = [
     items: [
       { title: "Kiểm tra & Kiến nghị", route: "/kiem-tra", iconName: "ClipboardList" },
       { title: "Báo cáo thống kê", route: "/bao-cao", iconName: "BarChart3" },
+      { title: "Nhập chỉ tiêu có nguồn", route: "/nhap-chi-tieu", iconName: "FileInput" },
       { title: "Dữ liệu dùng chung", route: "/du-lieu-dung-chung", iconName: "Database" },
       { title: "Cổng tích hợp liên thông", route: "/tich-hop", iconName: "RefreshCw" },
       { title: "Quản trị hệ thống & Cán bộ", route: "/quan-tri", iconName: "ShieldCheck" },

@@ -11,7 +11,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test:ph04": "node --conditions=react-server --import tsx --test tests/ph04-import-contract.test.ts tests/ph04-reporting-export.test.ts && node scripts/ph04-db-smoke.mjs",
+    "test:ph04": "node --conditions=react-server --import tsx --test tests/ph04-import-contract.test.ts tests/ph04-reporting-export.test.ts tests/ph04-navigation.test.ts && node scripts/ph04-db-smoke.mjs",
     "db:reset": "supabase db reset && npm run test:db",
     "test:db": "supabase test db",
     "fitness": "node scripts/check-fitness.mjs"
