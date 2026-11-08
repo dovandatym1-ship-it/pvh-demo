@@ -21,6 +21,8 @@ Exact SQL snapshots are under `deployed/`. Behavioral verification: 46/46 checks
 
 The PR's `.github/workflows/db-ci.yml` replays all active migrations on isolated Supabase Postgres and runs `supabase/tests/01_ph01_single_commune_rls.sql` as a pgTAP contract. Tests are rolled back and use `.invalid` email Auth fixtures. Do not use the old multi-commune suites under `_legacy` as current acceptance criteria.
 
+The already-applied cloud baseline references the project-specific pre-existing RLS event-trigger helper `public.rls_auto_enable()` / `ensure_rls`. Stock Supabase local Postgres lacks it, so DB CI copies `tests/fixtures/rls_event_trigger.sql` into a temporary **CI-only** earlier migration before replay. The helper's function body, event and DDL tags were inspected with read-only queries against the cloud. This is not an additional deployable migration; do not copy it into the active migration directory or repair the cloud migration history.
+
 ## Reconcile before any db push/reset
 
 **PH01 feature branch reconciliation (source only):** active `supabase/migrations/` now contains exact byte-for-byte copies of the two SQL snapshots already applied in cloud. The nine older two-commune prototype migrations are preserved under `supabase/_legacy/superseded_20261108/`, not executed. `supabase/seed.sql` is intentionally non-personal and empty; baseline SQL provisions the singleton placeholder and permission catalogue.
