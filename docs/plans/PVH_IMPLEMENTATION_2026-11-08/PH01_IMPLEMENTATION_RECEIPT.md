@@ -3,7 +3,7 @@
 **Branch:** `feat/pvh-ph01-platform-auth`  
 **Starting commit:** `main@1b948f6cdbe8dae293dba9b6627c2b7201e036fc`  
 **Cloud Supabase:** no schema/role/user/data modifications authorized or executed.  
-**Status:** `IMPLEMENTED — CI/G1 VERIFICATION IN PROGRESS / NOT OWNER_ACCEPTED`.
+**Status:** `IMPLEMENTED — APP CI + ISOLATED DB CI PASS / G1 NOT OWNER_ACCEPTED`.
 
 ## Changes staged in this branch
 
@@ -25,9 +25,13 @@
 - `NODE_ENV=production NEXT_PUBLIC_DEMO_MODE=true node next.config.mjs`: correctly fails to load; false passes. Production build must re-run this guard in CI.
 - GitHub Actions [CI run 42472863718](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42472863718): **PASS** for the already-committed boundary fixes (npm ci, seven security tests, TypeScript, lint, fitness, Next.js build; Node 22). New M00/SQL changes require their own CI proof.
 - GitHub Actions [migration filename run 42472863634](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42472863634) used Supabase CLI 3.0.0 to generate `20261108104745_ph01_security_contract.sql`. The one-off generator workflow is removed in favor of permanent isolated DB CI.
+- GitHub Actions [CI run 42474578241](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42474578241): **PASS** (seven security tests, TypeScript, lint, fitness and Next.js build) after account-console implementation.
+- Isolated Postgres [database run 42474394232](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42474394232) first replayed all three active migrations and ran **32/32 pgTAP assertions PASS**, but the workflow erroneously interpreted its setup fixture as a second test; corrected by moving the fixture outside `supabase/tests` in commit `61ec901`.
+- GitHub Actions [database run 42474578262](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42474578262): **PASS** — ephemeral PostgreSQL 17, pre-existing cloud RLS trigger recreated only for CI, three canonical/source migrations applied from scratch, **32/32 pgTAP**. All 32 tests exercise real RLS/functions under simulated Auth roles, with transaction rollback; this is not a browser Auth E2E receipt.
 - GitHub code inspections against commit `1b948f6`, Supabase cloud migration list and read-only security advisor.
 - **Not run:** browser E2E, invite-mail delivery, real-account Supabase Auth/Storage upload E2E; cloud data was not mutated.
-- **Still blocked until evidence:** isolated DB migrations/pgTAP result, a real bootstrapped SYSTEM_ADMIN, operator review of service-role secret placement, private Storage upload/read/signed URL E2E, formal acceptance, security advisor remediation.
+- **Still blocked until evidence:** real bootstrapped SYSTEM_ADMIN, operator review of service-role secret placement, private Storage upload/read/signed URL E2E, browser Auth/invitation/revocation E2E, formal acceptance, security advisor remediation. The isolated migration/pgTAP gate is now verified independently of cloud.
+- Local reproducibility command `npm run db:reset` uses a source-controlled wrapper to temporarily stage the pre-existing cloud RLS event-trigger prerequisite on local Postgres only, then replay active migrations and pgTAP, and remove the temporary fixture. It **resets local data**; not run in this restricted execution environment. Never execute the cloud-targeted reset.
 - Live Supabase Security Advisor: `auth_leaked_password_protection` WARN; configuration remediation requires project operator approval.
 - The audit helper now fails closed rather than synthesizing success; direct audit table inserts are explicitly disallowed by the canonical schema. No generic audit logging endpoint is promised. All supported business mutations must be atomic audited RPCs.
 - PH01/G1 is **not** passed. Only the project owner can accept it after the acceptance matrix is executed.

@@ -11,7 +11,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "db:reset": "supabase db reset && npm run test:db",
+    "db:reset": "bash scripts/verify-db-local.sh",
     "test:db": "supabase test db",
     "fitness": "node scripts/check-fitness.mjs"
   },

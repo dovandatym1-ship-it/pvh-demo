@@ -23,11 +23,13 @@ The PR's `.github/workflows/db-ci.yml` replays all active migrations on isolated
 
 The already-applied cloud baseline references the project-specific pre-existing RLS event-trigger helper `public.rls_auto_enable()` / `ensure_rls`. Stock Supabase local Postgres lacks it, so DB CI copies `_ci_fixtures/rls_event_trigger.sql` into a temporary **CI-only** earlier migration before replay. Its location is deliberately outside `supabase/tests` (which pgTAP auto-discovers). The helper's function body, event and DDL tags were inspected with read-only queries against the cloud. This is not an additional deployable migration; do not copy it into the active migration directory or repair the cloud migration history.
 
+To reproduce this on a developer machine, run `npm run db:reset` (requires Docker + Supabase CLI). The script explicitly uses only the local default target, temporarily stages the exact cloud prerequisite, starts/resets local Postgres, runs pgTAP, and removes the temporary migration even if validation fails. **This command erases local development database records**; back them up first if needed. Never pass a remote DB URL or run `supabase db reset --linked` as a substitute.
+
 ## Reconcile before any db push/reset
 
 **PH01 feature branch reconciliation (source only):** active `supabase/migrations/` now contains exact byte-for-byte copies of the two SQL snapshots already applied in cloud. The nine older two-commune prototype migrations are preserved under `supabase/_legacy/superseded_20261108/`, not executed. `supabase/seed.sql` is intentionally non-personal and empty; baseline SQL provisions the singleton placeholder and permission catalogue.
 
-This is a **source reconciliation**, not a new migration and not a cloud migration-history repair. The cloud still reports versions `20261108054202` and `20261108054701`. Do not `db push --include-all`, run a cloud reset, or attempt to reapply those versions. Local `supabase db reset` and a clean database replay are still **NOT VERIFIED** until the CLI and local PostgreSQL runtime are available; do not merge or declare Gate G1 PASS without the reproducibility receipt.
+This is a **source reconciliation**, not a new migration and not a cloud migration-history repair. The cloud still reports versions `20261108054202` and `20261108054701`. Do not `db push --include-all`, run a cloud reset, or attempt to reapply those versions. An isolated clean replay and 32/32 pgTAP assertions passed in [database CI 42474578262](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42474578262) with the explicitly documented cloud RLS precondition. Manual local Mac replay has not been run. Do not declare the broader G1 gate PASS without real-account/Storage verification and owner approval.
 
 ## Server contract
 
