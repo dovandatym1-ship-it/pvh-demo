@@ -64,7 +64,7 @@ create table public.culture_rule_packs (
  created_at timestamptz not null default now(),
  unique(tenant_id,id),unique(tenant_id,title_type,version),
  check(effective_to is null or effective_from is null or effective_to>=effective_from),
- check(min_score is null or min_score>=0)
+ check(min_score is null or (min_score>=0 and min_score::text not in ('NaN','Infinity','-Infinity')))
 );
 create table public.campaigns (
  id uuid primary key default gen_random_uuid(),
@@ -162,6 +162,7 @@ create table public.digital_indicators (
  unique(tenant_id,id),unique(tenant_id,code,evaluation_period),
  foreign key(tenant_id,plan_id) references public.digital_plans(tenant_id,id),
  check(denominator is null or denominator>0),
+ check(numeric_value is null or numeric_value::text not in ('NaN','Infinity','-Infinity')),
  check((status='CONFIRMED_ZERO' and numeric_value=0 and source_ref is not null)
     or (status='CONFIRMED' and numeric_value is not null and source_ref is not null)
     or (status='NOT_REPORTED' and numeric_value is null)
@@ -307,7 +308,8 @@ begin
  if p_title_type not in ('GIA_DINH','THON','XA_TIEU_BIEU') or p_version is null or p_version<1
  or p_jurisdiction is null or length(btrim(p_jurisdiction))<2
  or p_criteria is null or jsonb_typeof(p_criteria)<>'array'
- or (p_min_score is not null and p_min_score<0) then
+ or (p_min_score is not null and (p_min_score<0 or
+     p_min_score::text in ('NaN','Infinity','-Infinity'))) then
   raise exception 'VALIDATION' using errcode='22023';
  end if;
  insert into public.culture_rule_packs(tenant_id,title_type,version,jurisdiction,criteria,min_score,created_by)
@@ -383,9 +385,6 @@ begin
  where id=p_campaign_id and tenant_id=v_tenant;
  select * into strict v_pack from public.culture_rule_packs
  where id=v_campaign.rule_pack_id and tenant_id=v_tenant;
- if v_campaign.status<>'OPEN' or v_campaign.opens_at>now() or v_campaign.closes_at<=now() then
-  raise exception 'CAMPAIGN_CLOSED' using errcode='22023';
- end if;
  if p_hamlet_id is null or not pvh_private.ph03_in_scope(v_tenant,p_hamlet_id)
  or not exists(select 1 from public.org_units where tenant_id=v_tenant
  and id=p_hamlet_id and kind='HAMLET' and is_active) then
@@ -399,6 +398,11 @@ begin
  if found then
   if v_row.request_hash<>v_hash then raise exception 'IDEMPOTENCY_CONFLICT' using errcode='PV409'; end if;
   return to_jsonb(v_row)||jsonb_build_object('cached',true);
+ end if;
+ -- An already accepted request can be retried even after the campaign closes;
+ -- never accept a NEW submission once its intake window is closed.
+ if v_campaign.status<>'OPEN' or v_campaign.opens_at>now() or v_campaign.closes_at<=now() then
+  raise exception 'CAMPAIGN_CLOSED' using errcode='22023';
  end if;
  insert into public.submissions(tenant_id,campaign_id,rule_pack_id,rule_pack_version,subject_ref,
  household_head_name,hamlet_id,submission_type,source_ref,idempotency_key,request_hash,created_by)
@@ -426,7 +430,7 @@ begin
  if not pvh_private.ph03_in_scope(v_tenant,v_row.hamlet_id) then
    raise exception 'FORBIDDEN_SCOPE' using errcode='42501';
  end if;
- if p_expected_version<>v_row.version then raise exception 'VERSION_CONFLICT' using errcode='PV409'; end if;
+ if p_expected_version is distinct from v_row.version then raise exception 'VERSION_CONFLICT' using errcode='PV409'; end if;
  if v_row.created_by=auth.uid() then raise exception 'SEPARATION_OF_DUTIES' using errcode='42501'; end if;
  if p_status not in ('THIEU_MINH_CHUNG','YEU_CAU_BO_SUNG','DAT','KHONG_DAT') then
   raise exception 'INVALID_TRANSITION' using errcode='22023';
@@ -435,6 +439,10 @@ begin
   raise exception 'INVALID_TRANSITION' using errcode='22023';
  end if;
  if length(btrim(coalesce(p_reason,'')))<5 then raise exception 'REASON_REQUIRED' using errcode='22023'; end if;
+ if p_score is not null and (p_score<0 or p_score>99999 or
+    p_score::text in ('NaN','Infinity','-Infinity')) then
+   raise exception 'INVALID_SCORE' using errcode='22023';
+ end if;
  select * into strict v_pack from public.culture_rule_packs
  where tenant_id=v_tenant and id=v_row.rule_pack_id and version=v_row.rule_pack_version;
  -- A file from any unrelated M01 work item must not satisfy M04 evidence.
@@ -482,9 +490,12 @@ begin
  v_tenant:=pvh_private.ph03_tenant('m05:digital:write');
  select * into strict v_row from public.digital_indicators
  where tenant_id=v_tenant and id=p_indicator_id for update;
- if p_expected_version<>v_row.version then raise exception 'VERSION_CONFLICT' using errcode='PV409'; end if;
+ if p_expected_version is distinct from v_row.version then raise exception 'VERSION_CONFLICT' using errcode='PV409'; end if;
  if p_status not in ('UNVERIFIED','NOT_REPORTED','CONFIRMED','CONFIRMED_ZERO','NOT_APPLICABLE') then
   raise exception 'INVALID_STATUS' using errcode='22023';
+ end if;
+ if p_value is not null and p_value::text in ('NaN','Infinity','-Infinity') then
+  raise exception 'INVALID_NUMERIC_VALUE' using errcode='22023';
  end if;
  if p_status='CONFIRMED_ZERO' and (p_value is null or p_value<>0) then
   raise exception 'ZERO_MUST_BE_NUMERIC_ZERO' using errcode='22023';
@@ -666,7 +677,7 @@ begin
  if not pvh_private.ph03_in_scope(v_tenant,v_hamlet) then
   raise exception 'FORBIDDEN_SCOPE' using errcode='42501';
  end if;
- if p_expected_version<>v_row.version then raise exception 'VERSION_CONFLICT' using errcode='PV409'; end if;
+ if p_expected_version is distinct from v_row.version then raise exception 'VERSION_CONFLICT' using errcode='PV409'; end if;
  if p_status not in ('FEEDBACK_UNVERIFIED','RESOLVED_CLOSED')
     or v_row.status='RESOLVED_CLOSED' then
   raise exception 'INVALID_TRANSITION' using errcode='22023';
@@ -677,7 +688,8 @@ begin
  if p_status='RESOLVED_CLOSED' and v_work.status<>'COMPLETED' then
   raise exception 'M01_WORK_NOT_COMPLETED' using errcode='22023';
  end if;
- if p_status='RESOLVED_CLOSED' and v_row.created_by=auth.uid() then
+ if p_status='RESOLVED_CLOSED' and
+   (v_row.created_by=auth.uid() or v_work.assigned_to=auth.uid()) then
   raise exception 'REVIEWER_MUST_BE_DIFFERENT_ACTOR' using errcode='42501';
  end if;
  update public.inspection_recommendations set status=p_status,review_note=btrim(p_reason),
