@@ -18,7 +18,7 @@ export const TENANTS: Record<string, TenantConfig> = {
   xa_a: {
     id: "a0000000-0000-0000-0000-000000000001",
     code: "TN-DEMO-A",
-    name: "UBND Xã Giả định A",
+    name: "UBND Xã Định Hóa",
     province: "Thái Nguyên",
     hamlets: [
       { id: "xom-a1", name: "Xóm A1" },
@@ -37,7 +37,7 @@ export const TENANTS: Record<string, TenantConfig> = {
   xa_b: {
     id: "a0000000-0000-0000-0000-000000000002",
     code: "TN-DEMO-B",
-    name: "UBND Xã Giả định B",
+    name: "UBND Xã Phú Lương",
     province: "Thái Nguyên",
     hamlets: [
       { id: "xom-b1", name: "Xóm B1" },

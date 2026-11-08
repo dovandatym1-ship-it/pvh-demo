@@ -31,7 +31,7 @@ export default async function WorkbenchPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-gray-900">Bàn làm việc</h1>
         <p className="text-sm text-gray-500">
-          Tổng quan nhiệm vụ công việc hành chính tại đơn vị {ctx.tenantId}
+          Tổng quan nhiệm vụ điều hành và công việc hành chính tại UBND cấp xã
         </p>
       </div>
 

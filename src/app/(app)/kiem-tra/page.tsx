@@ -30,11 +30,11 @@ export default async function KiemTraAppPage() {
           <div className="flex items-center gap-2">
             <ClipboardList className="w-6 h-6 text-[#1F633E]" />
             <h1 className="text-xl font-bold text-slate-900">
-              Kiểm tra & Xử lý Kiến nghị (M08 / DEM-KT)
+              Kiểm tra & Xử lý kiến nghị liên ngành
             </h1>
           </div>
           <p className="mt-1 text-xs text-slate-600">
-            Theo dõi các đợt kiểm tra liên ngành (ATTP, PCCC, Y tế), giám sát tiến độ khắc phục kiến nghị và chỉ tiêu MET-05.
+            Theo dõi các đợt kiểm tra liên ngành (ATTP, PCCC, Y tế), giám sát tiến độ khắc phục kiến nghị và đôn đốc xử lý.
           </p>
         </div>
       </div>

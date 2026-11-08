@@ -30,7 +30,7 @@ export default async function KhcnChuyenDoiSoAppPage() {
           <div className="flex items-center gap-2">
             <Cpu className="w-6 h-6 text-[#1F633E]" />
             <h1 className="text-xl font-bold text-slate-900">
-              Khoa học công nghệ & Chuyển đổi số (M05)
+              Khoa học công nghệ & Chuyển đổi số
             </h1>
           </div>
           <p className="mt-1 text-xs text-slate-600">

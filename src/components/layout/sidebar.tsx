@@ -59,30 +59,29 @@ const DEFAULT_GROUPS: NavigationGroupDisplay[] = [
     title: "Điều hành & Tác nghiệp",
     items: [
       { title: "Bàn làm việc", route: "/ban-lam-viec", iconName: "LayoutDashboard" },
-      { title: "Quản lý công việc (M01)", route: "/cong-viec", iconName: "CalendarCheck" },
-      { title: "Kế hoạch & Công việc", route: "/ke-hoach-cong-viec", iconName: "CalendarCheck" },
-      { title: "Kịch bản Diễn thử", route: "/playbook", iconName: "BookOpen", badge: "DEMO" },
+      { title: "Quản lý công việc", route: "/cong-viec", iconName: "CalendarCheck" },
     ],
   },
   {
     title: "Chuyên ngành VH-XH",
     items: [
-      { title: "Nội vụ & CCHC (M02)", route: "/noi-vu", iconName: "Building" },
-      { title: "Giáo dục & Đào tạo (M03)", route: "/giao-duc", iconName: "GraduationCap" },
-      { title: "Văn hóa & Gia đình (M04)", route: "/van-hoa-gia-dinh", iconName: "Sparkles" },
-      { title: "KHCN & CĐS (M05)", route: "/khcn-chuyen-doi-so", iconName: "Cpu" },
-      { title: "Y tế & An sinh (M06)", route: "/y-te-an-sinh", iconName: "HeartHandshake" },
-      { title: "Dân tộc & Tôn giáo (M07)", route: "/dan-toc-ton-giao", iconName: "Compass" },
+      { title: "Nội vụ & Lao động", route: "/noi-vu", iconName: "Building" },
+      { title: "Giáo dục & Đào tạo", route: "/giao-duc", iconName: "GraduationCap" },
+      { title: "Gia đình văn hóa", route: "/van-hoa/gia-dinh-van-hoa", iconName: "Sparkles" },
+      { title: "Thôn / Xóm văn hóa", route: "/van-hoa/thon-van-hoa", iconName: "Compass" },
+      { title: "Khoa học & Chuyển đổi số", route: "/khcn-chuyen-doi-so", iconName: "Cpu" },
+      { title: "Y tế & An sinh xã hội", route: "/y-te-an-sinh", iconName: "HeartHandshake" },
+      { title: "Dân tộc & Tôn giáo", route: "/dan-toc-ton-giao", iconName: "Compass" },
     ],
   },
   {
     title: "Kiểm tra, Báo cáo & Nền tảng",
     items: [
-      { title: "Kiểm tra & Kiến nghị (M08)", route: "/kiem-tra", iconName: "ClipboardList" },
-      { title: "Báo cáo chỉ tiêu (M09)", route: "/bao-cao", iconName: "BarChart3" },
-      { title: "Dữ liệu dùng chung (M01)", route: "/du-lieu-dung-chung", iconName: "Database" },
-      { title: "Nhập & Tích hợp (M10)", route: "/tich-hop", iconName: "RefreshCw" },
-      { title: "Quản trị & Cán bộ (M00)", route: "/quan-tri", iconName: "ShieldCheck" },
+      { title: "Kiểm tra & Kiến nghị", route: "/kiem-tra", iconName: "ClipboardList" },
+      { title: "Báo cáo thống kê", route: "/bao-cao", iconName: "BarChart3" },
+      { title: "Dữ liệu dùng chung", route: "/du-lieu-dung-chung", iconName: "Database" },
+      { title: "Cổng tích hợp liên thông", route: "/tich-hop", iconName: "RefreshCw" },
+      { title: "Quản trị hệ thống & Cán bộ", route: "/quan-tri", iconName: "ShieldCheck" },
     ],
   },
 ];
@@ -126,9 +125,9 @@ export function Sidebar({
             </div>
             <div>
               <h1 className="text-sm font-bold text-slate-800 leading-tight">
-                {tenant?.name || "UBND Xã Giả Định A"}
+                {tenant?.name || "UBND Xã Định Hóa"}
               </h1>
-              <p className="text-[11px] text-slate-500 font-medium">Phòng VH-XH Thái Nguyên</p>
+              <p className="text-[11px] text-slate-500 font-medium">Huyện Định Hóa, Thái Nguyên</p>
             </div>
           </div>
         </div>
@@ -183,7 +182,7 @@ export function Sidebar({
           <div className="p-3 border-t border-slate-200 bg-slate-50">
             <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-white border border-slate-200/80">
               <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center shrink-0">
-                {persona.code}
+                {persona.name ? persona.name.split(" ").slice(-1)[0]?.charAt(0) : "CB"}
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold text-slate-800 truncate">{persona.name}</p>

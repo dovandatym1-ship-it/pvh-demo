@@ -30,29 +30,12 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
-        title: "Quản lý công việc (M01)",
+        title: "Quản lý công việc",
         route: "/cong-viec",
         iconName: "CalendarCheck",
         moduleKey: "m01",
         requiredPermission: "m01:work:read",
         status: "DEEP",
-      },
-      {
-        title: "Kế hoạch & Công việc (Legacy)",
-        route: "/ke-hoach-cong-viec",
-        iconName: "CalendarCheck",
-        moduleKey: "m01",
-        requiredPermission: "m01:work:read",
-        status: "LEGACY_MOCK",
-      },
-      {
-        title: "Kịch bản Diễn thử",
-        route: "/playbook",
-        iconName: "BookOpen",
-        moduleKey: "m00",
-        requiredPermission: "m00:admin",
-        status: "LEGACY_MOCK",
-        badge: "DEMO",
       },
     ],
   },
@@ -60,7 +43,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
     title: "Chuyên ngành VH-XH",
     items: [
       {
-        title: "Nội vụ & CCHC (M02)",
+        title: "Nội vụ & Lao động",
         route: "/noi-vu",
         iconName: "Building",
         moduleKey: "m02",
@@ -68,7 +51,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
-        title: "Giáo dục & Đào tạo (M03)",
+        title: "Giáo dục & Đào tạo",
         route: "/giao-duc",
         iconName: "GraduationCap",
         moduleKey: "m03",
@@ -76,7 +59,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
-        title: "Văn hóa & Gia đình (M04)",
+        title: "Gia đình văn hóa",
         route: "/van-hoa/gia-dinh-van-hoa",
         iconName: "Sparkles",
         moduleKey: "m04",
@@ -92,7 +75,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
-        title: "KHCN & CĐS (M05)",
+        title: "Khoa học & Chuyển đổi số",
         route: "/khcn-chuyen-doi-so",
         iconName: "Cpu",
         moduleKey: "m05-science-digital",
@@ -100,7 +83,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
-        title: "Y tế & An sinh (M06)",
+        title: "Y tế & An sinh xã hội",
         route: "/y-te-an-sinh",
         iconName: "HeartHandshake",
         moduleKey: "m06",
@@ -108,7 +91,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
-        title: "Dân tộc & Tôn giáo (M07)",
+        title: "Dân tộc & Tôn giáo",
         route: "/dan-toc-ton-giao",
         iconName: "Compass",
         moduleKey: "m07",
@@ -121,7 +104,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
     title: "Kiểm tra, Báo cáo & Nền tảng",
     items: [
       {
-        title: "Kiểm tra & Kiến nghị (M08)",
+        title: "Kiểm tra & Kiến nghị",
         route: "/kiem-tra",
         iconName: "ClipboardList",
         moduleKey: "m08-inspections",
@@ -129,7 +112,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
-        title: "Báo cáo chỉ tiêu (M09)",
+        title: "Báo cáo thống kê",
         route: "/bao-cao",
         iconName: "BarChart3",
         moduleKey: "m09",
@@ -137,7 +120,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
-        title: "Dữ liệu dùng chung (M01)",
+        title: "Dữ liệu dùng chung",
         route: "/du-lieu-dung-chung",
         iconName: "Database",
         moduleKey: "m01",
@@ -145,7 +128,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "LEGACY_MOCK",
       },
       {
-        title: "Nhập & Tích hợp (M10)",
+        title: "Cổng tích hợp liên thông",
         route: "/tich-hop",
         iconName: "RefreshCw",
         moduleKey: "m10",
@@ -153,7 +136,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "LEGACY_MOCK",
       },
       {
-        title: "Quản trị & Cán bộ (M00)",
+        title: "Quản trị hệ thống & Cán bộ",
         route: "/quan-tri",
         iconName: "ShieldCheck",
         moduleKey: "m00",

@@ -6,20 +6,22 @@ import { logoutAction } from "@/lib/auth/actions";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   let filteredGroups: ReturnType<typeof filterNavigation> = [];
-  let userLabel = "Chủ tịch UBND xã (P1)";
-  const tenantLabel = "UBND Xã Demo A (TN-DEMO-A)";
+  let userLabel = "Chủ tịch UBND xã";
+  const tenantLabel = "UBND Xã Định Hóa";
 
   try {
     const ctx = await getRequestContext();
     filteredGroups = filterNavigation(ctx.permissions, ctx.roles);
-    if (ctx.roles.includes("CONG_CHUC_VHXH")) {
-      userLabel = "Công chức VH-XH (P2)";
+    if (ctx.roles.includes("CONG_CHUC_VHXH") || ctx.roles.includes("CAN_BO_KIEM_NHIEM") || ctx.roles.includes("WORK_OFFICER")) {
+      userLabel = "Công chức VH-XH";
     } else if (ctx.roles.includes("CAN_BO_MOT_CUA")) {
-      userLabel = "Cán bộ Một cửa (P5)";
-    } else if (ctx.roles.includes("CAN_BO_THANH_TRA")) {
-      userLabel = "Cán bộ Kiểm tra (P6)";
+      userLabel = "Cán bộ Một cửa";
+    } else if (ctx.roles.includes("CAN_BO_THANH_TRA") || ctx.roles.includes("AUDITOR")) {
+      userLabel = "Cán bộ Kiểm tra";
+    } else if (ctx.roles.includes("SYSTEM_ADMIN")) {
+      userLabel = "Quản trị viên hệ thống";
     } else {
-      userLabel = "Chủ tịch UBND xã (P1)";
+      userLabel = "Chủ tịch UBND xã";
     }
   } catch {
     filteredGroups = filterNavigation([]);

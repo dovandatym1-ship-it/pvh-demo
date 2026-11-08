@@ -22,7 +22,7 @@ export default async function DanTocTonGiaoPage() {
           Công tác Dân tộc & Tôn giáo
         </h1>
         <p className="text-sm text-gray-500">
-          Quản lý cơ sở tín ngưỡng, điểm nhóm sinh hoạt và chính sách đồng bào DTTS đơn vị {ctx.tenantId}
+          Quản lý cơ sở tín ngưỡng, điểm nhóm sinh hoạt và chính sách đồng bào DTTS trên địa bàn xã
         </p>
       </div>
 

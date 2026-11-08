@@ -80,7 +80,7 @@ export function EvaluationModal({
       isOpen={isOpen}
       onClose={onClose}
       title="Thẩm định & Chấm điểm danh hiệu Gia đình văn hóa"
-      description={`Bộ quy tắc TN-DEMO-ILLUSTRATIVE-01 (Phiên bản ${submission.rulePackVersion})`}
+      description={`Bộ tiêu chí đánh giá Gia đình văn hóa cấp xã (Phiên bản ${submission.rulePackVersion})`}
     >
       <div className="space-y-4 text-xs">
         <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">

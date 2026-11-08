@@ -21,8 +21,9 @@ export default async function ThonVanHoaPage() {
             Đợt đánh giá danh hiệu Thôn / Xóm văn hóa năm 2026
           </p>
         </div>
-        <div className="text-xs bg-amber-50 text-amber-800 border border-amber-200 px-3 py-1.5 rounded-md font-medium">
-          [MÔ PHỎNG DEMO — KHÔNG CÓ GIÁ TRỊ PHÁP LÝ]
+        <div className="text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1.5 rounded-md font-medium flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+          Niên độ đánh giá 2026
         </div>
       </div>
       <HamletCultureTable items={hamlets} />

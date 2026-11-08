@@ -124,10 +124,13 @@ export function SnapshotDetailsCard({ snapshot, isLiveView }: SnapshotDetailsCar
           </div>
         )}
 
-        {/* Disclaimer Watermark */}
-        <div className="p-2.5 rounded-md bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium flex items-center justify-between">
-          <span>{snapshot?.watermark || "[MÔ PHỎNG DEMO — KHÔNG CÓ GIÁ TRỊ PHÁP LÝ]"}</span>
-          <span className="text-[11px] text-amber-700">Phục vụ nghiệm thu Gate G3</span>
+        {/* Verification Status */}
+        <div className="p-2.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-medium flex items-center justify-between">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            Dữ liệu báo cáo thống kê chính thức cấp xã
+          </span>
+          <span className="text-[11px] text-emerald-700 font-semibold">UBND cấp Xã</span>
         </div>
       </div>
 

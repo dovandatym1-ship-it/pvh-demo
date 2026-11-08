@@ -28,7 +28,7 @@ export default async function NoiVuAppPage() {
           <div className="flex items-center gap-2">
             <Building className="w-6 h-6 text-[#1F633E]" />
             <h1 className="text-xl font-bold text-slate-900">
-              Nội vụ, Lao động & Người có công (M02)
+              Nội vụ, Lao động & Người có công
             </h1>
           </div>
           <p className="mt-1 text-xs text-slate-600">

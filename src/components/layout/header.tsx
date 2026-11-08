@@ -126,9 +126,9 @@ const APP_ROUTES: RouteMeta[] = [
   },
   {
     path: "/playbook",
-    name: "Playbook thực nghiệm",
+    name: "Hướng dẫn quy trình tác nghiệp",
     category: "Hỗ trợ",
-    desc: "Kịch bản diễn thử 8 bước, Reset Demo Xã A độc lập",
+    desc: "Cẩm nang hướng dẫn quy trình tác nghiệp và phối hợp liên ngành",
     icon: PlaySquare,
   },
   {

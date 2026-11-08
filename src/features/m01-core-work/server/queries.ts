@@ -74,7 +74,7 @@ export async function getWorkItems(ctx: RequestContext): Promise<WorkItemDTO[]> 
           id: "item-demo-04",
           tenantId: ctx.tenantId,
           title: "Thẩm định hồ sơ công nhận danh hiệu Gia đình văn hóa tiêu biểu 2026",
-          description: "Tiếp nhận 120 hồ sơ đề nghị từ các xóm, đối chiếu theo Bộ tiêu chí TN-DEMO-ILLUSTRATIVE-01",
+          description: "Tiếp nhận 120 hồ sơ đề nghị từ các xóm, đối chiếu theo Bộ tiêu chí Gia đình văn hóa cấp xã",
           status: "COMPLETED",
           priority: "LOW",
           category: "VAN_HOA",

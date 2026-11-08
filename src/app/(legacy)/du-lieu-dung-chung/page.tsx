@@ -107,7 +107,7 @@ const INITIAL_FACILITIES: FacilityItem[] = [
   {
     id: "fac-b-2",
     code: "CS-VH-B-002",
-    name: "Không gian Trưng bày Văn hóa Trà Giả định B",
+    name: "Không gian Trưng bày Văn hóa Trà Đồi Chè",
     category: "Thiết chế du lịch & Di sản",
     capacity: "Khuôn viên 1.500m2",
     hamlet: "Xóm B1",

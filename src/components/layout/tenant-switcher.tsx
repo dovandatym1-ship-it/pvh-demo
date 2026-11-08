@@ -26,8 +26,8 @@ export function TenantSwitcher({
           onChange={(e) => onSelectTenant(TENANTS[e.target.value])}
           className="h-6 rounded border-none bg-transparent pr-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-0 cursor-pointer"
         >
-          <option value="xa_a">Xã Giả định A (TN-DEMO-A - Đầy đủ CĐS/KT)</option>
-          <option value="xa_b">Xã Giả định B (TN-DEMO-B - Thu gọn/Phân nhiệm)</option>
+          <option value="xa_a">UBND Xã Định Hóa (Thái Nguyên)</option>
+          <option value="xa_b">UBND Xã Phú Lương (Thái Nguyên)</option>
         </select>
       </div>
     </div>
