@@ -43,6 +43,7 @@ select extensions.ok(to_regprocedure(sig) is not null,format('Domain RPC %s exis
 from unnest(array[
  'app.create_culture_rule_pack(text,integer,text,jsonb,numeric)',
  'app.create_culture_campaign(uuid,integer,text,timestamp with time zone)',
+ 'app.open_illustrative_culture_campaign(text,integer,text,timestamp with time zone)',
  'app.submit_culture_dossier(uuid,text,text,uuid,text,text)',
  'app.review_culture_dossier(uuid,text,numeric,text,integer,uuid)',
  'app.create_digital_plan(text,text,text)',
