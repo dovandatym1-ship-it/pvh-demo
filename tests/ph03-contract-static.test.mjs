@@ -32,7 +32,7 @@ test("M05 treats zero, null and missing separately",()=>{
 test("M08 close requires completed M01 task, no fallback",()=>{
  assert.match(migration,/M01_WORK_NOT_COMPLETED/);
  assert.match(migration,/app\.create_work_item\(/);
- assert.match(migration,/p_expected_version<>v_row.version/);
+ assert.match(migration,/p_expected_version is distinct from v_row.version/);
  assert.doesNotMatch(action("m08-inspections"),/from\("inspection_recommendations"\)\.update/);
 });
 test("legacy mutators are blocked",()=>{
