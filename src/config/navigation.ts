@@ -105,7 +105,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         iconName: "Compass",
         moduleKey: "m07",
         requiredPermission: "m07:faith:read",
-        status: "LEGACY_MOCK",
+        status: "DEEP",
       },
     ],
   },
