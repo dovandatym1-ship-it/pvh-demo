@@ -1,17 +1,21 @@
 import * as React from "react";
+import Link from "next/link";
 import { getRequestContext } from "@/lib/auth/request-context";
 import { filterNavigation } from "@/config/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { logoutAction } from "@/lib/auth/actions";
+import { TENANTS } from "@/lib/tenancy/tenant-config";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   let filteredGroups: ReturnType<typeof filterNavigation> = [];
   let userLabel = "Chủ tịch UBND xã";
-  const tenantLabel = "UBND Xã Định Hóa";
+  let tenantLabel = "Đơn vị công tác";
 
   try {
     const ctx = await getRequestContext();
     filteredGroups = filterNavigation(ctx.permissions, ctx.roles);
+    const tenant = Object.values(TENANTS).find((entry) => entry.id === ctx.tenantId || entry.code === ctx.tenantId);
+    if (tenant) tenantLabel = tenant.name;
     if (ctx.roles.includes("SYSTEM_ADMIN") || ctx.roles.includes("admin")) {
       userLabel = "Quản trị viên hệ thống";
     } else if (ctx.roles.includes("CONG_CHUC_VHXH") || ctx.roles.includes("CAN_BO_KIEM_NHIEM") || ctx.roles.includes("WORK_OFFICER")) {
@@ -29,10 +33,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <Sidebar groups={filteredGroups} />
+      <div className="hidden lg:block"><Sidebar groups={filteredGroups} /></div>
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-14 border-b border-slate-200 bg-white px-4 sm:px-6 flex items-center justify-between sticky top-0 z-20">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <details className="relative lg:hidden group">
+              <summary className="cursor-pointer list-none rounded-md border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500" aria-label="Mở điều hướng">☰ Menu</summary>
+              <nav aria-label="Điều hướng trên điện thoại" className="absolute top-10 left-0 z-50 max-h-[70vh] w-[min(85vw,310px)] overflow-y-auto rounded-lg border border-slate-200 bg-white p-3 shadow-xl">
+                {filteredGroups.map((group) => (
+                  <div className="mb-3" key={group.title}>
+                    <p className="px-2 py-1 text-[11px] font-bold text-slate-500">{group.title}</p>
+                    {group.items.map((item) => <Link key={item.route} href={item.route} className="block rounded-md px-2 py-2 text-xs text-slate-700 hover:bg-emerald-50 hover:text-emerald-800">{item.title}</Link>)}
+                  </div>
+                ))}
+              </nav>
+            </details>
             <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
               🏛️ {tenantLabel}
             </span>

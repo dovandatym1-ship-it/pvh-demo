@@ -14,12 +14,14 @@ interface WorkItemManagerProps {
   readonly initialItems: WorkItemDTO[];
   readonly userPermissions: readonly string[];
   readonly userRoles: readonly string[];
+  readonly focusItemId?: string;
 }
 
 export function WorkItemManager({
   initialItems,
   userPermissions = [],
   userRoles = [],
+  focusItemId,
 }: WorkItemManagerProps) {
   const [items, setItems] = React.useState<WorkItemDTO[]>(initialItems);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -28,7 +30,10 @@ export function WorkItemManager({
   const [categoryFilter, setCategoryFilter] = React.useState<string>("ALL");
 
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
-  const [selectedItem, setSelectedItem] = React.useState<WorkItemDTO | null>(null);
+  // Deep links from Dashboard open only items already authorized by the server query.
+  const [selectedItem, setSelectedItem] = React.useState<WorkItemDTO | null>(
+    () => initialItems.find((item) => item.id === focusItemId) ?? null
+  );
   const [returnModalItem, setReturnModalItem] = React.useState<WorkItemDTO | null>(null);
 
   const [transitionLoading, setTransitionLoading] = React.useState(false);

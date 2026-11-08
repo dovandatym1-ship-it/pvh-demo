@@ -24,6 +24,12 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
     title: "Điều hành & Tác nghiệp",
     items: [
       {
+        title: "Dashboard điều hành",
+        route: "/dashboard",
+        iconName: "LayoutDashboard",
+        status: "DEEP",
+      },
+      {
         title: "Bàn làm việc",
         route: "/ban-lam-viec",
         iconName: "LayoutDashboard",

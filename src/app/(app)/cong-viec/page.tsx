@@ -5,17 +5,22 @@ import { WorkItemManager } from "@/features/m01-core-work/components/work-item-m
 
 export const dynamic = "force-dynamic";
 
-export default async function CongViecPage() {
+export default async function CongViecPage({
+  searchParams,
+}: {
+  readonly searchParams: Promise<{ focus?: string }>;
+}) {
   const ctx = await getRequestContext();
   assertRoutePermission("/cong-viec", ctx.permissions, ctx.roles);
 
-  const workItems = await getWorkItems(ctx);
+  const [workItems, { focus }] = await Promise.all([getWorkItems(ctx), searchParams]);
 
   return (
     <WorkItemManager
       initialItems={workItems}
       userPermissions={ctx.permissions}
       userRoles={ctx.roles}
+      focusItemId={focus}
     />
   );
 }
