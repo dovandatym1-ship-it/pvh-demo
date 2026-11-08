@@ -40,24 +40,8 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
     ],
   },
   {
-    title: "Chuyên ngành VH-XH",
+    title: "Văn hóa - Thông tin & Giáo dục",
     items: [
-      {
-        title: "Nội vụ & Lao động",
-        route: "/noi-vu",
-        iconName: "Building",
-        moduleKey: "m02",
-        requiredPermission: "m02:internal:read",
-        status: "DEEP",
-      },
-      {
-        title: "Giáo dục & Đào tạo",
-        route: "/giao-duc",
-        iconName: "GraduationCap",
-        moduleKey: "m03",
-        requiredPermission: "m03:education:read",
-        status: "DEEP",
-      },
       {
         title: "Gia đình văn hóa",
         route: "/van-hoa/gia-dinh-van-hoa",
@@ -75,6 +59,14 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
+        title: "Giáo dục & Đào tạo",
+        route: "/giao-duc",
+        iconName: "GraduationCap",
+        moduleKey: "m03",
+        requiredPermission: "m03:education:read",
+        status: "DEEP",
+      },
+      {
         title: "Khoa học & Chuyển đổi số",
         route: "/khcn-chuyen-doi-so",
         iconName: "Cpu",
@@ -82,12 +74,25 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         requiredPermission: "m05:digital:read",
         status: "DEEP",
       },
+    ],
+  },
+  {
+    title: "Lao động, Y tế & Chính sách xã hội",
+    items: [
       {
         title: "Y tế & An sinh xã hội",
         route: "/y-te-an-sinh",
         iconName: "HeartHandshake",
         moduleKey: "m06",
         requiredPermission: "m06:social:read",
+        status: "DEEP",
+      },
+      {
+        title: "Nội vụ & Lao động",
+        route: "/noi-vu",
+        iconName: "Building",
+        moduleKey: "m02",
+        requiredPermission: "m02:internal:read",
         status: "DEEP",
       },
       {

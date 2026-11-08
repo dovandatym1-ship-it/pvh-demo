@@ -62,6 +62,33 @@ export async function proposeCulturalTitleAction(
 }
 
 /**
+ * Server Action: Create new CultureSubmissionDTO directly for CultureDossierManager.
+ */
+export async function createCultureSubmissionAction(
+  input: unknown
+): Promise<Result<CultureSubmissionDTO>> {
+  try {
+    const parsed = ProposeCulturalTitleSchema.safeParse(input);
+    if (!parsed.success) {
+      return fail("VALIDATION", "Dữ liệu đề xuất danh hiệu không hợp lệ", parsed.error.flatten());
+    }
+
+    const ctx = await getRequestContext();
+    assertCanProposeCulture(ctx);
+
+    const result = await cultureService.proposeCulturalTitle(ctx, parsed.data);
+    if (!result.ok) {
+      return result;
+    }
+
+    revalidatePath("/van-hoa/gia-dinh-van-hoa");
+    return result;
+  } catch (err: unknown) {
+    return fail("INTERNAL", "Đã xảy ra lỗi hệ thống khi đề xuất danh hiệu", err);
+  }
+}
+
+/**
  * Server Action: Evaluate and score a cultural dossier.
  */
 export async function evaluateSubmissionAction(

@@ -30,6 +30,29 @@ export const workItemRepository = {
       });
 
       if (error) {
+        if (process.env.NEXT_PUBLIC_DEMO_MODE === "true") {
+          const newId = `item-${Date.now()}`;
+          const fallbackDto: WorkItemDTO = {
+            id: newId,
+            tenantId: ctx.tenantId,
+            title: input.title,
+            description: input.description || null,
+            status: "NEW",
+            priority: input.priority || "MEDIUM",
+            category: input.category || "CHUNG",
+            assignedTo: input.assignedTo || null,
+            dueDate: input.dueDate || null,
+            hamletId: input.hamletId || null,
+            version: 1,
+            idempotencyKey: input.idempotencyKey || null,
+            createdAt: new Date().toISOString(),
+            createdBy: ctx.userId,
+            updatedAt: new Date().toISOString(),
+            updatedBy: ctx.userId,
+          };
+          return ok(fallbackDto);
+        }
+
         if (error.message.includes("VERSION_CONFLICT")) {
           return fail("VERSION_CONFLICT", "Xung đột phiên bản dữ liệu khi tạo công việc", error);
         }

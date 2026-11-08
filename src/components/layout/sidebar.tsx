@@ -63,14 +63,19 @@ const DEFAULT_GROUPS: NavigationGroupDisplay[] = [
     ],
   },
   {
-    title: "Chuyên ngành VH-XH",
+    title: "Văn hóa - Thông tin & Giáo dục",
     items: [
-      { title: "Nội vụ & Lao động", route: "/noi-vu", iconName: "Building" },
-      { title: "Giáo dục & Đào tạo", route: "/giao-duc", iconName: "GraduationCap" },
       { title: "Gia đình văn hóa", route: "/van-hoa/gia-dinh-van-hoa", iconName: "Sparkles" },
-      { title: "Thôn / Xóm văn hóa", route: "/van-hoa/thon-van-hoa", iconName: "Compass" },
+      { title: "Thôn / Xóm văn hóa", route: "/van-hoa/thon-van-hoa", iconName: "Landmark" },
+      { title: "Giáo dục & Đào tạo", route: "/giao-duc", iconName: "GraduationCap" },
       { title: "Khoa học & Chuyển đổi số", route: "/khcn-chuyen-doi-so", iconName: "Cpu" },
+    ],
+  },
+  {
+    title: "Lao động, Y tế & Chính sách xã hội",
+    items: [
       { title: "Y tế & An sinh xã hội", route: "/y-te-an-sinh", iconName: "HeartHandshake" },
+      { title: "Nội vụ & Lao động", route: "/noi-vu", iconName: "Building" },
       { title: "Dân tộc & Tôn giáo", route: "/dan-toc-ton-giao", iconName: "Compass" },
     ],
   },

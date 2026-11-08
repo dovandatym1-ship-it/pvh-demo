@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import type { WorkItemDTO } from "../types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -103,13 +104,15 @@ export function WorkItemTable({
                 v{item.version}
               </td>
               <td className="py-3 px-4 text-right space-x-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => onSelect?.(item)}
-                >
-                  Chi tiết
-                </Button>
+                <Link href="/cong-viec">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onSelect?.(item)}
+                  >
+                    Chi tiết
+                  </Button>
+                </Link>
                 {item.status === "UNDER_REVIEW" && (
                   <Button
                     size="sm"
