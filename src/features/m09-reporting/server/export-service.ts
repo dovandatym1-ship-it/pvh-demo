@@ -23,6 +23,14 @@ const METRIC_NAMES: Record<string,string> = {
   inspectionsTotal:"Cuộc kiểm tra",recommendationsTotal:"Kiến nghị kiểm tra",
   recommendationsClosed:"Kiến nghị đã khắc phục",importedValues:"Bản ghi chỉ tiêu từ file mô phỏng",
 };
+const METRIC_UNITS: Record<string,string> = {
+  tasksTotal:"Công việc",tasksCompleted:"Công việc",tasksOverdue:"Công việc",
+  cultureSubmissions:"Hồ sơ",cultureEligible:"Hồ sơ",plansTotal:"Kế hoạch",
+  indicatorsConfirmed:"Chỉ tiêu",indicatorsConfirmedZero:"Chỉ tiêu",
+  indicatorsNotReported:"Chỉ tiêu",indicatorsNotApplicable:"Chỉ tiêu",
+  inspectionsTotal:"Cuộc",recommendationsTotal:"Kiến nghị",
+  recommendationsClosed:"Kiến nghị",importedValues:"Bản ghi",
+};
 function safeCell(value: unknown): string {
   const text = String(value ?? "");
   return /^[\s\u0000-\u001f]*[=+\-@]/.test(text) ? "'" + text : text;
@@ -56,11 +64,12 @@ async function exportXlsx(snapshot: ReportSnapshotDTO): Promise<Buffer> {
     ? "Chốt nội bộ, KHÔNG phải chữ ký số hay văn bản phát hành."
     : DRAFT_WATERMARK;
   sheet.addRow([]);
-  sheet.addRow(["Mã chỉ tiêu","Chỉ tiêu","Giá trị","Ghi chú nguồn"]);
+  sheet.addRow(["Mã chỉ tiêu","Chỉ tiêu","Giá trị","Đơn vị / Ghi chú nguồn"]);
   const header=sheet.getRow(7); header.font={bold:true,color:{argb:"FFFFFFFF"}};
   header.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FF203A64"}};
   for(const metric of numericMetrics(snapshot)) {
-    sheet.addRow([safeCell(metric.code),safeCell(metric.label),metric.value,"Số liệu từ bản chụp nguồn, không live"]);
+    sheet.addRow([safeCell(metric.code),safeCell(metric.label),metric.value,
+      safeCell(METRIC_UNITS[metric.code]??"") + " · Bản chụp nguồn, không live"]);
   }
   const quality = snapshot.payload.quality as Record<string,unknown> | undefined;
   for(const [code,detail] of Object.entries(quality ?? {})){
@@ -74,7 +83,8 @@ async function exportXlsx(snapshot: ReportSnapshotDTO): Promise<Buffer> {
   return Buffer.from(raw);
 }
 async function exportPdf(snapshot: ReportSnapshotDTO): Promise<Buffer> {
-  const doc=new PDFDocument({size:"A4",margin:48,info:{Title:safeCell(snapshot.title),Author:"PVH Workbench"}});
+  const doc=new PDFDocument({size:"A4",margin:48,bufferPages:true,
+    info:{Title:safeCell(snapshot.title),Author:"PVH Workbench"}});
   const chunks:Buffer[]=[];
   doc.on("data",(chunk:Buffer)=>chunks.push(Buffer.from(chunk)));
   const ended=new Promise<Buffer>((resolve,reject)=>{
@@ -88,24 +98,50 @@ async function exportPdf(snapshot: ReportSnapshotDTO): Promise<Buffer> {
     .text("Mã: "+snapshot.reportCode+" | Kỳ: "+snapshot.period+" | Năm: "+snapshot.year+
       " | Bản: "+snapshot.revision+" | Trạng thái: "+snapshot.status,{align:"center"});
   doc.moveDown(0.5).fontSize(9).text("SHA-256 ("+snapshot.hashAlgorithm+"): "+snapshot.sha256);
-  doc.moveDown().fontSize(11).fillColor("#17253C").text("Chỉ tiêu báo cáo",{underline:true});
-  for(const m of numericMetrics(snapshot)){
-    if(doc.y>700) doc.addPage();
-    doc.fontSize(10).fillColor("#26354B").text(safeCell(m.label)+": "+m.value.toLocaleString("vi-VN"),{continued:false});
+  doc.moveDown().fontSize(11).fillColor("#17253C").text("Bảng số liệu báo cáo",{underline:true});
+  const tableX=48,tableWidth=doc.page.width-96,rowHeight=28;
+  let tableY=doc.y+10,renderedRows=0;
+  function tableHeader() {
+    if(tableY>doc.page.height-120){doc.addPage();tableY=doc.y+12;}
+    doc.save().fillColor("#203A64").rect(tableX,tableY,tableWidth,28).fill().restore();
+    doc.fontSize(9).fillColor("#FFFFFF").text("Chỉ tiêu",tableX+10,tableY+8,{width:tableWidth-190,lineBreak:false});
+    doc.text("Giá trị",tableX+tableWidth-175,tableY+8,{width:88,lineBreak:false,align:"right"});
+    doc.text("Đơn vị",tableX+tableWidth-78,tableY+8,{width:68,lineBreak:false});
+    tableY+=28;
   }
+  function tableRow(label:string,value:string,unit:string) {
+    if(tableY+rowHeight>doc.page.height-100){doc.addPage();tableY=doc.y+12;tableHeader();}
+    if(renderedRows%2===0)doc.save().fillColor("#F0F4FA").rect(tableX,tableY,tableWidth,rowHeight).fill().restore();
+    doc.fontSize(9).fillColor("#26354B").text(safeCell(label),tableX+10,tableY+8,
+      {width:tableWidth-190,height:15,ellipsis:true,lineBreak:false});
+    doc.text(safeCell(value),tableX+tableWidth-175,tableY+8,
+      {width:88,lineBreak:false,align:"right"});
+    doc.text(safeCell(unit),tableX+tableWidth-78,tableY+8,{width:68,lineBreak:false});
+    tableY+=rowHeight;renderedRows++;
+  }
+  tableHeader();
+  for(const m of numericMetrics(snapshot))
+    tableRow(m.label,m.value.toLocaleString("vi-VN"),METRIC_UNITS[m.code]??"");
   const quality=snapshot.payload.quality as Record<string,unknown>|undefined;
   for(const [code,detail] of Object.entries(quality ?? {})) {
-    if(doc.y>700) doc.addPage();
     const q=detail as {value?:unknown;status?:unknown};
-    doc.fontSize(10).text(safeCell(code)+": "+(q.value ?? "—")+" ("+safeCell(q.status ?? "NOT_REPORTED")+")");
+    tableRow(METRIC_NAMES[code]??code,String(q.value??"—"),String(q.status??"NOT_REPORTED"));
   }
+  doc.y=tableY+16;
+  if(doc.y>doc.page.height-145)doc.addPage();
   doc.moveDown().fontSize(9).fillColor("#5B6472")
     .text("Nguồn dữ liệu: "+safeCell(snapshot.payload.sourceType)+
       " | Số bản ghi đóng góp: "+String(snapshot.payload.sourceRecords ?? 0));
   doc.moveDown().text(snapshot.status==="FINALIZED"
     ? "Đây là số liệu chốt nội bộ. Không có chữ ký số hoặc quyết định hành chính."
     : DRAFT_WATERMARK);
-  doc.on("pageAdded",()=>{doc.font(vietnameseFont);});
+  const pageRange=doc.bufferedPageRange();
+  for(let i=pageRange.start;i<pageRange.start+pageRange.count;i++){
+    doc.switchToPage(i);
+    doc.font(vietnameseFont).fontSize(8).fillColor("#677489")
+      .text("PVH — Báo cáo nội bộ · "+(i+1)+"/"+pageRange.count,
+        48,doc.page.height-72,{align:"right",width:doc.page.width-96,lineBreak:false});
+  }
   doc.end();
   return ended;
 }
