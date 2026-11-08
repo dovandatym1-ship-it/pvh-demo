@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { allowedTransitions, STATE_TRANSITIONS, WORKFLOW_VERSION, isOverdue } from "../src/features/m01-core-work/server/workflow.ts";
+import { allowedTransitions, STATE_TRANSITIONS, WORKFLOW_VERSION, isOverdue } from "../src/features/m01-core-work/types/workflow.ts";
 
 test("M01 state machine has 11 deterministic rules in version 1", () => {
   assert.equal(WORKFLOW_VERSION, 1);

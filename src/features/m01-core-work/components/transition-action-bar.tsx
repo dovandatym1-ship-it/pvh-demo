@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import type { WorkItemDTO } from "../types";
-import { allowedTransitions, type WorkItemState } from "../server/workflow";
+import { allowedTransitions, type WorkItemState } from "../types/workflow";
 import { transitionWorkItemAction } from "../server/actions";
 
 const labels: Record<string, string> = {
