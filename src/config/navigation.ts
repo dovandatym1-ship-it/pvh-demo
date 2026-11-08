@@ -126,7 +126,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         iconName: "ClipboardList",
         moduleKey: "m08-inspections",
         requiredPermission: "m08:inspection:read",
-        status: "LEGACY_MOCK",
+        status: "DEEP",
       },
       {
         title: "Báo cáo chỉ tiêu (M09)",
