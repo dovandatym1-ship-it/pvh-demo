@@ -13,13 +13,17 @@ export function DigitalWorkspace({plans,indicators,canWrite,canReview}:Props){
  const router=useRouter();
  const [busy,setBusy]=useState(false);const [message,setMessage]=useState("");
  const [title,setTitle]=useState("");const [period,setPeriod]=useState("");
- const [source,setSource]=useState("");const [planId,setPlanId]=useState("");
+ const [planSource,setPlanSource]=useState("");const [planId,setPlanId]=useState("");
+ const [linkPlanId,setLinkPlanId]=useState("");
+ const [indicatorSource,setIndicatorSource]=useState("");
  const [code,setCode]=useState("");const [name,setName]=useState("");
  const [unit,setUnit]=useState("");const [workId,setWorkId]=useState("");
  const [indicatorId,setIndicatorId]=useState("");
  const [value,setValue]=useState("");const [status,setStatus]=useState("UNVERIFIED");
  const [naReason,setNaReason]=useState("");
  const chosen=indicators.find(i=>i.id===indicatorId);
+ const requiresNumeric=status==="CONFIRMED"||status==="CONFIRMED_ZERO"||status==="UNVERIFIED";
+ const requiresSource=status==="CONFIRMED"||status==="CONFIRMED_ZERO";
  async function invoke(fn:()=>Promise<{ok:boolean;error?:{message:string}}>,success:string){
   setBusy(true);setMessage("");
   try {
@@ -36,7 +40,7 @@ export function DigitalWorkspace({plans,indicators,canWrite,canReview}:Props){
   </div>
   {canWrite&&<div className="grid gap-4 lg:grid-cols-2">
    <form className="rounded border bg-white p-4 space-y-3" onSubmit={e=>{
-    e.preventDefault();void invoke(()=>createDigitalPlanAction({title,period,sourceRef:source}),
+    e.preventDefault();void invoke(()=>createDigitalPlanAction({title,period,sourceRef:planSource}),
       "Đã tạo kế hoạch nháp, chưa chốt kỳ.");
    }}>
     <h2 className="font-semibold">Tạo kế hoạch CĐS</h2>
@@ -44,8 +48,8 @@ export function DigitalWorkspace({plans,indicators,canWrite,canReview}:Props){
       onChange={e=>setTitle(e.target.value)}/>
     <input className={field} required placeholder="Kỳ báo cáo (VD: 2026-Q4)" value={period}
       onChange={e=>setPeriod(e.target.value)}/>
-    <input className={field} required placeholder="Số văn bản/nguồn" value={source}
-      onChange={e=>setSource(e.target.value)}/>
+    <input className={field} required placeholder="Số văn bản/nguồn kế hoạch" value={planSource}
+      onChange={e=>setPlanSource(e.target.value)}/>
     <button className={button} disabled={busy}>Lưu kế hoạch nháp</button>
    </form>
    <form className="rounded border bg-white p-4 space-y-3" onSubmit={e=>{
@@ -67,12 +71,12 @@ export function DigitalWorkspace({plans,indicators,canWrite,canReview}:Props){
    </form>
   </div>}
   {canWrite&&<form className="rounded border bg-white p-4 space-y-3" onSubmit={e=>{
-   e.preventDefault();void invoke(()=>linkDigitalPlanWorkAction({planId,workItemId:workId}),
+   e.preventDefault();void invoke(()=>linkDigitalPlanWorkAction({planId:linkPlanId,workItemId:workId}),
     "Đã liên kết công việc M01 (không sao chép trạng thái).");
   }}>
    <h2 className="font-semibold">Liên kết công việc M01</h2>
    <div className="grid gap-2 sm:grid-cols-2">
-    <select className={field} value={planId} required onChange={e=>setPlanId(e.target.value)}>
+    <select className={field} value={linkPlanId} required onChange={e=>setLinkPlanId(e.target.value)}>
      <option value="">Chọn kế hoạch</option>{plans.map(p=><option key={p.id} value={p.id}>{p.title}</option>)}
     </select>
     <input className={field} required placeholder="UUID công việc M01" value={workId}
@@ -99,8 +103,9 @@ export function DigitalWorkspace({plans,indicators,canWrite,canReview}:Props){
   {canWrite&&<form className="rounded border bg-white p-4 space-y-3" onSubmit={e=>{
    e.preventDefault();if(!chosen)return;
    void invoke(()=>updateDigitalIndicatorStatusAction({
-    indicatorId:chosen.id,status,numericValue:value===""?null:Number(value),
-    sourceRef:source||null,naReason:naReason||null,expectedVersion:chosen.version,
+    indicatorId:chosen.id,status,numericValue:requiresNumeric&&value!==""?Number(value):null,
+    sourceRef:indicatorSource||null,naReason:status==="NOT_APPLICABLE"?naReason||null:null,
+    expectedVersion:chosen.version,
    }),"CSDL đã ghi nhận giá trị và lịch sử phiên bản chỉ tiêu.");
   }}>
    <h2 className="font-semibold">Ghi nhận / đối soát chỉ tiêu</h2>
@@ -109,7 +114,11 @@ export function DigitalWorkspace({plans,indicators,canWrite,canReview}:Props){
     {indicators.map(i=><option value={i.id} key={i.id}>{i.code} – {i.name}</option>)}
    </select>
    <div className="grid sm:grid-cols-2 gap-2">
-    <select className={field} value={status} onChange={e=>setStatus(e.target.value)}>
+    <select className={field} value={status} onChange={e=>{
+     setStatus(e.target.value);
+     if(e.target.value==="CONFIRMED_ZERO")setValue("0");
+     if(e.target.value==="NOT_REPORTED"||e.target.value==="NOT_APPLICABLE")setValue("");
+    }}>
      <option value="UNVERIFIED">Chưa đối soát</option>
      <option value="NOT_REPORTED">Chưa nộp</option>
      <option value="NOT_APPLICABLE">Không áp dụng</option>
@@ -117,11 +126,14 @@ export function DigitalWorkspace({plans,indicators,canWrite,canReview}:Props){
      {canReview&&<option value="CONFIRMED_ZERO">Xác nhận đúng số 0</option>}
     </select>
     <input className={field} type="number" step="any" placeholder="Giá trị số, để trống nếu chưa nộp"
-      value={value} onChange={e=>setValue(e.target.value)}/>
+      value={value} disabled={!requiresNumeric} readOnly={status==="CONFIRMED_ZERO"}
+      required={status==="CONFIRMED"||status==="CONFIRMED_ZERO"}
+      onChange={e=>setValue(e.target.value)}/>
    </div>
-   <input className={field} placeholder="Nguồn/biểu mẫu của số liệu" value={source}
-    onChange={e=>setSource(e.target.value)}/>
+   <input className={field} placeholder="Nguồn/biểu mẫu riêng của số liệu" value={indicatorSource}
+    required={requiresSource} onChange={e=>setIndicatorSource(e.target.value)}/>
    <input className={field} placeholder="Lý do không áp dụng (nếu có)" value={naReason}
+    disabled={status!=="NOT_APPLICABLE"} required={status==="NOT_APPLICABLE"}
     onChange={e=>setNaReason(e.target.value)}/>
    <button className={button} disabled={busy||!chosen}>Ghi nhận vào CSDL</button>
   </form>}
