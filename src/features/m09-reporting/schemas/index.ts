@@ -1,26 +1,25 @@
 import { z } from "zod";
 
+export const ReportCodeSchema = z.enum(["RPT-WORK", "RPT-CULTURE", "RPT-DIGITAL", "RPT-INSPECTION", "RPT-SUMMARY"]);
+export const ReportPeriodSchema = z.string().regex(/^(Q[1-4]\/\d{4}|\d{4}-(0[1-9]|1[0-2]))$/, "Kỳ phải ở dạng Qn/YYYY hoặc YYYY-MM");
 export const CreateReportSnapshotSchema = z.object({
-  reportCode: z.string().min(1, "Mã báo cáo không được để trống").default("DEM-R01"),
-  title: z.string().min(5, "Tiêu đề báo cáo phải từ 5 ký tự trở lên"),
-  period: z.string().min(2, "Kỳ báo cáo không được để trống"),
-  year: z.number().int().min(2020).max(2050).default(2026),
-  payload: z.record(z.string(), z.unknown()).optional(),
-  idempotencyKey: z.string().optional(),
+  reportCode: ReportCodeSchema,
+  title: z.string().trim().min(5).max(250),
+  period: ReportPeriodSchema,
+  year: z.number().int().min(2020).max(2200),
+  idempotencyKey: z.string().min(8).max(200),
+  previousSnapshotId: z.string().uuid().nullable().optional(),
+}).refine(x => x.period.includes("/") ? Number(x.period.split("/")[1]) === x.year : Number(x.period.slice(0, 4)) === x.year, {
+  message: "Năm và kỳ báo cáo không khớp", path: ["period"],
 });
-
 export type CreateReportSnapshotInput = z.infer<typeof CreateReportSnapshotSchema>;
-
-export const FinalizeReportSnapshotSchema = z.object({
-  snapshotId: z.string().uuid("ID snapshot không hợp lệ"),
-  canonicalPayload: z.record(z.string(), z.unknown()),
+export const AdvanceReportSnapshotSchema = z.object({
+  snapshotId: z.string().uuid(),
+  expectedVersion: z.number().int().positive(),
+  transition: z.enum(["SUBMIT", "START_REVIEW", "FINALIZE"]),
 });
-
-export type FinalizeReportSnapshotInput = z.infer<typeof FinalizeReportSnapshotSchema>;
-
+export type AdvanceReportSnapshotInput = z.infer<typeof AdvanceReportSnapshotSchema>;
 export const ExportReportSchema = z.object({
-  snapshotId: z.string().uuid("ID snapshot không hợp lệ"),
-  format: z.enum(["PDF", "XLSX", "JSON"]).default("JSON"),
+  snapshotId: z.string().uuid(),
+  format: z.enum(["PDF", "XLSX", "JSON"]),
 });
-
-export type ExportReportInput = z.infer<typeof ExportReportSchema>;

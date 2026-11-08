@@ -2,63 +2,37 @@ import { NextRequest, NextResponse } from "next/server";
 import { getRequestContext } from "@/lib/auth/request-context";
 import { reportingRepository } from "@/features/m09-reporting/server/repository";
 import { exportService } from "@/features/m09-reporting/server/export-service";
-import { assertCanReadReports } from "@/features/m09-reporting/server/policy";
+import { assertCanReadReports, assertCanExportReports } from "@/features/m09-reporting/server/policy";
+import { ExportReportSchema } from "@/features/m09-reporting/schemas";
 
 export const dynamic = "force-dynamic";
-
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest,{params}:{params:Promise<{id:string}>}) {
   try {
-    const { id: snapshotId } = await params;
+    const {id} = await params;
+    const format = request.nextUrl.searchParams.get("format");
+    const parsed = ExportReportSchema.safeParse({snapshotId:id,format});
+    if (!parsed.success) return NextResponse.json({error:"INVALID_FORMAT_OR_SNAPSHOT_ID"},{status:400});
     const ctx = await getRequestContext();
-
-    // Check read permission
-    try {
-      assertCanReadReports(ctx);
-    } catch {
-      return NextResponse.json(
-        { error: "FORBIDDEN: Không có quyền truy cập báo cáo" },
-        { status: 403 }
-      );
-    }
-
-    // Fetch snapshot
-    const res = await reportingRepository.findSnapshotById(ctx, snapshotId);
-    if (!res.ok) {
-      return NextResponse.json(
-        { error: res.error.message },
-        { status: res.error.code === "NOT_FOUND" ? 404 : 500 }
-      );
-    }
-
-    const snapshot = res.data;
-
-    // Strict Tenant Isolation check
-    if (snapshot.tenantId !== ctx.tenantId) {
-      return NextResponse.json(
-        { error: "FORBIDDEN: Không thể truy xuất snapshot của đơn vị khác" },
-        { status: 403 }
-      );
-    }
-
-    const searchParams = request.nextUrl.searchParams;
-    const formatParam = (searchParams.get("format") || "JSON").toUpperCase();
-    const format = formatParam === "PDF" ? "PDF" : formatParam === "XLSX" ? "XLSX" : "JSON";
-
-    const exportResult = exportService.exportSnapshot(snapshot, format);
-
-    return new NextResponse(new Uint8Array(exportResult.buffer), {
-      status: 200,
-      headers: {
-        "Content-Type": exportResult.contentType,
-        "Content-Disposition": `attachment; filename="${exportResult.filename}"`,
-        "X-Demo-Watermark": "[MÔ PHỎNG DEMO — KHÔNG CÓ GIÁ TRỊ PHÁP LÝ]",
+    assertCanReadReports(ctx); assertCanExportReports(ctx);
+    const res = await reportingRepository.findSnapshotById(ctx,id);
+    if (!res.ok) return NextResponse.json({error:res.error.message},
+      {status:res.error.code==="NOT_FOUND"?404:res.error.code==="FORBIDDEN"?403:500});
+    if (res.data.tenantId!==ctx.tenantId) return NextResponse.json({error:"FORBIDDEN"},{status:403});
+    const exported = await exportService.exportSnapshot(res.data,parsed.data.format);
+    return new NextResponse(new Uint8Array(exported.buffer),{
+      status:200,headers:{
+        "Content-Type":exported.contentType,
+        "Content-Disposition":'attachment; filename="'+exported.filename+'"',
+        "Cache-Control":"private, no-store, max-age=0",
+        "X-Content-Type-Options":"nosniff",
+        "X-Demo-Watermark":"SIMULATED-NO-LEGAL-VALUE",
       },
     });
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Internal Error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "";
+    if (message.includes("UNAUTHENTICATED")) return NextResponse.json({error:"UNAUTHENTICATED"},{status:401});
+    if (message.includes("FORBIDDEN")) return NextResponse.json({error:"FORBIDDEN"},{status:403});
+    if (message==="SNAPSHOT_INTEGRITY_ERROR") return NextResponse.json({error:message},{status:409});
+    return NextResponse.json({error:"EXPORT_FAILED"},{status:500});
   }
 }
