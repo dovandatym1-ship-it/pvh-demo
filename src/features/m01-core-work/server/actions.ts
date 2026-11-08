@@ -5,7 +5,7 @@ import { getRequestContext } from "@/lib/auth/request-context";
 import { type Result, fail } from "@/lib/types/result";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { z } from "zod";
-import { CreateWorkItemSchema, TransitionWorkItemSchema, AssignWorkItemSchema, UpdateWorkItemDetailsSchema } from "../schemas/work-item.schema";
+import { CreateWorkItemSchema, TransitionWorkItemSchema, AssignWorkItemSchema, UpdateWorkItemDetailsSchema, SetWorkCollaboratorsSchema } from "../schemas/work-item.schema";
 import { workItemService } from "./service";
 import type { WorkItemDTO } from "../types";
 
@@ -55,6 +55,16 @@ export async function updateWorkItemDetailsAction(input: unknown): Promise<Resul
   const ctx = await authenticatedContext();
   if (!ctx) return fail("UNAUTHENTICATED", "Phiên không hợp lệ hoặc không có phân công công tác");
   const result = await workItemService.updateWorkItemDetails(ctx, parsed.data);
+  if (result.ok) { refreshWork(); revalidatePath(`/cong-viec/${parsed.data.id}`); }
+  return result;
+}
+
+export async function setWorkCollaboratorsAction(input: unknown): Promise<Result<{ id: string; status: string; version: number; cached?: boolean }>> {
+  const parsed = SetWorkCollaboratorsSchema.safeParse(input);
+  if (!parsed.success) return fail("VALIDATION", "Danh sách người phối hợp không hợp lệ", parsed.error.flatten());
+  const ctx = await authenticatedContext();
+  if (!ctx) return fail("UNAUTHENTICATED", "Phiên không hợp lệ hoặc không có phân công công tác");
+  const result = await workItemService.setWorkCollaborators(ctx, parsed.data);
   if (result.ok) { refreshWork(); revalidatePath(`/cong-viec/${parsed.data.id}`); }
   return result;
 }

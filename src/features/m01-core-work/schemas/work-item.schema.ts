@@ -47,3 +47,13 @@ export const UpdateWorkItemDetailsSchema = z.object({
 }).strict();
 
 export type UpdateWorkItemDetailsInput = z.infer<typeof UpdateWorkItemDetailsSchema>;
+
+export const SetWorkCollaboratorsSchema = z.object({
+  id: uuid,
+  expectedVersion: z.number().int().min(1),
+  userIds: z.array(uuid).max(20).refine(ids => new Set(ids).size === ids.length, "Người phối hợp bị trùng"),
+  reason: z.string().trim().min(3).max(2000),
+  idempotencyKey: key,
+}).strict();
+
+export type SetWorkCollaboratorsInput = z.infer<typeof SetWorkCollaboratorsSchema>;

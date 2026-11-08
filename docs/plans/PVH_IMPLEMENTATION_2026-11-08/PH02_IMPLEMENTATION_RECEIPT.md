@@ -22,7 +22,8 @@
 - `P02-07`: Thêm `source_ref` cấu trúc, RPC tạo v2 giữ transaction và đối chiếu giá trị nguồn khi replay idempotent.
 - `P02-14`: Giữ notification append-only, thêm receipts riêng có RLS và RPC idempotent đánh dấu đã đọc; bàn làm việc có thao tác xác nhận đọc.
 - `P02-08/15`: Danh sách bổ sung lọc theo thôn/xóm và sắp xếp mới/cũ/hạn gần nhất (mọi truy vấn vẫn chịu RLS), hiển thị loading/error riêng cho công việc và bàn làm việc, không fallback seed khi database lỗi.
-- `P02-16`: pgTAP structural contract tăng từ 13 lên 32 assertion; Node tests tăng từ 5 lên 14, CI chạy `tests/m01-*.test.mjs`. **Đây là kiểm thử ở mức source/contract, chưa phải DB E2E.**
+- `P02-07/10`: Bổ sung danh sách người phối hợp đọc-only theo scope; người điều phối thay đổi tối đa 20 người với OCC/idempotency/lý do/event/audit/inbox; RLS không cấp thêm quyền cập nhật/phê duyệt cho người phối hợp.
+- `P02-16`: pgTAP structural contract tăng từ 13 lên 38 assertion; Node tests tăng từ 5 lên 15, CI chạy `tests/m01-*.test.mjs`. **Đây là kiểm thử ở mức source/contract, chưa phải DB E2E.**
 
 **Trạng thái:** `CODED_AWAITING_CI_AND_DB_TEST`. Chưa có bằng chứng Gate G2 PASS; không áp migration trên Supabase thật.
 
@@ -41,7 +42,7 @@
 | P02-01 | `IMPLEMENTED_DRAFT` | Xác nhận OP/SLA/actor với owner |
 | P02-02–06 | `CODED_NOT_DB_VERIFIED` | Apply migration vào DB test độc lập; pgTAP + concurrent/replay SQL readback |
 | P02-07–09, P02-12–13, P02-15 | `CODED_NOT_BROWSER_VERIFIED` | Build, UI browser E2E với 3 personas và 375px |
-| P02-10 | `PARTIAL` | Đổi hạn/địa bàn đã code, chưa kiểm thử DB; người phối hợp và delegation history chưa hoàn thành |
+| P02-10 | `PARTIAL` | Đổi hạn/địa bàn/người phối hợp đã code, chưa kiểm thử DB; delegation history chưa hoàn thành |
 | P02-11 | `PARTIAL` | Có xử lý cleanup/retry trong phiên, còn cron cleanup stale PENDING, verified hash, version file, preview |
 | P02-14 | `CODED_NOT_DB_VERIFIED` | Inbox append-only + read receipt đã code, cần test replay/scope/tính đúng người nhận |
 | P02-16 | `PARTIAL` | Pure/source tests đã thêm; DB/browser tests chưa chạy |

@@ -7,7 +7,8 @@ import { readFileSync } from "node:fs";
 const sql = readFileSync(new URL("../supabase/migrations/20261108060000_m01_core_workflow.sql", import.meta.url), "utf8");
 
 function definition(name) {
-  const start = sql.indexOf(`create function ${name}`);
+  let start = sql.indexOf(`create function ${name}`);
+  if (start === -1) start = sql.indexOf(`create or replace function ${name}`);
   assert.notEqual(start, -1, `Missing SQL function ${name}`);
   const end = sql.indexOf("$$;", start);
   assert.notEqual(end, -1, `Incomplete SQL function ${name}`);
@@ -93,4 +94,18 @@ test("inbox read receipts preserve immutable notifications and RLS", () => {
   assert.match(body, /on conflict\(inbox_id\) do nothing/);
   assert.match(body, /MARK_INBOX_READ/);
   assert.doesNotMatch(body, /update public.work_item_inbox /);
+});
+
+test("collaborators gain read-only scoped access through versioned changes", () => {
+  const edit = definition("app.set_work_collaborators(");
+  const access = definition("pvh_private.can_access_work(");
+  assert.match(sql, /create table public.work_item_collaborators/);
+  assert.match(sql, /create policy collaborator_work_read/);
+  assert.match(access, /p_action='read' and exists\(select 1 from public.work_item_collaborators/);
+  assert.match(access, /m.scopes \? 'org_unit_ids'/);
+  assert.match(edit, /pvh_private.is_eligible_work_collaborator/);
+  assert.match(edit, /v_item.version<>p_expected_version/);
+  assert.match(edit, /insert into public.work_item_events/);
+  assert.match(edit, /COLLABORATOR_ADDED/);
+  assert.match(sql, /revoke all on function pvh_private.is_eligible_work_collaborator/);
 });

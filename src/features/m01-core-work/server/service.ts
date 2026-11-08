@@ -2,7 +2,7 @@ import "server-only";
 
 import { type Result, fail } from "@/lib/types/result";
 import type { RequestContext } from "@/lib/auth/request-context";
-import type { CreateWorkItemInput, TransitionWorkItemInput, AssignWorkItemInput, UpdateWorkItemDetailsInput } from "../schemas/work-item.schema";
+import type { CreateWorkItemInput, TransitionWorkItemInput, AssignWorkItemInput, UpdateWorkItemDetailsInput, SetWorkCollaboratorsInput } from "../schemas/work-item.schema";
 import type { WorkItemDTO } from "../types";
 import { assertCanCreateWorkItem } from "./policy";
 import { workItemRepository } from "./repository";
@@ -36,5 +36,12 @@ export const workItemService = {
       return fail("FORBIDDEN", "Không có quyền điều chỉnh hạn hoặc địa bàn công việc");
     }
     return workItemRepository.updateWorkItemDetails(ctx, input);
+  },
+
+  async setWorkCollaborators(ctx: RequestContext, input: SetWorkCollaboratorsInput): Promise<Result<MutationResult>> {
+    if (!ctx.permissions.includes("m01:work:assign")) {
+      return fail("FORBIDDEN", "Không có quyền thay đổi người phối hợp");
+    }
+    return workItemRepository.setWorkCollaborators(ctx, input);
   },
 };

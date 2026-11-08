@@ -1,7 +1,7 @@
 -- PH02 pgTAP structural contract only. This is NOT a substitute for E2E-WORK-001.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(32);
+select plan(38);
 
 select has_table('public','work_item_assignments','Assignment history exists');
 select has_table('public','work_item_inbox','Transactional inbox exists');
@@ -71,6 +71,19 @@ select ok((select relrowsecurity and relforcerowsecurity from pg_class
   'Read receipts have forced RLS');
 select ok(to_regprocedure('app.mark_work_inbox_read(uuid)') is not null,
   'Idempotent mark-read RPC exists');
+select has_table('public','work_item_collaborators','Read-only collaboration set exists');
+select ok((select relrowsecurity and relforcerowsecurity from pg_class
+  where oid='public.work_item_collaborators'::regclass),
+  'Collaborators are protected by forced RLS');
+select ok(to_regprocedure('app.set_work_collaborators(uuid,integer,uuid[],text,text)') is not null,
+  'Versioned collaborator-management RPC exists');
+select ok(not has_function_privilege('anon',
+  'app.set_work_collaborators(uuid,integer,uuid[],text,text)','EXECUTE'),
+  'Anon cannot change collaborators');
+select ok(to_regprocedure('app.list_work_collaborator_candidates(uuid)') is not null,
+  'Role and scope-filtered candidate list exists');
+select ok(not has_table_privilege('authenticated','public.work_item_collaborators','INSERT'),
+  'Authenticated cannot bypass collaborator audit by direct insert');
 
 select * from finish();
 rollback;

@@ -19,6 +19,7 @@ Không dùng nhãn chức danh hoặc `SYSTEM_ADMIN` để vượt permission ch
 
 - `work_items`: tiêu đề 3–500 ký tự ở giao diện, lĩnh vực, **nguồn tham chiếu `source_ref` riêng (tối đa 500 ký tự)**, ưu tiên, hạn tùy chọn, người phụ trách tùy chọn, xã, version, khóa idempotency. RPC tạo v2 lưu `source_ref` nguyên tử và so sánh nội dung trên replay.
 - `work_item_assignments`: lịch sử phân công, người cũ/mới, actor, lý do, version. Ứng viên phải có membership còn hiệu lực, quyền `read` + `update`, và nằm trong scope `org_unit_ids` nếu được giới hạn địa bàn; kiểm tra ở trigger DB cả khi tạo và giao lại.
+- `work_item_collaborators`: người phối hợp chỉ được thêm nếu có quyền `read` và thuộc scope địa bàn, được xem hồ sơ/timeline theo RLS nhưng không được quyền `update`/`review` từ việc có tên trong danh sách. Người điều phối thay đổi danh sách có reason, OCC, event/audit và inbox gửi người mới thêm.
 - `work_item_events`: mỗi transition một event gồm trước/sau, người thực hiện, lý do, version.
 - `audit_log`: audit hành động; nếu lỗi ghi audit hoặc event thì toàn bộ transaction phải rollback.
 - `evidence_files`: chỉ tính minh chứng đã qua bước xác nhận `UPLOADED` sau khi Storage có object riêng tư. SHA-256 do trình duyệt công bố, chưa phải chứng thực server-side. Upload thất bại được thử dọn cả Storage và metadata `PENDING`; nếu xác nhận thất bại có thể thử lại mà không đăng ký bản ghi mới.
@@ -36,7 +37,8 @@ Không dùng nhãn chức danh hoặc `SYSTEM_ADMIN` để vượt permission ch
 7. Khi bị trả lại, công chức hoàn thiện (`RETURNED → IN_PROGRESS`) và gửi lại.
 8. Người điều phối có quyền hủy ở trạng thái chưa kết thúc; bắt buộc nêu lý do.
 9. Người điều phối được đổi hạn/địa bàn có lý do, chống ghi đè phiên bản và ghi event/audit trong cùng transaction. Không thể đổi sang địa bàn mà người phụ trách hiện tại không có quyền xử lý.
-10. Mỗi thay đổi ghi phiên bản nguyên tử; hai client dùng một `expectedVersion` chỉ một client thành công; client còn lại nhận 409.
+10. Người điều phối quản lý danh sách người phối hợp (tối đa 20 người), yêu cầu lý do; người được bổ sung chỉ có quyền đọc trong scope và có thông báo nội bộ. Xóa người khỏi danh sách làm mất quyền đọc dựa trên quan hệ phối hợp (nếu không có quyền khác).
+11. Mỗi thay đổi ghi phiên bản nguyên tử; hai client dùng một `expectedVersion` chỉ một client thành công; client còn lại nhận 409.
 
 **Quy tắc hạn:** `overdue = due_date < now()` và trạng thái khác `COMPLETED`, `CANCELLED`. Không đồng nhất `URGENT` với `OVERDUE`. Hiển thị giờ `Asia/Ho_Chi_Minh`.
 
@@ -46,7 +48,7 @@ Không dùng nhãn chức danh hoặc `SYSTEM_ADMIN` để vượt permission ch
 
 - `SOURCE_REF`: trường nguồn công việc hiện ở mô tả, chưa có danh mục liên kết chuẩn/version nguồn.
 - Dọn upload lỗi trong phiên đã có RPC kiểm tra sự tồn tại của object; **chưa có cron dọn các PENDING quá hạn sau khi tab đóng**, chưa đối soát checksum server-side, preview và version file.
-- Đổi hạn/địa bàn có reason và OCC đã code; `source_ref` đã thành trường riêng và inbox đã có đánh dấu đọc. Danh sách có lọc theo thôn/xóm/sắp xếp, nhưng vẫn bị giới hạn bởi RLS (không mặc định cho nhân viên xem toàn bộ việc của nhóm). Chưa có `work_item_links` chuẩn hóa tới loại hồ sơ và phiên bản nguồn, người phối hợp, ủy quyền theo thời hạn, lọc tổ chuyên môn riêng.
+- Đổi hạn/địa bàn và người phối hợp có reason/OCC đã code; `source_ref` đã thành trường riêng và inbox đã có đánh dấu đọc. Danh sách có lọc theo thôn/xóm/sắp xếp, nhưng vẫn bị giới hạn bởi RLS (không mặc định cho nhân viên xem toàn bộ việc của nhóm). Chưa có `work_item_links` chuẩn hóa tới loại hồ sơ và phiên bản nguồn, ủy quyền theo thời hạn, lọc tổ chuyên môn riêng.
 - Persona demo cookie không thể thay thế ba tài khoản Supabase Auth thật để nghiệm thu; cấu hình G1 còn phụ thuộc chủ dự án.
 - Chưa có browser E2E/DB staging user thật, pgTAP concurrency, RLS, `supabase db reset`.
 

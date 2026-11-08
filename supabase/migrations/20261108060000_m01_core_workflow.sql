@@ -65,6 +65,21 @@ create function pvh_private.is_eligible_work_assignee(
     );
 $$;
 
+create function pvh_private.is_eligible_work_collaborator(
+  p_tenant uuid, p_user uuid, p_hamlet uuid
+) returns boolean language sql stable security definer set search_path = '' as $$
+  select pvh_private.member_has_work_permission(p_tenant,p_user,'m01:work:read')
+    and exists (
+      select 1 from public.memberships m
+      where m.tenant_id=p_tenant and m.user_id=p_user
+        and m.is_active and m.valid_from<=now()
+        and (m.valid_to is null or m.valid_to>now())
+        and (not (coalesce(m.scopes,'{}'::jsonb) ? 'org_unit_ids')
+          or exists(select 1 from jsonb_array_elements_text(m.scopes->'org_unit_ids') s(value)
+                    where s.value=p_hamlet::text))
+    );
+$$;
+
 create function pvh_private.validate_work_assignee()
 returns trigger language plpgsql security definer set search_path = '' as $$
 begin
@@ -121,6 +136,41 @@ create index work_item_assignments_assignee_idx
 create index work_item_assignments_actor_idx on public.work_item_assignments(actor_id);
 create index work_item_assignments_previous_idx on public.work_item_assignments(previous_assignee);
 
+create table public.work_item_collaborators (
+  tenant_id uuid not null,
+  work_item_id uuid not null,
+  user_id uuid not null references auth.users(id) on delete restrict,
+  added_by uuid not null references auth.users(id) on delete restrict,
+  created_at timestamptz not null default now(),
+  primary key(tenant_id,work_item_id,user_id),
+  foreign key(tenant_id,work_item_id) references public.work_items(tenant_id,id) on delete restrict
+);
+create index work_item_collaborators_user_idx on public.work_item_collaborators(tenant_id,user_id);
+
+-- PH01 visibility was creator/assignee/read_all only; collaborators may now
+-- READ within their existing org scope, but cannot UPDATE or REVIEW by joining.
+create or replace function pvh_private.can_access_work(p_tenant uuid,p_id uuid,p_action text)
+returns boolean language sql stable security definer set search_path = '' as $$
+  select exists(select 1 from public.work_items w
+    join public.memberships m on m.tenant_id=w.tenant_id and m.user_id=auth.uid()
+    where w.tenant_id=p_tenant and w.id=p_id
+      and pvh_private.has_permission(p_tenant,'m01:work:'||p_action)
+      and (pvh_private.has_permission(p_tenant,'m01:work:'||p_action||'_all')
+        or ((w.created_by=auth.uid() or w.assigned_to=auth.uid()
+          or (p_action='read' and exists(select 1 from public.work_item_collaborators c
+            where c.tenant_id=w.tenant_id and c.work_item_id=w.id and c.user_id=auth.uid())))
+          and (not(m.scopes ? 'org_unit_ids') or exists(
+            select 1 from jsonb_array_elements_text(m.scopes->'org_unit_ids') s(value)
+            where s.value=w.hamlet_id::text)))));
+$$;
+
+alter table public.work_item_collaborators enable row level security;
+alter table public.work_item_collaborators force row level security;
+revoke all on public.work_item_collaborators from public,anon,authenticated;
+grant select on public.work_item_collaborators to authenticated;
+create policy collaborator_work_read on public.work_item_collaborators for select to authenticated
+  using(pvh_private.can_access_work(tenant_id,work_item_id,'read'));
+
 -- Transactional in-app notifications; no external email/SMS is sent.
 create table public.work_item_inbox (
   id uuid primary key default gen_random_uuid(),
@@ -128,7 +178,7 @@ create table public.work_item_inbox (
   work_item_id uuid not null,
   recipient_id uuid not null references auth.users(id) on delete restrict,
   event_version integer not null,
-  kind text not null check (kind in ('ASSIGNED','REVIEW_REQUESTED','RETURNED','COMPLETED','CANCELLED','DETAILS_UPDATED')),
+  kind text not null check (kind in ('ASSIGNED','REVIEW_REQUESTED','RETURNED','COMPLETED','CANCELLED','DETAILS_UPDATED','COLLABORATOR_ADDED')),
   created_at timestamptz not null default now(),
   foreign key (tenant_id,work_item_id) references public.work_items(tenant_id,id) on delete restrict,
   unique (tenant_id,work_item_id,recipient_id,event_version,kind)
@@ -315,6 +365,28 @@ begin
     and (p_work_item_id is null or
       pvh_private.is_eligible_work_assignee(v_tenant,m.user_id,v_hamlet))
   order by p.full_name;
+end; $$;
+
+create function app.list_work_collaborator_candidates(p_work_item_id uuid)
+returns table(user_id uuid,full_name text)
+language plpgsql stable security definer set search_path='' as $$
+declare v_tenant uuid; v_item public.work_items%rowtype;
+begin
+  if auth.uid() is null then raise exception 'UNAUTHENTICATED' using errcode='28000'; end if;
+  select id into strict v_tenant from public.tenants;
+  if not pvh_private.has_permission(v_tenant,'m01:work:assign') then
+    raise exception 'FORBIDDEN' using errcode='42501';
+  end if;
+  select * into v_item from public.work_items where id=p_work_item_id and tenant_id=v_tenant;
+  if not found or not pvh_private.can_access_work(v_tenant,p_work_item_id,'read') then
+    raise exception 'FORBIDDEN_SCOPE' using errcode='42501';
+  end if;
+  return query select m.user_id,p.full_name from public.memberships m
+    join public.profiles p on p.id=m.user_id and p.tenant_id=m.tenant_id
+    where m.tenant_id=v_tenant and m.user_id<>v_item.created_by
+      and m.user_id is distinct from v_item.assigned_to
+      and pvh_private.is_eligible_work_collaborator(v_tenant,m.user_id,v_item.hamlet_id)
+    order by p.full_name;
 end; $$;
 
 -- Reassignment and first assignment are both versioned, audited mutations.
@@ -596,6 +668,84 @@ begin
   return v_result;
 end; $$;
 
+-- Replaces the collaboration set in one versioned, audited transaction. This
+-- is a READ-only relationship and grants no update/review authority.
+create function app.set_work_collaborators(
+  p_id uuid,p_expected_version integer,p_user_ids uuid[],
+  p_reason text,p_idempotency_key text
+) returns jsonb language plpgsql security definer set search_path='' as $$
+declare
+  v_actor uuid:=auth.uid(); v_tenant uuid; v_item public.work_items%rowtype;
+  v_previous public.work_item_mutation_requests%rowtype;
+  v_user uuid; v_new uuid[]; v_old uuid[]; v_hash text; v_result jsonb;
+begin
+  if v_actor is null then raise exception 'UNAUTHENTICATED' using errcode='28000'; end if;
+  select id into strict v_tenant from public.tenants;
+  if not pvh_private.has_permission(v_tenant,'m01:work:assign') then
+    raise exception 'FORBIDDEN' using errcode='42501';
+  end if;
+  if p_id is null or p_expected_version is null or p_expected_version<1
+    or nullif(btrim(p_reason),'') is null or length(p_reason)>2000
+    or p_idempotency_key is null or length(btrim(p_idempotency_key)) not between 1 and 200 then
+    raise exception 'VALIDATION' using errcode='22023';
+  end if;
+  v_new:=coalesce((select array_agg(x order by x) from
+    (select distinct x from unnest(coalesce(p_user_ids,array[]::uuid[])) u(x)) ids),array[]::uuid[]);
+  if cardinality(v_new)>20 or array_position(v_new,null) is not null then
+    raise exception 'VALIDATION: invalid collaborators' using errcode='22023';
+  end if;
+  v_hash:=encode(sha256(convert_to(jsonb_build_array('COLLABORATORS',p_id,p_expected_version,
+    v_new,btrim(p_reason))::text,'UTF8')),'hex');
+  perform pg_advisory_xact_lock(hashtextextended(v_tenant::text||v_actor::text||p_idempotency_key,0));
+  select * into v_previous from public.work_item_mutation_requests
+    where tenant_id=v_tenant and actor_id=v_actor and idempotency_key=p_idempotency_key;
+  if found then
+    if v_previous.request_hash<>v_hash then raise exception 'IDEMPOTENCY_CONFLICT' using errcode='PV409'; end if;
+    if not pvh_private.can_access_work(v_tenant,p_id,'read') then
+      raise exception 'FORBIDDEN_SCOPE' using errcode='42501';
+    end if;
+    return v_previous.response || jsonb_build_object('cached',true);
+  end if;
+  select * into v_item from public.work_items where id=p_id and tenant_id=v_tenant for update;
+  if not found then raise exception 'NOT_FOUND' using errcode='P0002'; end if;
+  if not pvh_private.can_access_work(v_tenant,p_id,'read') then
+    raise exception 'FORBIDDEN_SCOPE' using errcode='42501';
+  end if;
+  if v_item.version<>p_expected_version then raise exception 'VERSION_CONFLICT' using errcode='PV409'; end if;
+  if v_item.status in ('COMPLETED','CANCELLED') then raise exception 'INVALID_TRANSITION' using errcode='22023'; end if;
+  for v_user in select unnest(v_new) loop
+    if v_user=v_item.created_by or v_user is not distinct from v_item.assigned_to
+      or not pvh_private.is_eligible_work_collaborator(v_tenant,v_user,v_item.hamlet_id) then
+      raise exception 'INVALID_COLLABORATOR_OR_SCOPE' using errcode='22023';
+    end if;
+  end loop;
+  v_old:=coalesce((select array_agg(user_id order by user_id)
+    from public.work_item_collaborators where tenant_id=v_tenant and work_item_id=p_id),array[]::uuid[]);
+  if v_old=v_new then raise exception 'VALIDATION: collaborators unchanged' using errcode='22023'; end if;
+  delete from public.work_item_collaborators where tenant_id=v_tenant and work_item_id=p_id
+    and user_id<>all(v_new);
+  insert into public.work_item_collaborators(tenant_id,work_item_id,user_id,added_by)
+    select v_tenant,p_id,u.user_id,v_actor from unnest(v_new) u(user_id)
+    on conflict(tenant_id,work_item_id,user_id) do nothing;
+  update public.work_items set version=version+1,updated_at=now(),updated_by=v_actor
+    where id=p_id returning * into v_item;
+  insert into public.work_item_events
+    (tenant_id,work_item_id,from_status,to_status,actor_id,reason,payload,version,created_by)
+  values(v_tenant,p_id,v_item.status,v_item.status,v_actor,p_reason,
+    jsonb_build_object('event','COLLABORATORS_UPDATED','old_user_ids',v_old,'new_user_ids',v_new),
+    v_item.version,v_actor);
+  insert into public.audit_log(tenant_id,actor_id,action,entity_type,entity_id,payload)
+  values(v_tenant,v_actor,'SET_WORK_COLLABORATORS','work_item',p_id::text,
+    jsonb_build_object('version',v_item.version,'count',cardinality(v_new)));
+  insert into public.work_item_inbox(tenant_id,work_item_id,recipient_id,event_version,kind)
+    select v_tenant,p_id,u.user_id,v_item.version,'COLLABORATOR_ADDED'
+      from unnest(v_new) u(user_id) where u.user_id<>all(v_old);
+  v_result:=jsonb_build_object('id',p_id,'status',v_item.status,'version',v_item.version);
+  insert into public.work_item_mutation_requests(tenant_id,actor_id,idempotency_key,request_hash,response)
+    values(v_tenant,v_actor,p_idempotency_key,v_hash,v_result);
+  return v_result;
+end; $$;
+
 -- Upload completes only when the private Storage object really exists.
 -- The sha256 is explicitly a client claim (not a server-verified digest).
 create function app.finalize_evidence(p_id uuid,p_sha256 text)
@@ -678,20 +828,25 @@ end; $$;
 -- Never let authenticated users mutate business rows directly.
 revoke all on function pvh_private.member_has_work_permission(uuid,uuid,text) from public,anon,authenticated;
 revoke all on function pvh_private.is_eligible_work_assignee(uuid,uuid,uuid) from public,anon,authenticated;
+revoke all on function pvh_private.is_eligible_work_collaborator(uuid,uuid,uuid) from public,anon,authenticated;
 revoke all on function pvh_private.validate_work_assignee() from public,anon,authenticated;
 revoke all on function app.list_work_assignees(uuid) from public,anon,authenticated;
+revoke all on function app.list_work_collaborator_candidates(uuid) from public,anon,authenticated;
 revoke all on function app.create_work_item_v2(text,text,text,text,uuid,timestamptz,text,uuid,uuid,text) from public,anon,authenticated;
 revoke all on function app.assign_work_item(uuid,uuid,integer,text,text) from public,anon,authenticated;
 revoke all on function app.transition_work_item(uuid,text,integer,text,text) from public,anon,authenticated;
 revoke all on function app.update_work_item_details(uuid,integer,timestamptz,uuid,text,text) from public,anon,authenticated;
+revoke all on function app.set_work_collaborators(uuid,integer,uuid[],text,text) from public,anon,authenticated;
 revoke all on function app.finalize_evidence(uuid,text) from public,anon,authenticated;
 revoke all on function app.abandon_pending_evidence(uuid) from public,anon,authenticated;
 revoke all on function app.mark_work_inbox_read(uuid) from public,anon,authenticated;
 grant execute on function app.list_work_assignees(uuid) to authenticated;
+grant execute on function app.list_work_collaborator_candidates(uuid) to authenticated;
 grant execute on function app.create_work_item_v2(text,text,text,text,uuid,timestamptz,text,uuid,uuid,text) to authenticated;
 grant execute on function app.assign_work_item(uuid,uuid,integer,text,text) to authenticated;
 grant execute on function app.transition_work_item(uuid,text,integer,text,text) to authenticated;
 grant execute on function app.update_work_item_details(uuid,integer,timestamptz,uuid,text,text) to authenticated;
+grant execute on function app.set_work_collaborators(uuid,integer,uuid[],text,text) to authenticated;
 grant execute on function app.finalize_evidence(uuid,text) to authenticated;
 grant execute on function app.abandon_pending_evidence(uuid) to authenticated;
 grant execute on function app.mark_work_inbox_read(uuid) to authenticated;

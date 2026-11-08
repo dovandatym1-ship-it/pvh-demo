@@ -94,15 +94,17 @@ export async function getWorkItemDetail(ctx: RequestContext, id: string) {
   const item = await getWorkItemById(ctx, id);
   if (!item) return null;
   const db = await createServerSupabaseClient();
-  const [events, assignments, evidence] = await Promise.all([
+  const [events, assignments, evidence, collaborators] = await Promise.all([
     db.from("work_item_events").select("*").eq("tenant_id", ctx.tenantId)
       .eq("work_item_id", id).order("created_at", { ascending: true }),
     db.from("work_item_assignments").select("id,previous_assignee,assignee,actor_id,reason,work_item_version,created_at")
       .eq("tenant_id", ctx.tenantId).eq("work_item_id", id).order("created_at", { ascending: true }),
     db.from("evidence_files").select("id,original_name,uploaded_by,created_at,status")
       .eq("tenant_id", ctx.tenantId).eq("work_item_id", id).order("created_at", { ascending: false }),
+    db.from("work_item_collaborators").select("user_id,added_by,created_at")
+      .eq("tenant_id", ctx.tenantId).eq("work_item_id", id).order("created_at", { ascending: true }),
   ]);
-  if (events.error || assignments.error || evidence.error) {
+  if (events.error || assignments.error || evidence.error || collaborators.error) {
     throw new Error("DB_ERROR: Không tải đủ lịch sử, phân công hoặc minh chứng");
   }
   const timeline: WorkItemEventDTO[] = (events.data || []).map((r) => ({
@@ -111,7 +113,21 @@ export async function getWorkItemDetail(ctx: RequestContext, id: string) {
     reason: r.reason, payload: r.payload || {}, version: Number(r.version),
     createdAt: String(r.created_at), createdBy: String(r.created_by),
   }));
-  return { item, timeline, assignments: assignments.data || [], evidence: evidence.data || [] };
+  return { item, timeline, assignments: assignments.data || [], evidence: evidence.data || [],
+    collaborators: collaborators.data || [] };
+}
+
+export async function getCollaboratorCandidates(ctx: RequestContext, workItemId: string): Promise<{
+  userId: string; fullName: string;
+}[]> {
+  if (!ctx.permissions.includes("m01:work:assign")) return [];
+  const db = await createServerSupabaseClient();
+  const { data, error } = await db.schema("app").rpc("list_work_collaborator_candidates", {
+    p_work_item_id: workItemId,
+  });
+  if (error) throw new Error(`DB_ERROR: Không tải được người phối hợp (${error.code})`);
+  return (data || []).map((r: { user_id: string; full_name: string }) =>
+    ({ userId: r.user_id, fullName: r.full_name }));
 }
 
 export async function getAssignees(ctx: RequestContext, workItemId?: string): Promise<{

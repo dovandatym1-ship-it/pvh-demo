@@ -2,11 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getRequestContext } from "@/lib/auth/request-context";
 import { assertRoutePermission } from "@/config/navigation";
-import { getActiveHamlets, getAssignees, getWorkItemDetail } from "@/features/m01-core-work/server/queries";
+import { getActiveHamlets, getAssignees, getCollaboratorCandidates, getWorkItemDetail } from "@/features/m01-core-work/server/queries";
 import { TransitionActionBar } from "@/features/m01-core-work/components/transition-action-bar";
 import { AssignWorkItemForm } from "@/features/m01-core-work/components/assign-work-item-form";
 import { EvidenceUploader } from "@/features/m01-core-work/components/evidence-uploader";
 import { UpdateWorkItemDetailsForm } from "@/features/m01-core-work/components/update-work-item-details-form";
+import { SetWorkCollaboratorsForm } from "@/features/m01-core-work/components/set-work-collaborators-form";
 
 export const dynamic = "force-dynamic";
 
@@ -17,12 +18,15 @@ export default async function WorkItemDetailPage({ params }: { params: Promise<{
   if (!/^[a-f0-9-]{36}$/i.test(id)) notFound();
   const detail = await getWorkItemDetail(ctx, id);
   if (!detail) notFound();
-  const { item, timeline, assignments, evidence } = detail;
+  const { item, timeline, assignments, evidence, collaborators } = detail;
   const canAssign = ctx.permissions.includes("m01:work:assign");
-  const [assignees, hamlets]: [
+  const [assignees, hamlets, collaboratorCandidates]: [
     Awaited<ReturnType<typeof getAssignees>>,
     Awaited<ReturnType<typeof getActiveHamlets>>,
-  ] = canAssign ? await Promise.all([getAssignees(ctx, item.id), getActiveHamlets(ctx)]) : [[], []];
+    Awaited<ReturnType<typeof getCollaboratorCandidates>>,
+  ] = canAssign ? await Promise.all([
+    getAssignees(ctx, item.id), getActiveHamlets(ctx), getCollaboratorCandidates(ctx, item.id),
+  ]) : [[], [], []];
   const mayReview = ctx.permissions.includes("m01:work:review") &&
     (item.createdBy === ctx.userId || ctx.permissions.includes("m01:work:read_all"));
   const mayUpload = ctx.permissions.includes("m01:work:update") &&
@@ -50,6 +54,8 @@ export default async function WorkItemDetailPage({ params }: { params: Promise<{
       {canAssign && <AssignWorkItemForm item={item} assignees={assignees} />}
       {mayUpload && <EvidenceUploader workItemId={item.id} />}
       {canAssign && <UpdateWorkItemDetailsForm key={item.version} item={item} hamlets={hamlets} />}
+      {canAssign && <SetWorkCollaboratorsForm key={item.version} item={item}
+        currentUserIds={collaborators.map(c => c.user_id)} candidates={collaboratorCandidates} />}
     </div>
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <section className="rounded-xl border bg-white p-5 space-y-3">
@@ -67,6 +73,10 @@ export default async function WorkItemDetailPage({ params }: { params: Promise<{
         <ul className="text-sm space-y-1">{assignments.map(a => <li key={a.id} className="border-b py-1">
           v{a.work_item_version} · {a.assignee.slice(0,8)} · {date(a.created_at)}
           {a.reason && <span> — {a.reason}</span>}
+        </li>)}</ul>
+        <h3 className="text-sm font-semibold">Người phối hợp ({collaborators.length})</h3>
+        <ul className="text-sm space-y-1">{collaborators.map(c => <li key={c.user_id}>
+          {collaboratorCandidates.find(a => a.userId === c.user_id)?.fullName || c.user_id.slice(0,8)}
         </li>)}</ul>
         <h3 className="text-sm font-semibold">Tệp minh chứng</h3>
         <ul className="space-y-2 text-sm">{evidence.map(file => <li key={file.id}>
