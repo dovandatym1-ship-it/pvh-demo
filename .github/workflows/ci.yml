@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, master, 'feat/pvh-ph02-core-workflow']
+    branches: [main, master, 'feat/pvh-ph02-core-workflow', 'feat/pvh-ph03-domain-verticals']
   pull_request:
-    branches: [main, master, 'feat/pvh-ph01-platform-auth']
+    branches: [main, master, 'feat/pvh-ph01-platform-auth', 'feat/pvh-ph02-core-workflow']
 
 jobs:
   validate:
@@ -31,6 +31,9 @@ jobs:
 
       - name: PH02 M01 workflow projection regression
         run: node --experimental-strip-types --test tests/m01-*.test.mjs
+
+      - name: PH03 static contract (not E2E)
+        run: node --test tests/ph03-contract-static.test.mjs
 
       - name: Type check
         run: npm run typecheck
