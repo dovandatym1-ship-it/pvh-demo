@@ -3,6 +3,7 @@ import "server-only";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { RequestContext } from "@/lib/auth/request-context";
 import { assertPermission } from "@/lib/authorization/assert-permission";
+import { ph03HamletScope } from "@/lib/authorization/ph03-hamlet-scope";
 
 export type TitleType = "GIA_DINH" | "THON" | "XA_TIEU_BIEU";
 export type CultureCampaign = {
@@ -45,9 +46,10 @@ export async function getCultureWorkspace(ctx:RequestContext,titleType:TitleType
     score:s.score===null?null:Number(s.score),reason:s.reviewer_comment,
     sourceRef:s.source_ref,version:s.version,ruleVersion:s.rule_pack_version,createdAt:s.created_at,
   }));
+  const scopeHamletIds=ph03HamletScope(ctx);
   return {
     campaigns,dossiers,
-    hamlets:(hamletRes.data??[]).filter(h=>!ctx.scopes.hamletIds ||
-      ctx.scopes.hamletIds.includes(h.id)).map(h=>({id:h.id,name:h.name})),
+    hamlets:(hamletRes.data??[]).filter(h=>!scopeHamletIds ||
+      scopeHamletIds.includes(h.id)).map(h=>({id:h.id,name:h.name})),
   };
 }
