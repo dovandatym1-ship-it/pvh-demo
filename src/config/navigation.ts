@@ -97,7 +97,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         iconName: "Cpu",
         moduleKey: "m05-science-digital",
         requiredPermission: "m05:digital:read",
-        status: "LEGACY_MOCK",
+        status: "DEEP",
       },
       {
         title: "Y tế & An sinh (M06)",
