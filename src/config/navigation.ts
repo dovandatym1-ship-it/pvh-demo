@@ -77,11 +77,11 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
       },
       {
         title: "Văn hóa & Gia đình (M04)",
-        route: "/van-hoa-gia-dinh",
+        route: "/van-hoa/gia-dinh-van-hoa",
         iconName: "Sparkles",
         moduleKey: "m04",
         requiredPermission: "m04:culture:read",
-        status: "LEGACY_MOCK",
+        status: "DEEP",
       },
       {
         title: "KHCN & CĐS (M05)",

@@ -133,3 +133,42 @@ ON CONFLICT (tenant_id, id) DO UPDATE SET
   roles = EXCLUDED.roles,
   permissions = EXCLUDED.permissions,
   scopes = EXCLUDED.scopes;
+
+-- 7. Rule Pack TN-DEMO-ILLUSTRATIVE-01 & Criteria
+INSERT INTO public.rule_packs (
+  id,
+  tenant_id,
+  code,
+  name,
+  version,
+  status,
+  is_active,
+  effective_from,
+  effective_to
+) VALUES (
+  'd0000000-0000-0000-0000-000000000001',
+  'a0000000-0000-0000-0000-000000000001',
+  'TN-DEMO-ILLUSTRATIVE-01',
+  'Bộ tiêu chuẩn bình xét Gia đình văn hóa (Minh họa)',
+  1,
+  'ACTIVE',
+  true,
+  now() - interval '1 year',
+  now() + interval '5 years'
+) ON CONFLICT (tenant_id, code, version) DO NOTHING;
+
+INSERT INTO public.rule_pack_criteria (
+  id,
+  tenant_id,
+  rule_pack_id,
+  code,
+  name,
+  category,
+  max_points,
+  threshold_points,
+  is_mandatory
+) VALUES 
+('e0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000001', 'CRIT-01', 'Gương mẫu chấp hành chủ trương, chính sách', 'CHINH_SACH', 30, 25, true),
+('e0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000001', 'CRIT-02', 'Kinh tế gia đình ổn định, phát triển', 'KINH_TE', 35, 30, true),
+('e0000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000001', 'CRIT-03', 'Xây dựng nếp sống văn hóa, gia đình hòa thuận', 'VAN_HOA', 35, 30, true)
+ON CONFLICT (tenant_id, id) DO NOTHING;
