@@ -17,7 +17,7 @@ export const workItemRepository = {
     try {
       const supabase = await createServerSupabaseClient();
 
-      const { data, error } = await supabase.rpc("create_work_item", {
+      const { data, error } = await supabase.schema("app").rpc("create_work_item", {
         p_idempotency_key: input.idempotencyKey || null,
         p_title: input.title,
         p_description: input.description || null,
@@ -87,7 +87,7 @@ export const workItemRepository = {
     try {
       const supabase = await createServerSupabaseClient();
 
-      const { data, error } = await supabase.rpc("transition_work_item", {
+      const { data, error } = await supabase.schema("app").rpc("transition_work_item", {
         p_id: params.id,
         p_to_state: params.toState,
         p_expected_version: params.expectedVersion,

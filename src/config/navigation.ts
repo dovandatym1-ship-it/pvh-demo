@@ -1,4 +1,5 @@
 import "server-only";
+import { hasExplicitPermission } from "@/lib/authorization/permission-check";
 
 export type NavigationStatus = "DEEP" | "FRAME" | "DEFERRED" | "LEGACY_MOCK";
 
@@ -159,39 +160,11 @@ export function hasPermission(
     return true;
   }
 
-  // Superuser admin bypass
-  if (
-    userRoles.includes("LANH_DAO_XA") ||
-    userRoles.includes("SYSTEM_ADMIN") ||
-    userRoles.includes("admin") ||
-    userPermissions.includes("m00:admin") ||
-    userPermissions.includes("*")
-  ) {
-    return true;
-  }
-
-  // Check role requirement
-  if (item.requiredRole && userRoles.includes(item.requiredRole)) {
-    return true;
-  }
-
-  // Check permission requirement
-  if (item.requiredPermission) {
-    const required = item.requiredPermission;
-    if (userPermissions.includes(required)) return true;
-
-    // Check wildcard prefix (e.g. m01:* matches m01:work:read)
-    const [modulePrefix] = required.split(":");
-    if (
-      userPermissions.includes(`${modulePrefix}:*`) ||
-      userPermissions.includes(`${modulePrefix}:full`) ||
-      userPermissions.includes(`${modulePrefix}:view`)
-    ) {
-      return true;
-    }
-  }
-
-  return false;
+  // Both conditions must hold when both are configured; no leader/admin bypass.
+  return (
+    (!item.requiredRole || userRoles.includes(item.requiredRole)) &&
+    (!item.requiredPermission || hasExplicitPermission(userPermissions, item.requiredPermission))
+  );
 }
 
 /**
