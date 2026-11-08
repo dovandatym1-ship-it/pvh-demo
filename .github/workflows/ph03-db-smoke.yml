@@ -12,6 +12,10 @@ on:
       - 'supabase/**'
       - '.github/workflows/ph03-db-smoke.yml'
 
+concurrency:
+  group: ph03-db-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
