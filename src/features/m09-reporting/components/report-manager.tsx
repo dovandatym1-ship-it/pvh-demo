@@ -1,20 +1,23 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ReportSnapshotSelector } from "./report-snapshot-selector";
 import { SnapshotDetailsCard } from "./snapshot-details-card";
 import { SnapshotLineageTable } from "./snapshot-lineage-table";
 import { FinalizeSnapshotModal } from "./finalize-snapshot-modal";
+import { getSnapshotLineageAction } from "../server/actions";
 import type { ReportSnapshotDTO, SnapshotLineageDTO } from "../types";
 
 export interface ReportManagerProps {
   readonly initialSnapshots: ReportSnapshotDTO[];
+  readonly initialLineage?: readonly SnapshotLineageDTO[];
   readonly userPermissions: readonly string[];
   readonly userRoles: readonly string[];
 }
 
 export function ReportManager({
   initialSnapshots,
+  initialLineage,
   userPermissions,
   userRoles,
 }: ReportManagerProps) {
@@ -22,6 +25,9 @@ export function ReportManager({
   const [selectedId, setSelectedId] = useState<string | null>(
     initialSnapshots.length > 0 ? initialSnapshots[0].id : null
   );
+  const [lineage, setLineage] = useState<SnapshotLineageDTO[]>([
+    ...(initialLineage || []),
+  ]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const canFinalize =
@@ -33,27 +39,38 @@ export function ReportManager({
   const selectedSnapshot = snapshots.find((s) => s.id === selectedId) || null;
   const isLiveView = selectedId === null;
 
-  // Mock lineage for display when snapshot selected
-  const lineage: SnapshotLineageDTO[] = selectedSnapshot
-    ? [
-        {
-          id: "lin-01",
-          snapshotId: selectedSnapshot.id,
-          sourceTable: "work_items",
-          sourceId: "10000000-0000-0000-0000-000000000001",
-          sourceVersion: 1,
-          createdAt: selectedSnapshot.createdAt,
-        },
-        {
-          id: "lin-02",
-          snapshotId: selectedSnapshot.id,
-          sourceTable: "submissions",
-          sourceId: "sub00000-0000-0000-0000-000000000001",
-          sourceVersion: 1,
-          createdAt: selectedSnapshot.createdAt,
-        },
-      ]
-    : [];
+  useEffect(() => {
+    if (!selectedId) {
+      setLineage([]);
+      return;
+    }
+
+    // Fast path: if selected snapshot matches initial snapshot and initialLineage exists
+    if (
+      initialSnapshots.length > 0 &&
+      selectedId === initialSnapshots[0]?.id &&
+      initialLineage &&
+      initialLineage.length > 0
+    ) {
+      setLineage([...initialLineage]);
+      return;
+    }
+
+    let isCancelled = false;
+    getSnapshotLineageAction(selectedId)
+      .then((res) => {
+        if (!isCancelled) {
+          setLineage(res.ok ? res.data : []);
+        }
+      })
+      .catch(() => {
+        if (!isCancelled) setLineage([]);
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [selectedId, initialSnapshots, initialLineage]);
 
   const handleSnapshotCreated = (newSnapshot: ReportSnapshotDTO) => {
     setSnapshots((prev) => [newSnapshot, ...prev]);

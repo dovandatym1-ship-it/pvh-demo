@@ -3,13 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { getRequestContext } from "@/lib/auth/request-context";
 import { assertPermission } from "@/lib/authorization/assert-permission";
-import { type Result, fail } from "@/lib/types/result";
+import { type Result, ok, fail } from "@/lib/types/result";
 import {
   CreateReportSnapshotSchema,
   FinalizeReportSnapshotSchema,
 } from "../schemas";
-import { reportingService } from "./service";
-import type { ReportSnapshotDTO } from "../types";
+import { reportingService, computeCanonicalSha256 } from "./service";
+import { assertCanReadReports } from "./policy";
+import type { ReportSnapshotDTO, SnapshotLineageDTO } from "../types";
 
 /**
  * Server Action: Create Draft Report Snapshot.
@@ -71,12 +72,14 @@ export async function finalizeSnapshotAction(
     const ctx = await getRequestContext();
     assertPermission(ctx, "m09:snapshot:sign");
 
-    // Call service to finalize
+    // Call service to finalize with canonical sha256
+    const sha256 = computeCanonicalSha256(parsed.data.canonicalPayload);
     const { reportingRepository } = await import("./repository");
     const rpcRes = await reportingRepository.finalizeSnapshotViaRpc(
       ctx,
       parsed.data.snapshotId,
-      parsed.data.canonicalPayload
+      parsed.data.canonicalPayload,
+      sha256
     );
 
     if (!rpcRes.ok) return rpcRes;
@@ -85,5 +88,23 @@ export async function finalizeSnapshotAction(
     return rpcRes;
   } catch (err: unknown) {
     return fail("INTERNAL", "Lỗi hệ thống khi chốt snapshot", err);
+  }
+}
+
+/**
+ * Server Action: Query genuine snapshot lineage records.
+ */
+export async function getSnapshotLineageAction(
+  snapshotId: string
+): Promise<Result<SnapshotLineageDTO[]>> {
+  try {
+    const ctx = await getRequestContext();
+    assertCanReadReports(ctx);
+
+    const { reportingRepository } = await import("./repository");
+    const lineage = await reportingRepository.getLineage(ctx, snapshotId);
+    return ok(lineage);
+  } catch (err: unknown) {
+    return fail("INTERNAL", "Lỗi hệ thống khi truy vấn lineage của snapshot", err);
   }
 }

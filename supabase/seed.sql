@@ -355,7 +355,7 @@ INSERT INTO public.report_snapshots (
   'FINALIZED',
   true,
   '{"commune":"TN-DEMO-A","metrics":{"cdsIndex":82.5,"cultureApproved":2,"cultureSubmissions":5,"tasksCompleted":4,"tasksTotal":6},"period":"Q3/2026","year":2026}'::jsonb,
-  '4d94186523091910609fcf1982b6b06385cf61a5b82531be6f1947b7aa4c45ae',
+  '4014324f21c74b46736fd1847ef422a98b76ff9cedff38268e55c0031f7b6127',
   '[MÔ PHỎNG DEMO — KHÔNG CÓ GIÁ TRỊ PHÁP LÝ]',
   '2026-10-01T08:00:00Z',
   'c0000000-0000-0000-0000-000000000001',
@@ -407,7 +407,7 @@ INSERT INTO public.system_jobs (
   'COMPLETED',
   'idem-job-snapshot-q3-2026',
   '{"reportCode":"DEM-R01","period":"Q3/2026"}'::jsonb,
-  '{"status":"ok","snapshotId":"snap0000-0000-0000-0000-000000000001","sha256":"4d94186523091910609fcf1982b6b06385cf61a5b82531be6f1947b7aa4c45ae"}'::jsonb,
+  '{"status":"ok","snapshotId":"snap0000-0000-0000-0000-000000000001","sha256":"4014324f21c74b46736fd1847ef422a98b76ff9cedff38268e55c0031f7b6127"}'::jsonb,
   1,
   3
 ),

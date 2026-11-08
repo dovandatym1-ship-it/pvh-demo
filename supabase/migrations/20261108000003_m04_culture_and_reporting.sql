@@ -315,7 +315,8 @@ CREATE TRIGGER trg_report_snapshot_immutable
 -- 10. RPC: finalize_report_snapshot with SHA256 computation
 CREATE OR REPLACE FUNCTION app.finalize_report_snapshot(
   p_snapshot_id uuid,
-  p_canonical_payload jsonb
+  p_canonical_payload jsonb,
+  p_sha256 text DEFAULT NULL
 )
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -345,8 +346,13 @@ BEGIN
     RAISE EXCEPTION 'FORBIDDEN: User lacks permission to finalize snapshot';
   END IF;
 
-  -- Compute sha256 of canonical JSON payload via extensions.digest
-  v_sha256 := encode(extensions.digest(p_canonical_payload::text, 'sha256'), 'hex');
+  -- Harmonize sha256: use verified RFC 8785 canonical hash passed from Node.js if valid 64-char hex,
+  -- else compute fallback using extensions.digest
+  IF p_sha256 IS NOT NULL AND p_sha256 ~ '^[a-f0-9]{64}$' THEN
+    v_sha256 := p_sha256;
+  ELSE
+    v_sha256 := encode(extensions.digest(p_canonical_payload::text, 'sha256'), 'hex');
+  END IF;
 
   UPDATE public.report_snapshots
      SET payload = p_canonical_payload,

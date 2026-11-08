@@ -90,13 +90,39 @@ SELECT throws_ok(
   'Trigger trg_report_snapshot_immutable blocks UPDATE on finalized snapshot'
 );
 
--- 8. RPC: finalize_report_snapshot execution
+-- 8. RPC: finalize_report_snapshot execution on a draft snapshot
+INSERT INTO public.report_snapshots (
+  id,
+  tenant_id,
+  report_code,
+  title,
+  period,
+  year,
+  status,
+  is_finalized,
+  payload,
+  sha256,
+  created_by
+) VALUES (
+  'snap0000-0000-0000-0000-000000000099',
+  'a0000000-0000-0000-0000-000000000001',
+  'DEM-R01',
+  'Bản nháp báo cáo thử nghiệm pgTAP',
+  'Q4/2026',
+  2026,
+  'DRAFT',
+  false,
+  '{"commune":"TN-DEMO-A","metrics":{"tasksTotal":6},"period":"Q4/2026","year":2026}'::jsonb,
+  'draft-pending-sha256',
+  'c0000000-0000-0000-0000-000000000001'
+);
+
 SELECT lives_ok(
   $$SELECT app.finalize_report_snapshot(
-      'snap0000-0000-0000-0000-000000000001'::uuid,
-      '{"commune":"TN-DEMO-A","metrics":{"tasksTotal":6},"period":"Q3/2026","year":2026}'::jsonb
+      'snap0000-0000-0000-0000-000000000099'::uuid,
+      '{"commune":"TN-DEMO-A","metrics":{"tasksTotal":6},"period":"Q4/2026","year":2026}'::jsonb
     )$$,
-  'RPC finalize_report_snapshot executes successfully for authorized user'
+  'RPC finalize_report_snapshot executes successfully for authorized user on draft snapshot'
 );
 
 -- 9. RPC: claim_next_system_job execution

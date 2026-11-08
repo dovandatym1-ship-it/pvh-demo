@@ -162,7 +162,8 @@ export const reportingService = {
     const rpcRes = await reportingRepository.finalizeSnapshotViaRpc(
       ctx,
       snapshotId,
-      canonicalPayload
+      canonicalPayload,
+      sha256
     );
     if (!rpcRes.ok) return rpcRes;
 

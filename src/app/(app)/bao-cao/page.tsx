@@ -1,6 +1,9 @@
 import { getRequestContext } from "@/lib/auth/request-context";
 import { assertRoutePermission } from "@/config/navigation";
-import { getReportSnapshots } from "@/features/m09-reporting/server/queries";
+import {
+  getReportSnapshots,
+  getSnapshotLineage,
+} from "@/features/m09-reporting/server/queries";
 import { ReportManager } from "@/features/m09-reporting/components/report-manager";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +13,8 @@ export default async function BaoCaoAppPage() {
   assertRoutePermission("/bao-cao", ctx.permissions, ctx.roles);
 
   const snapshots = await getReportSnapshots(ctx);
+  const initialLineage =
+    snapshots.length > 0 ? await getSnapshotLineage(ctx, snapshots[0].id) : [];
 
   return (
     <div className="space-y-6">
@@ -29,6 +34,7 @@ export default async function BaoCaoAppPage() {
 
       <ReportManager
         initialSnapshots={snapshots}
+        initialLineage={initialLineage}
         userPermissions={ctx.permissions}
         userRoles={ctx.roles}
       />

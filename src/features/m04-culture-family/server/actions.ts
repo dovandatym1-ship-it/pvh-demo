@@ -11,6 +11,7 @@ import {
   AttachEvidenceSchema,
 } from "../schemas";
 import { cultureService } from "./service";
+import { assertCanProposeCulture } from "./policy";
 import type { CultureSubmissionDTO, CulturalTitleDTO } from "../types";
 
 /**
@@ -27,7 +28,7 @@ export async function proposeCulturalTitleAction(
     }
 
     const ctx = await getRequestContext();
-    assertPermission(ctx, "m04:culture:evaluate");
+    assertCanProposeCulture(ctx);
 
     const result = await cultureService.proposeCulturalTitle(ctx, parsed.data);
     if (!result.ok) {

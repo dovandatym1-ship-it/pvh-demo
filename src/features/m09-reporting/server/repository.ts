@@ -99,14 +99,19 @@ export const reportingRepository = {
   async finalizeSnapshotViaRpc(
     ctx: RequestContext,
     snapshotId: string,
-    canonicalPayload: Record<string, unknown>
+    canonicalPayload: Record<string, unknown>,
+    sha256?: string
   ): Promise<Result<{ id: string; sha256: string; status: string }>> {
     try {
       const supabase = await createServerSupabaseClient();
-      const { data, error } = await supabase.rpc("finalize_report_snapshot", {
+      const rpcParams: Record<string, unknown> = {
         p_snapshot_id: snapshotId,
         p_canonical_payload: canonicalPayload,
-      });
+      };
+      if (sha256) {
+        rpcParams.p_sha256 = sha256;
+      }
+      const { data, error } = await supabase.rpc("finalize_report_snapshot", rpcParams);
 
       if (error) {
         if (error.message.includes("FORBIDDEN")) {
