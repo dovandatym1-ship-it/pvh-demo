@@ -61,7 +61,7 @@ test("legacy mutators are blocked",()=>{
 test("PH03 hamlet options respect the database's canonical org_unit_ids scope",()=>{
  const helper=readFileSync("src/lib/authorization/ph03-hamlet-scope.ts","utf8");
  assert.match(helper,/org_unit_ids/);
- assert.match(helper,/return \[\]/);
+ assert.match(helper,/:\s*\[\];/);
  for(const module of ["m04-culture-family","m08-inspections"]){
   const queries=readFileSync("src/features/"+module+"/server/ph03-queries.ts","utf8");
   assert.match(queries,/ph03HamletScope\(ctx\)/);
