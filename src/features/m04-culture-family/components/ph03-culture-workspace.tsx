@@ -2,8 +2,8 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { createIllustrativeRulePackAction, createCultureCampaignAction,
-  submitCultureDossierAction, reviewCultureDossierAction } from "../server/ph03-actions";
+import { openIllustrativeCultureCampaignAction, submitCultureDossierAction,
+  reviewCultureDossierAction } from "../server/ph03-actions";
 import type { CultureCampaign, CultureDossier, HamletOption, TitleType } from "../server/ph03-queries";
 
 type Props = {kind:TitleType;campaigns:CultureCampaign[];dossiers:CultureDossier[];
@@ -37,13 +37,8 @@ export function CultureWorkspace({kind,campaigns,dossiers,hamlets,canSubmit,canR
   async function createCampaign(event:FormEvent) {
     event.preventDefault();setBusy(true);setMessage("");
     try {
-      const pack=await createIllustrativeRulePackAction({
-        titleType:kind,version:Math.floor(Date.now()/1000),jurisdiction:"MINH HỌA / CHƯA XÁC MINH",
-        criteria:[],minScore:null,
-      });
-      if(!pack.ok) throw new Error(pack.error.message);
-      const opened=await createCultureCampaignAction({
-        rulePackId:pack.data.id,year:newYear,title:campaignTitle,
+      const opened=await openIllustrativeCultureCampaignAction({
+        titleType:kind,year:newYear,title:campaignTitle,
         closesAt:new Date(Date.UTC(newYear,11,31,16,59,59)).toISOString(),
       });
       if(!opened.ok) throw new Error(opened.error.message);
