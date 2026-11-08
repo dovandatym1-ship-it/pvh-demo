@@ -11,14 +11,12 @@ import {
 import type { DashboardItem, DashboardModel } from "../metrics.mjs";
 import { deadlineState } from "../metrics.mjs";
 import styles from "./dashboard.module.css";
-
 type QueueMode = "urgent" | "overdue" | "soon" | "review" | "progress" | "all";
 
 const MODE_LABELS: Record<QueueMode, string> = {
   urgent: "Việc cần ưu tiên", overdue: "Đã quá hạn", soon: "Trong 7 ngày tới",
   review: "Chờ rà soát", progress: "Đang xử lý", all: "Tất cả công việc",
 };
-
 const STATUS_COLORS: Record<string, string> = {
   IN_PROGRESS: "amber", UNDER_REVIEW: "blue", ASSIGNED: "slate",
   NEW: "slate", COMPLETED: "green", RETURNED: "red", CANCELLED: "slate",
