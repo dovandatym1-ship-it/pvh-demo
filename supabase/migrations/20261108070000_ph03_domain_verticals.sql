@@ -33,6 +33,11 @@ insert into public.role_permissions(role_code,permission_code) values
  ('INSPECTION_COORDINATOR','m08:inspection:review')
 on conflict do nothing;
 
+-- PH01 evidence metadata has a UUID primary key but not the composite
+-- tenant/id key required for a tenant-safe FK from M04 submissions.
+alter table public.evidence_files
+ add constraint evidence_files_tenant_id_id_key unique(tenant_id,id);
+
 create function pvh_private.ph03_in_scope(p_tenant uuid,p_hamlet uuid)
 returns boolean language sql stable security definer set search_path='' as $$
  select exists (
