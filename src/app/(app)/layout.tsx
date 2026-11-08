@@ -12,14 +12,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   try {
     const ctx = await getRequestContext();
     filteredGroups = filterNavigation(ctx.permissions, ctx.roles);
-    if (ctx.roles.includes("CONG_CHUC_VHXH") || ctx.roles.includes("CAN_BO_KIEM_NHIEM") || ctx.roles.includes("WORK_OFFICER")) {
+    if (ctx.roles.includes("SYSTEM_ADMIN") || ctx.roles.includes("admin")) {
+      userLabel = "Quản trị viên hệ thống";
+    } else if (ctx.roles.includes("CONG_CHUC_VHXH") || ctx.roles.includes("CAN_BO_KIEM_NHIEM") || ctx.roles.includes("WORK_OFFICER")) {
       userLabel = "Công chức VH-XH";
     } else if (ctx.roles.includes("CAN_BO_MOT_CUA")) {
       userLabel = "Cán bộ Một cửa";
     } else if (ctx.roles.includes("CAN_BO_THANH_TRA") || ctx.roles.includes("AUDITOR")) {
       userLabel = "Cán bộ Kiểm tra";
-    } else if (ctx.roles.includes("SYSTEM_ADMIN")) {
-      userLabel = "Quản trị viên hệ thống";
     } else {
       userLabel = "Chủ tịch UBND xã";
     }

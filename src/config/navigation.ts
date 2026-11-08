@@ -160,7 +160,13 @@ export function hasPermission(
   }
 
   // Superuser admin bypass
-  if (userRoles.includes("LANH_DAO_XA") || userPermissions.includes("m00:admin")) {
+  if (
+    userRoles.includes("LANH_DAO_XA") ||
+    userRoles.includes("SYSTEM_ADMIN") ||
+    userRoles.includes("admin") ||
+    userPermissions.includes("m00:admin") ||
+    userPermissions.includes("*")
+  ) {
     return true;
   }
 
