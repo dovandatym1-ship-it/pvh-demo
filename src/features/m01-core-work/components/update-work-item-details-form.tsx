@@ -19,14 +19,14 @@ export function UpdateWorkItemDetailsForm({ item, hamlets }: {
 }) {
   const router = useRouter();
   const key = useRef<string | null>(null);
-  const [dueDate, setDueDate] = useState(vietnameseLocalDate(item.dueDate));
+  const [dueDate, setDueDate] = useState(vietnameseLocalDate(item.dueDate ?? null));
   const [hamletId, setHamletId] = useState(item.hamletId || "");
   const [reason, setReason] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const changed = () => { key.current = null; setError(""); setNotice(""); };
-  const hasChanges = dueDate !== vietnameseLocalDate(item.dueDate) || hamletId !== (item.hamletId || "");
+  const hasChanges = dueDate !== vietnameseLocalDate(item.dueDate ?? null) || hamletId !== (item.hamletId || "");
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
