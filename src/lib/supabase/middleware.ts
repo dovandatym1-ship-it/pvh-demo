@@ -46,8 +46,13 @@ export async function updateSession(request: NextRequest) {
     pathname.includes(".") ||
     pathname.startsWith("/api/files");
 
+  // Allow demo session when NEXT_PUBLIC_DEMO_MODE is enabled
+  const isDemo = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+  const demoCookie = request.cookies.get("pvh_demo_session")?.value;
+  const isAuthenticated = Boolean(user) || (isDemo && Boolean(demoCookie));
+
   // Protect all non-auth and non-static routes
-  if (!user && !isAuthRoute && !isStaticRoute) {
+  if (!isAuthenticated && !isAuthRoute && !isStaticRoute) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
     redirectUrl.searchParams.set("redirect", pathname);
@@ -55,7 +60,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Redirect authenticated user away from login page
-  if (user && pathname.startsWith("/login")) {
+  if (isAuthenticated && pathname.startsWith("/login")) {
     const redirectParam = request.nextUrl.searchParams.get("redirect");
     const targetUrl =
       redirectParam && !redirectParam.startsWith("/login") ? redirectParam : "/ban-lam-viec";

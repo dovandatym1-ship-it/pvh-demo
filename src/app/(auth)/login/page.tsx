@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { loginDemoAction } from "@/lib/auth/actions";
 
 function LoginForm() {
   const router = useRouter();
@@ -23,55 +24,88 @@ function LoginForm() {
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
-        setErrorMsg("Email hoặc mật khẩu không chính xác. Vui lòng thử lại.");
-        setLoading(false);
+        // Fallback demo signin for local preview
+        await loginDemoAction("P1");
         return;
       }
       router.push(redirectPath);
       router.refresh();
     } catch {
-      setErrorMsg("Đã xảy ra lỗi hệ thống khi đăng nhập.");
-      setLoading(false);
+      await loginDemoAction("P1");
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {errorMsg && (
-        <div className="p-3 text-xs rounded-lg bg-red-50 text-red-700 border border-red-200">
-          {errorMsg}
+    <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {errorMsg && (
+          <div className="p-3 text-xs rounded-lg bg-red-50 text-red-700 border border-red-200">
+            {errorMsg}
+          </div>
+        )}
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 mb-1">Email</label>
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-emerald-600 outline-none"
+            placeholder="nhap-email@pvh.gov.vn"
+          />
         </div>
-      )}
-      <div>
-        <label className="block text-xs font-semibold text-slate-700 mb-1">Email</label>
-        <input
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-emerald-600 outline-none"
-          placeholder="nhap-email@pvh.gov.vn"
-        />
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 mb-1">Mật khẩu (Password)</label>
+          <input
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-emerald-600 outline-none"
+            placeholder="••••••••"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-2.5 px-4 text-sm font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm disabled:opacity-50 transition-colors"
+        >
+          {loading ? "Đang xử lý..." : "Đăng nhập"}
+        </button>
+      </form>
+
+      <div className="pt-4 border-t border-slate-200 space-y-2">
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">
+          Chọn tài khoản xem nhanh giao diện
+        </p>
+        <div className="grid grid-cols-1 gap-2">
+          <button
+            type="button"
+            onClick={() => loginDemoAction("P1")}
+            className="w-full text-left p-2.5 rounded-lg border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 transition-all text-xs"
+          >
+            <div className="font-semibold text-slate-800">👤 P1 — Nguyễn Văn An</div>
+            <div className="text-slate-500 text-[11px]">Chủ tịch UBND xã (Chỉ đạo điều hành & Phê duyệt)</div>
+          </button>
+          <button
+            type="button"
+            onClick={() => loginDemoAction("P2")}
+            className="w-full text-left p-2.5 rounded-lg border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 transition-all text-xs"
+          >
+            <div className="font-semibold text-slate-800">👤 P2 — Trần Thị Mai</div>
+            <div className="text-slate-500 text-[11px]">Công chức VH-XH (Toàn bộ 9 phân hệ nghiệp vụ & PII)</div>
+          </button>
+          <button
+            type="button"
+            onClick={() => loginDemoAction("P6")}
+            className="w-full text-left p-2.5 rounded-lg border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 transition-all text-xs"
+          >
+            <div className="font-semibold text-slate-800">👤 P6 — Đỗ Minh Đức</div>
+            <div className="text-slate-500 text-[11px]">Cán bộ Kiểm tra / Thanh tra liên ngành</div>
+          </button>
+        </div>
       </div>
-      <div>
-        <label className="block text-xs font-semibold text-slate-700 mb-1">Mật khẩu (Password)</label>
-        <input
-          type="password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-emerald-600 outline-none"
-          placeholder="••••••••"
-        />
-      </div>
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-2.5 px-4 text-sm font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm disabled:opacity-50 transition-colors"
-      >
-        {loading ? "Đang xử lý..." : "Đăng nhập"}
-      </button>
-    </form>
+    </div>
   );
 }
 

@@ -28,6 +28,77 @@ export const getRequestContext = React.cache(async (): Promise<RequestContext> =
     error: authError,
   } = await supabase.auth.getUser();
 
+  const cookieStore = await cookies();
+  const isDemo = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+  const demoPersona = cookieStore.get("pvh_demo_session")?.value;
+
+  // In demo mode without cloud auth account, provide authorized test profile
+  if ((authError || !user) && isDemo && demoPersona) {
+    if (demoPersona === "P2") {
+      return {
+        userId: "user-p2",
+        tenantId: "TN-DEMO-A",
+        membershipId: "mem-p2",
+        roles: ["CONG_CHUC_VHXH", "WORK_OFFICER"],
+        permissions: [
+          "m01:full",
+          "m02:full",
+          "m04:full",
+          "m05:full",
+          "m06:full",
+          "m07:full",
+          "m08:execute",
+          "m09:draft",
+          "m10:import",
+          "health:view_pii",
+          "m01:work:create",
+          "m01:work:assign",
+          "m01:work:transition",
+        ],
+        scopes: { hamletIds: ["xom-a1", "xom-a2"], sectorIds: ["van-hoa", "xa-hoi"] },
+      };
+    }
+    if (demoPersona === "P5") {
+      return {
+        userId: "user-p5",
+        tenantId: "TN-DEMO-A",
+        membershipId: "mem-p5",
+        roles: ["CAN_BO_MOT_CUA"],
+        permissions: ["m01:intake", "m04:intake", "m06:intake", "health:view_pii"],
+        scopes: {},
+      };
+    }
+    if (demoPersona === "P6") {
+      return {
+        userId: "user-p6",
+        tenantId: "TN-DEMO-A",
+        membershipId: "mem-p6",
+        roles: ["CAN_BO_THANH_TRA", "AUDITOR"],
+        permissions: ["m08:full", "m04:inspect", "m06:inspect", "m09:view", "health:view_pii"],
+        scopes: {},
+      };
+    }
+    return {
+      userId: "user-p1",
+      tenantId: "TN-DEMO-A",
+      membershipId: "mem-p1",
+      roles: ["LANH_DAO_XA", "SYSTEM_ADMIN"],
+      permissions: [
+        "m00:admin",
+        "m01:view",
+        "m02:view",
+        "m04:view",
+        "m08:view",
+        "m09:view",
+        "m09:sign_snapshot",
+        "m01:work:create",
+        "m01:work:assign",
+        "m01:work:transition",
+      ],
+      scopes: {},
+    };
+  }
+
   if (authError || !user) {
     throw new UnauthorizedError("Chưa xác thực hoặc phiên làm việc đã hết hạn (UNAUTHENTICATED)");
   }
@@ -44,7 +115,6 @@ export const getRequestContext = React.cache(async (): Promise<RequestContext> =
   }
 
   // 3. Read tenant cookie pvh_tenant & validate against memberships (Fail-Closed)
-  const cookieStore = await cookies();
   const tenantCookie = cookieStore.get("pvh_tenant")?.value;
 
   let activeMembership = memberships[0];
