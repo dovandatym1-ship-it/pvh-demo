@@ -1,15 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
-import { loginDemoAction } from "@/lib/auth/actions";
+import { loginWithCredentialsAction, loginDemoAction } from "@/lib/auth/actions";
 
 function LoginForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectPath = searchParams.get("redirect") || "/cong-viec";
-
   const [email, setEmail] = React.useState("p1.lanhdao@pvh.gov.vn");
   const [password, setPassword] = React.useState("Password123!");
   const [loading, setLoading] = React.useState(false);
@@ -20,18 +14,14 @@ function LoginForm() {
     setLoading(true);
     setErrorMsg(null);
 
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        // Fallback demo signin for local preview
-        await loginDemoAction("P1");
-        return;
-      }
-      router.push(redirectPath);
-      router.refresh();
-    } catch {
-      await loginDemoAction("P1");
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("password", password);
+
+    const res = await loginWithCredentialsAction(formData);
+    if (res?.error) {
+      setErrorMsg(res.error);
+      setLoading(false);
     }
   };
 
@@ -44,9 +34,10 @@ function LoginForm() {
           </div>
         )}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">Email</label>
+          <label className="block text-xs font-semibold text-slate-700 mb-1">Email công vụ</label>
           <input
             type="email"
+            name="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -58,6 +49,7 @@ function LoginForm() {
           <label className="block text-xs font-semibold text-slate-700 mb-1">Mật khẩu (Password)</label>
           <input
             type="password"
+            name="password"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -70,14 +62,19 @@ function LoginForm() {
           disabled={loading}
           className="w-full py-2.5 px-4 text-sm font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm disabled:opacity-50 transition-colors"
         >
-          {loading ? "Đang xử lý..." : "Đăng nhập"}
+          {loading ? "Đang xác thực & ghi nhật ký kiểm toán..." : "Đăng nhập hệ thống"}
         </button>
       </form>
 
       <div className="pt-4 border-t border-slate-200 space-y-2">
-        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">
-          Chọn tài khoản xem nhanh giao diện
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+            Chọn tài khoản kiểm thử (Audit DB)
+          </p>
+          <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 font-medium">
+            Tự động lưu Audit Log
+          </span>
+        </div>
         <div className="grid grid-cols-1 gap-2">
           <button
             type="button"
