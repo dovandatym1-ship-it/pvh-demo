@@ -1,35 +1,39 @@
 export class AppError extends Error {
-  public statusCode: number;
-  public code: string;
-
-  constructor(message: string, statusCode = 400, code = "BAD_REQUEST") {
+  constructor(
+    public readonly code: string,
+    public readonly statusCode: number,
+    message: string,
+    public readonly details?: unknown
+  ) {
     super(message);
     this.name = "AppError";
-    this.statusCode = statusCode;
-    this.code = code;
   }
 }
 
 export class UnauthorizedError extends AppError {
-  constructor(message = "Không có quyền truy cập hoặc phiên làm việc đã hết hạn.") {
-    super(message, 401, "UNAUTHORIZED");
+  constructor(message = "Chưa xác thực danh tính (UNAUTHENTICATED)", details?: unknown) {
+    super("UNAUTHENTICATED", 401, message, details);
+    this.name = "UnauthorizedError";
   }
 }
 
 export class ForbiddenError extends AppError {
-  constructor(message = "Hành động bị từ chối do không đủ thẩm quyền nghiệp vụ.") {
-    super(message, 403, "FORBIDDEN");
+  constructor(message = "Không có quyền thực hiện hành động này (FORBIDDEN)", details?: unknown) {
+    super("FORBIDDEN", 403, message, details);
+    this.name = "ForbiddenError";
   }
 }
 
 export class NotFoundError extends AppError {
-  constructor(message = "Không tìm thấy dữ liệu yêu cầu.") {
-    super(message, 404, "NOT_FOUND");
+  constructor(message = "Không tìm thấy tài nguyên yêu cầu (NOT_FOUND)", details?: unknown) {
+    super("NOT_FOUND", 404, message, details);
+    this.name = "NotFoundError";
   }
 }
 
-export class BusinessRuleViolationError extends AppError {
-  constructor(message: string) {
-    super(message, 422, "BUSINESS_RULE_VIOLATION");
+export class ValidationError extends AppError {
+  constructor(message = "Dữ liệu yêu cầu không hợp lệ (VALIDATION)", details?: unknown) {
+    super("VALIDATION", 400, message, details);
+    this.name = "ValidationError";
   }
 }

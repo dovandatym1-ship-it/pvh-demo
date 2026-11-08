@@ -10,7 +10,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:reset": "supabase db reset && npm run test:db",
+    "test:db": "supabase test db",
+    "fitness": "node scripts/check-fitness.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

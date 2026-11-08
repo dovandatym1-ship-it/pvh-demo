@@ -32,6 +32,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Architectural Fitness Functions
+        run: npm run fitness
+
       - name: Build
         run: npm run build
         env:

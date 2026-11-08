@@ -112,6 +112,7 @@ class TestHarness:
             ".next",
             "*.tsbuildinfo",
             "package-lock.json",
+            "__pycache__",
         ]
         active_excludes = set(default_excludes + (excludes or []))
 

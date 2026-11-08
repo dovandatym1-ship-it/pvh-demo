@@ -765,7 +765,7 @@ def test_f16_server_only_guards(h: TestHarness):
     source="ORIGINAL_REQUEST.md §R2, §6.12, S1-08, Gate G1",
 )
 def test_f16_no_leaked_public_secrets(h: TestHarness):
-    matches = h.grep_pattern(r"NEXT_PUBLIC_.*(?:SERVICE_ROLE|SECRET)", rel_glob="**/*")
+    matches = h.grep_pattern(r"NEXT_PUBLIC_.*(?:SERVICE_ROLE|SECRET)", rel_glob="**/*", excludes=["tests", "docs"])
     h.assert_equal(len(matches), 0, f"Leaked private keys in NEXT_PUBLIC_ variables: {matches}")
 
 

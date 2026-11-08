@@ -1,4 +1,5 @@
 "use client";
+// Decommissioned legacy route redirects to /cong-viec (ADR-002 / S1-06 redirect)
 
 import * as React from "react";
 import { useDemoContext } from "@/lib/tenancy/demo-context";

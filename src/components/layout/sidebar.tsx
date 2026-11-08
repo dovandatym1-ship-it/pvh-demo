@@ -20,47 +20,69 @@ import {
   RefreshCw,
   BookOpen,
   LucideIcon,
-  X,
 } from "lucide-react";
 import { Persona } from "@/lib/auth/session";
 import { TenantConfig } from "@/lib/tenancy/tenant-config";
 
-interface NavItem {
-  title: string;
-  href: string;
-  icon: LucideIcon;
-  moduleKey?: string;
-  badge?: string;
+const ICON_MAP: Record<string, LucideIcon> = {
+  LayoutDashboard,
+  CalendarCheck,
+  ShieldCheck,
+  Database,
+  Building,
+  GraduationCap,
+  Sparkles,
+  Cpu,
+  HeartHandshake,
+  Compass,
+  ClipboardList,
+  BarChart3,
+  RefreshCw,
+  BookOpen,
+};
+
+export interface NavigationItemDisplay {
+  readonly title: string;
+  readonly route: string;
+  readonly iconName: string;
+  readonly badge?: string;
+  readonly status?: string;
 }
 
-const NAV_GROUPS: Array<{ title: string; items: NavItem[] }> = [
+export interface NavigationGroupDisplay {
+  readonly title: string;
+  readonly items: readonly NavigationItemDisplay[];
+}
+
+const DEFAULT_GROUPS: NavigationGroupDisplay[] = [
   {
     title: "Điều hành & Tác nghiệp",
     items: [
-      { title: "Bàn làm việc", href: "/ban-lam-viec", icon: LayoutDashboard },
-      { title: "Kế hoạch & Công việc", href: "/ke-hoach-cong-viec", icon: CalendarCheck },
-      { title: "Kịch bản Diễn thử", href: "/playbook", icon: BookOpen, badge: "DEMO" },
+      { title: "Bàn làm việc", route: "/ban-lam-viec", iconName: "LayoutDashboard" },
+      { title: "Quản lý công việc (M01)", route: "/cong-viec", iconName: "CalendarCheck" },
+      { title: "Kế hoạch & Công việc", route: "/ke-hoach-cong-viec", iconName: "CalendarCheck" },
+      { title: "Kịch bản Diễn thử", route: "/playbook", iconName: "BookOpen", badge: "DEMO" },
     ],
   },
   {
     title: "Chuyên ngành VH-XH",
     items: [
-      { title: "Nội vụ & CCHC (M02)", href: "/noi-vu", icon: Building, moduleKey: "m02" },
-      { title: "Giáo dục & Đào tạo (M03)", href: "/giao-duc", icon: GraduationCap, moduleKey: "m03" },
-      { title: "Văn hóa & Gia đình (M04)", href: "/van-hoa-gia-dinh", icon: Sparkles, moduleKey: "m04" },
-      { title: "KHCN & CĐS (M05)", href: "/khcn-chuyen-doi-so", icon: Cpu, moduleKey: "m05-science-digital" },
-      { title: "Y tế & An sinh (M06)", href: "/y-te-an-sinh", icon: HeartHandshake, moduleKey: "m06" },
-      { title: "Dân tộc & Tôn giáo (M07)", href: "/dan-toc-ton-giao", icon: Compass, moduleKey: "m07" },
+      { title: "Nội vụ & CCHC (M02)", route: "/noi-vu", iconName: "Building" },
+      { title: "Giáo dục & Đào tạo (M03)", route: "/giao-duc", iconName: "GraduationCap" },
+      { title: "Văn hóa & Gia đình (M04)", route: "/van-hoa-gia-dinh", iconName: "Sparkles" },
+      { title: "KHCN & CĐS (M05)", route: "/khcn-chuyen-doi-so", iconName: "Cpu" },
+      { title: "Y tế & An sinh (M06)", route: "/y-te-an-sinh", iconName: "HeartHandshake" },
+      { title: "Dân tộc & Tôn giáo (M07)", route: "/dan-toc-ton-giao", iconName: "Compass" },
     ],
   },
   {
     title: "Kiểm tra, Báo cáo & Nền tảng",
     items: [
-      { title: "Kiểm tra & Kiến nghị (M08)", href: "/kiem-tra", icon: ClipboardList, moduleKey: "m08-inspections" },
-      { title: "Báo cáo chỉ tiêu (M09)", href: "/bao-cao", icon: BarChart3, moduleKey: "m09" },
-      { title: "Dữ liệu dùng chung (M01)", href: "/du-lieu-dung-chung", icon: Database, moduleKey: "m01" },
-      { title: "Nhập & Tích hợp (M10)", href: "/tich-hop", icon: RefreshCw, moduleKey: "m10" },
-      { title: "Quản trị & Cán bộ (M00)", href: "/quan-tri", icon: ShieldCheck, moduleKey: "m00" },
+      { title: "Kiểm tra & Kiến nghị (M08)", route: "/kiem-tra", iconName: "ClipboardList" },
+      { title: "Báo cáo chỉ tiêu (M09)", route: "/bao-cao", iconName: "BarChart3" },
+      { title: "Dữ liệu dùng chung (M01)", route: "/du-lieu-dung-chung", iconName: "Database" },
+      { title: "Nhập & Tích hợp (M10)", route: "/tich-hop", iconName: "RefreshCw" },
+      { title: "Quản trị & Cán bộ (M00)", route: "/quan-tri", iconName: "ShieldCheck" },
     ],
   },
 ];
@@ -68,19 +90,21 @@ const NAV_GROUPS: Array<{ title: string; items: NavItem[] }> = [
 export function Sidebar({
   persona,
   tenant,
+  groups,
   isOpen = true,
   onClose,
 }: {
-  persona: Persona;
-  tenant: TenantConfig;
+  persona?: Persona;
+  tenant?: TenantConfig;
+  groups?: readonly NavigationGroupDisplay[];
   isOpen?: boolean;
   onClose?: () => void;
 }) {
   const pathname = usePathname();
+  const displayGroups = groups && groups.length > 0 ? groups : DEFAULT_GROUPS;
 
   return (
     <>
-      {/* Mobile Backdrop */}
       {isOpen && onClose && (
         <div
           className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden backdrop-blur-xs transition-opacity"
@@ -101,96 +125,73 @@ export function Sidebar({
               PVH
             </div>
             <div>
-              <div className="font-bold text-sm text-slate-800 font-display">HTTT PHÒNG VH-XH</div>
-              <div className="text-[10px] text-slate-500 font-medium truncate max-w-[140px]">
-                {tenant.name.replace("UBND ", "")}
-              </div>
+              <h1 className="text-sm font-bold text-slate-800 leading-tight">
+                {tenant?.name || "UBND Xã Giả Định A"}
+              </h1>
+              <p className="text-[11px] text-slate-500 font-medium">Phòng VH-XH Thái Nguyên</p>
             </div>
           </div>
-          {onClose && (
-            <button
-              onClick={onClose}
-              className="lg:hidden p-1.5 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-100"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
         </div>
 
-        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
-          {NAV_GROUPS.map((group, idx) => (
-            <div key={idx} className="space-y-1">
-              <h4 className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <nav className="flex-1 p-3 space-y-6 overflow-y-auto">
+          {displayGroups.map((group, groupIdx) => (
+            <div key={groupIdx} className="space-y-1">
+              <h2 className="px-3 text-[11px] font-semibold text-slate-600 tracking-wider">
                 {group.title}
-              </h4>
+              </h2>
               <div className="space-y-0.5">
-                {group.items.map((item) => {
-                  // Check if module is disabled by tenant
-                  const isDisabled =
-                    (item.moduleKey === "m05-science-digital" && !tenant.features.digitalTransformation) ||
-                    (item.moduleKey === "m08-inspections" && !tenant.features.fieldInspection);
-
-                  const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href + "/"));
-                  const Icon = item.icon;
-
+                {group.items.map((item, itemIdx) => {
+                  const Icon = ICON_MAP[item.iconName] || LayoutDashboard;
+                  const isActive =
+                    pathname === item.route || pathname.startsWith(item.route + "/");
                   return (
                     <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={onClose}
+                      key={itemIdx}
+                      href={item.route}
                       className={cn(
-                        "flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors",
+                        "flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg transition-colors group",
                         isActive
-                          ? "bg-gov-50 text-gov-600 font-semibold"
-                          : isDisabled
-                          ? "text-slate-400 hover:bg-slate-50 hover:text-slate-600"
+                          ? "bg-emerald-50 text-emerald-800 font-semibold"
                           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       )}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <Icon
                           className={cn(
-                            "h-4 w-4 shrink-0",
-                            isActive ? "text-gov-600" : isDisabled ? "text-slate-400" : "text-slate-400"
+                            "w-4 h-4 shrink-0 transition-colors",
+                            isActive
+                              ? "text-emerald-700"
+                              : "text-slate-400 group-hover:text-slate-600"
                           )}
                         />
                         <span className="truncate">{item.title}</span>
                       </div>
-                      {isDisabled ? (
-                        <span className="ml-1.5 px-1.5 py-0.5 text-[9px] font-semibold bg-amber-100 text-amber-700 rounded border border-amber-200">
-                          TẮT
-                        </span>
-                      ) : item.badge ? (
-                        <span className="ml-1.5 px-1.5 py-0.5 text-[9px] font-semibold bg-gov-100 text-gov-700 rounded border border-gov-200">
+                      {item.badge && (
+                        <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-sm bg-emerald-100 text-emerald-800 shrink-0">
                           {item.badge}
                         </span>
-                      ) : null}
+                      )}
                     </Link>
                   );
                 })}
               </div>
             </div>
           ))}
-        </div>
+        </nav>
 
-        <div className="p-3 border-t border-slate-200 bg-slate-50/70">
-          <div className="rounded-lg bg-white p-2.5 border border-slate-200 text-[11px] space-y-1">
-            <div className="flex justify-between items-center text-slate-500 font-medium">
-              <span>Đơn vị:</span>
-              <span className="font-bold text-slate-700 font-mono text-[10px]">{tenant.code}</span>
-            </div>
-            <div className="flex justify-between items-center text-slate-500 font-medium">
-              <span>Mô hình:</span>
-              <span className="font-medium text-slate-700">
-                {tenant.officerMode === "CONCURRENT" ? "Kiêm nhiệm" : "Phân nhiệm"}
-              </span>
-            </div>
-            <div className="flex justify-between items-center text-slate-500 font-medium">
-              <span>Chế độ:</span>
-              <span className="font-semibold text-emerald-700">Multi-Tenancy</span>
+        {persona && (
+          <div className="p-3 border-t border-slate-200 bg-slate-50">
+            <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-white border border-slate-200/80">
+              <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center shrink-0">
+                {persona.code}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-slate-800 truncate">{persona.name}</p>
+                <p className="text-[10px] text-slate-500 truncate">{persona.roleTitle}</p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </aside>
     </>
   );

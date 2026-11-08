@@ -44,6 +44,11 @@ pop3_port = 54327
 enabled = true
 file_size_limit = "50MiB"
 
+[storage.buckets.evidence]
+public = false
+file_size_limit = "50MiB"
+allowed_mime_types = ["application/pdf", "image/png", "image/jpeg", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]
+
 [auth]
 enabled = true
 site_url = "http://localhost:3000"
