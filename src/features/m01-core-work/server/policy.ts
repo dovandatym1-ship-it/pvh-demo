@@ -31,3 +31,13 @@ export function assertCanAssignWorkItem(ctx: RequestContext, item: WorkItemDTO):
   }
   assertPermission(ctx, "m01:work:assign");
 }
+
+/**
+ * Asserts that the actor possesses permission to approve and complete the work item.
+ */
+export function assertCanApproveWorkItem(ctx: RequestContext, item: WorkItemDTO): void {
+  if (item.tenantId !== ctx.tenantId) {
+    throw new ForbiddenError("Không thể phê duyệt ngoài phạm vi đơn vị xã (FORBIDDEN)");
+  }
+  assertPermission(ctx, "m01:work_item:approve");
+}
