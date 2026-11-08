@@ -246,7 +246,12 @@ revoke execute on all functions in schema app,pvh_private from public,anon,authe
 grant execute on function pvh_private.has_permission(uuid,text),pvh_private.can_access_work(uuid,uuid,text),pvh_private.can_access_evidence(text,text) to authenticated;
 grant execute on function app.user_tenant_ids(),app.has_permission(uuid,text),app.create_work_item(text,text,text,text,uuid,timestamptz,text,uuid,uuid),app.register_evidence(uuid,text) to authenticated;
 -- Ensure project-created event-trigger helper cannot be invoked over REST.
-revoke execute on function public.rls_auto_enable() from public,anon,authenticated;
+do $
+begin
+  if to_regprocedure('public.rls_auto_enable()') is not null then
+    execute 'revoke execute on function public.rls_auto_enable() from public,anon,authenticated';
+  end if;
+end $;
 
 -- Expose the explicitly granted API schema used by the Next.js repository.
 alter role authenticator set pgrst.db_schemas='public,graphql_public,app';
