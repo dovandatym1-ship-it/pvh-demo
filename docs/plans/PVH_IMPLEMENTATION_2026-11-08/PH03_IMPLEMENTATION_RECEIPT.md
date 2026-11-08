@@ -33,7 +33,7 @@
 |---|---|---|
 | `node --test tests/ph03-contract-static.test.mjs` | **5/5 PASS** | Local scratch 08/11/2026; chỉ STATIC_CONTRACT |
 | TypeScript typecheck/lint/build toàn repo | NOT_RUN tại thời điểm tạo receipt | CI cần chạy sau commit |
-| `supabase db reset` / migration smoke | NOT_RUN | Không có Supabase CLI/DB local ở môi trường thực thi |
+| `supabase db start` / migration smoke | PENDING | Đã thêm GitHub Actions local-only `ph03-db-smoke.yml`; không có CLI/DB trên scratch |
 | SQL pgTAP / RLS 3 persona / Storage | NOT_RUN | Chưa áp migration lên staging |
 | Browser E2E CULT-*, PLAN-*, INSP-* và DB readback | NOT_RUN | Chưa có staging dữ liệu/tài khoản kiểm thử |
 | Legal rule/authority review | BLOCKED | LEG-M04-01→05 chưa verified |
