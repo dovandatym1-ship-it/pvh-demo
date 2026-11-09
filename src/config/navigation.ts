@@ -146,6 +146,14 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "LEGACY_MOCK",
       },
       {
+        title: "Quản lý tài khoản và phân quyền",
+        route: "/quan-tri/tai-khoan",
+        iconName: "ShieldCheck",
+        moduleKey: "m00",
+        requiredPermission: "m00:membership:manage",
+        status: "DEEP",
+      },
+      {
         title: "Quản trị hệ thống & Cán bộ",
         route: "/quan-tri",
         iconName: "ShieldCheck",
@@ -200,14 +208,18 @@ export function canAccessRoute(
   userPermissions: readonly string[] = [],
   userRoles: readonly string[] = []
 ): boolean {
+  // A more specific sub-route takes precedence over a broad parent route.
+  // The page/server action still verifies its own permission independently.
+  let match: NavigationItem | undefined;
   for (const group of NAVIGATION_REGISTRY) {
     for (const item of group.items) {
-      if (item.route === route || route.startsWith(item.route + "/")) {
-        return hasPermission(item, userPermissions, userRoles);
+      if ((route === item.route || route.startsWith(item.route + "/")) &&
+          (!match || item.route.length > match.route.length)) {
+        match = item;
       }
     }
   }
-  return true;
+  return match ? hasPermission(match, userPermissions, userRoles) : true;
 }
 
 /**

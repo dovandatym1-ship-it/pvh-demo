@@ -43,3 +43,6 @@ Các file `20261108000001`–`20261108000009` trong main được **giữ lại 
 
 ## Bổ sung PR safety/UX tương thích cây nguồn
 Các delta PH03 PR #8 (8 tệp), PH04 PR #9 (9 tệp), PH05 PR #10 (11 tệp) đã được kiểm đối chiếu SHA từng tệp với commit PH03/PH04/PH05 gốc trước khi đưa vào candidate; **28/28 tệp có blob ở candidate trùng baseline của từng delta**, không có bản cập nhật độc lập cần ghi đè. Chạy lại CI integration và kiểm thử; không suy diễn G-MERGE PASS.
+
+## Truy hồi M00 PH01 (bổ sung candidate)
+Đưa vào màn quản lý tài khoản/role, action backend và Supabase admin client **server-only** từ `feat/pvh-ph01-platform-auth` cùng migration security contract để phục vụ kiểm toán. Menu con có quyền `m00:membership:manage`; matcher ưu tiên route cụ thể hơn route cha, action/page vẫn tự kiểm quyền. **Chưa thực thi lời mời thật, chưa apply migration và chưa xác nhận RPC/RLS trên staging**. Việc phục hồi này chưa thay thế review đầy đủ 7 commit PH01 độc lập.
