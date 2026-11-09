@@ -2,6 +2,7 @@
 
 import React from "react";
 import type { WorkItemDTO } from "../types";
+import { workStatusLabel } from "../types/presentation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
@@ -9,6 +10,7 @@ import { FileText } from "lucide-react";
 interface WorkItemTableProps {
   items: WorkItemDTO[];
   userPermissions?: readonly string[];
+  actorId?: string;
   onSelect?: (item: WorkItemDTO) => void;
   onTransition?: (item: WorkItemDTO, toState: string) => void;
 }
@@ -16,6 +18,7 @@ interface WorkItemTableProps {
 export function WorkItemTable({
   items,
   userPermissions = [],
+  actorId,
   onSelect,
   onTransition,
 }: WorkItemTableProps) {
@@ -43,8 +46,10 @@ export function WorkItemTable({
         return <Badge variant="success">Hoàn thành</Badge>;
       case "RETURNED":
         return <Badge variant="danger">Trả lại</Badge>;
+      case "CANCELLED":
+        return <Badge variant="neutral">{workStatusLabel(status)}</Badge>;
       default:
-        return <Badge variant="neutral">{status}</Badge>;
+        return <Badge variant="neutral">{workStatusLabel(status)}</Badge>;
     }
   };
 
@@ -61,8 +66,11 @@ export function WorkItemTable({
     }
   };
 
-  const canEdit = userPermissions.includes("m01:work:update");
-  const canApprove = userPermissions.includes("m01:work_item:approve");
+  const canEdit = (item: WorkItemDTO) => !!onTransition && !!actorId &&
+    userPermissions.includes("m01:work:update") && item.assignedTo === actorId;
+  const canApprove = (item: WorkItemDTO) => !!onTransition && !!actorId &&
+    userPermissions.includes("m01:work:review") && item.assignedTo !== actorId &&
+    (item.createdBy === actorId || userPermissions.includes("m01:work:read_all"));
 
   return (
     <div className="overflow-x-auto border rounded-lg bg-white shadow-sm">
@@ -103,29 +111,29 @@ export function WorkItemTable({
                 v{item.version}
               </td>
               <td className="py-3 px-4 text-right space-x-2">
-                <Button
+                {onSelect && <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => onSelect?.(item)}
+                  onClick={() => onSelect(item)}
                 >
                   Chi tiết
-                </Button>
-                {item.status === "UNDER_REVIEW" && (
+                </Button>}
+                {item.status === "UNDER_REVIEW" && onTransition && (
                   <Button
                     size="sm"
                     variant="primary"
-                    disabled={!canApprove}
-                    title={!canApprove ? "Cần quyền phê duyệt để hoàn thành công việc" : ""}
+                    disabled={!canApprove(item)}
+                    title={!canApprove(item) ? "Bạn không có quyền rà soát công việc này" : ""}
                     onClick={() => onTransition?.(item, "COMPLETED")}
                   >
                     Duyệt
                   </Button>
                 )}
-                {item.status === "ASSIGNED" && (
+                {item.status === "ASSIGNED" && onTransition && (
                   <Button
                     size="sm"
                     variant="primary"
-                    disabled={!canEdit}
+                    disabled={!canEdit(item)}
                     onClick={() => onTransition?.(item, "IN_PROGRESS")}
                   >
                     Bắt đầu

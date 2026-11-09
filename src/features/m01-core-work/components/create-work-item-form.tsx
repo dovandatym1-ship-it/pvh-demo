@@ -4,6 +4,7 @@ import { type FormEvent, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createWorkItemAction } from "../server/actions";
+import { vietnameseLocalToIso } from "../types/presentation";
 
 type Assignee = { userId: string; fullName: string; allowedHamlets: string[] | null };
 type Hamlet = { id: string; name: string };
@@ -28,7 +29,8 @@ export function CreateWorkItemForm({ assignees, hamlets }: { assignees: Assignee
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending) return;
-    if (dueDate && Number.isNaN(new Date(dueDate).getTime())) { setError("Ngày hạn xử lý không hợp lệ"); return; }
+    const dueDateIso = dueDate ? vietnameseLocalToIso(dueDate) : null;
+    if (dueDate && !dueDateIso) { setError("Ngày và giờ hạn xử lý không hợp lệ"); return; }
     intentKey.current ||= crypto.randomUUID();
     setPending(true);
     try {
@@ -36,7 +38,7 @@ export function CreateWorkItemForm({ assignees, hamlets }: { assignees: Assignee
         title, description, category, priority, ...(assignedTo ? { assignedTo } : {}),
         ...(sourceRef.trim() ? { sourceRef: sourceRef.trim() } : {}),
         ...(hamletId ? { hamletId } : {}),
-        ...(dueDate ? { dueDate: new Date(dueDate).toISOString() } : {}),
+        ...(dueDateIso ? { dueDate: dueDateIso } : {}),
         idempotencyKey: intentKey.current,
       });
       if (!result.ok) { setError(`${result.error.code}: ${result.error.message}`); return; }

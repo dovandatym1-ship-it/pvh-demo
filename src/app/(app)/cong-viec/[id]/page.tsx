@@ -8,6 +8,7 @@ import { AssignWorkItemForm } from "@/features/m01-core-work/components/assign-w
 import { EvidenceUploader } from "@/features/m01-core-work/components/evidence-uploader";
 import { UpdateWorkItemDetailsForm } from "@/features/m01-core-work/components/update-work-item-details-form";
 import { SetWorkCollaboratorsForm } from "@/features/m01-core-work/components/set-work-collaborators-form";
+import { workEventLabel, workPriorityLabel, workStatusLabel } from "@/features/m01-core-work/types/presentation";
 
 export const dynamic = "force-dynamic";
 
@@ -40,8 +41,8 @@ export default async function WorkItemDetailPage({ params }: { params: Promise<{
       <p className="text-sm text-slate-600 whitespace-pre-wrap">{item.description || "Chưa có mô tả"}</p>
       {item.sourceRef && <p className="text-sm text-slate-700">Nguồn tham chiếu: <span className="font-medium break-all">{item.sourceRef}</span></p>}
       <div className="flex flex-wrap gap-3 text-sm text-slate-700">
-        <span>Trạng thái: <strong>{item.status}</strong></span><span>Phiên bản: v{item.version}</span>
-        <span>Ưu tiên: {item.priority}</span><span>Lĩnh vực: {item.category}</span>
+        <span>Trạng thái: <strong>{workStatusLabel(item.status)}</strong></span><span>Phiên bản: {item.version}</span>
+        <span>Ưu tiên: {workPriorityLabel(item.priority)}</span><span>Lĩnh vực: {item.category}</span>
         <span>Hạn: {item.dueDate ? date(item.dueDate) : "Chưa đặt"}</span>
       </div>
       <p className="text-xs text-slate-500">Xác nhận hoàn thành công việc nội bộ không thay thế quyết định hành chính.</p>
@@ -61,17 +62,17 @@ export default async function WorkItemDetailPage({ params }: { params: Promise<{
       <section className="rounded-xl border bg-white p-5 space-y-3">
         <h2 className="font-semibold">Lịch sử xử lý</h2>
         <ol className="space-y-3 text-sm">{timeline.map(ev => <li key={ev.id} className="border-l-2 border-emerald-200 pl-3">
-          <p className="font-medium">{ev.fromStatus || "Tạo mới"} → {ev.toStatus}</p>
-          <p className="text-slate-600">{date(ev.createdAt)} · v{ev.version} · {ev.actorId.slice(0,8)}</p>
+          <p className="font-medium">{workEventLabel(ev.fromStatus, ev.toStatus, ev.payload)}</p>
+          <p className="text-slate-600">{date(ev.createdAt)} · Lần thay đổi {ev.version} · Mã cán bộ {ev.actorId.slice(0,8)}</p>
           {ev.reason && <p className="text-slate-700">Lý do: {ev.reason}</p>}
         </li>)}</ol>
         {timeline.length === 0 && <p className="text-sm text-slate-500">Chưa có sự kiện</p>}
       </section>
       <section className="rounded-xl border bg-white p-5 space-y-3">
         <h2 className="font-semibold">Phân công & minh chứng</h2>
-        <p className="text-xs text-slate-600">Người phụ trách hiện tại: {item.assignedTo || "Chưa giao"}</p>
+        <p className="text-xs text-slate-600">Người phụ trách hiện tại: {item.assignedTo ? "Mã cán bộ " + item.assignedTo.slice(0, 8) : "Chưa giao"}</p>
         <ul className="text-sm space-y-1">{assignments.map(a => <li key={a.id} className="border-b py-1">
-          v{a.work_item_version} · {a.assignee.slice(0,8)} · {date(a.created_at)}
+          Lần thay đổi {a.work_item_version} · Mã cán bộ {a.assignee.slice(0,8)} · {date(a.created_at)}
           {a.reason && <span> — {a.reason}</span>}
         </li>)}</ul>
         <h3 className="text-sm font-semibold">Người phối hợp ({collaborators.length})</h3>
