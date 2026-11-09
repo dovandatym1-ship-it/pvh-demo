@@ -45,12 +45,7 @@ export async function createBeneficiaryAction(
       .single();
 
     if (error || !data) {
-      // In local demo mode if table not created, return graceful response
-      revalidatePath("/y-te-an-sinh");
-      return ok({
-        id: "e0000000-0000-0000-0000-000000000099",
-        code: generatedCode,
-      });
+      return fail("INTERNAL", "Không thể lưu đối tượng bảo trợ; không tạo mã hoặc ID giả.");
     }
 
     // Insert audit log
@@ -93,29 +88,14 @@ export async function recordSocialAidPaymentAction(
     const supabase = await createServerSupabaseClient();
 
     // Call RPC or fallback direct update
-    const { data, error } = await supabase.rpc("record_social_aid_payment", {
+    const { error } = await supabase.rpc("record_social_aid_payment", {
       p_tenant_id: ctx.tenantId,
       p_beneficiary_id: beneficiaryId,
       p_idempotency_key: idempotencyKey ?? null,
     });
 
     if (error) {
-      // If RPC fails (e.g. dev schema), perform direct update
-      await supabase
-        .from("social_protection_beneficiaries")
-        .update({ payment_status: "PAID", updated_at: new Date().toISOString() })
-        .eq("tenant_id", ctx.tenantId)
-        .eq("id", beneficiaryId);
-
-      await supabase.from("audit_log").insert({
-        tenant_id: ctx.tenantId,
-        user_id: ctx.userId,
-        action: "m06.beneficiary.record_payment",
-        entity_type: "social_protection_beneficiary",
-        entity_id: beneficiaryId,
-        changes: { payment_status: "PAID" },
-        idempotency_key: idempotencyKey,
-      });
+      return fail("INTERNAL", "Không thể đối soát chi trả; không được tự ghi trạng thái PAID.");
     }
 
     revalidatePath("/y-te-an-sinh");
