@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { ForbiddenError, UnauthorizedError } from "@/lib/errors/app-error";
 import { isDemoAuthEnabled, isValidDemoPersona } from "@/lib/auth/demo-mode";
 import { isMembershipCurrentlyActive } from "@/lib/auth/membership-validity";
+import { normalizeMembershipScopes } from "@/lib/auth/normalize-scopes";
 
 export interface RequestContext {
   readonly userId: string;
@@ -172,6 +173,6 @@ export const getRequestContext = React.cache(async (): Promise<RequestContext> =
     membershipId: activeMembership.id,
     roles: Array.isArray(activeMembership.roles) ? activeMembership.roles : [],
     permissions: Array.isArray(activeMembership.permissions) ? activeMembership.permissions : [],
-    scopes: (activeMembership.scopes as RequestContext["scopes"]) ?? {},
+    scopes: normalizeMembershipScopes(activeMembership.scopes),
   };
 });
