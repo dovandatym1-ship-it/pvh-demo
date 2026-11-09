@@ -4,7 +4,7 @@ export const MAX_AVATAR_BYTES = 1024 * 1024;
 export const MAX_AVATAR_EDGE = 1024;
 
 export function avatarObjectPath(userId: string): string {
-  if (!/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(userId)) throw new Error("Invalid user identifier");
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) throw new Error("Invalid user identifier");
   return `${userId}/avatar.jpg`;
 }
 
@@ -15,12 +15,12 @@ export function validateNormalizedJpeg(bytes: Uint8Array): string | null {
       bytes[bytes.length - 2] !== 0xff || bytes[bytes.length - 1] !== 0xd9) {
     return "Định dạng ảnh không hợp lệ. Vui lòng chọn lại ảnh.";
   }
-  let p = 2, hasDimensions = false;
+  let p = 2, hasDimensions = false, hasImageScan = false;
   while (p < bytes.length - 2) {
     if (bytes[p++] !== 0xff) return "Ảnh JPEG không đúng định dạng.";
     while (bytes[p] === 0xff) p++;
     const marker = bytes[p++];
-    if (marker === 0xda) break; // image scan starts
+    if (marker === 0xda) { hasImageScan = true; break; } // image scan starts
     if (marker === 0xd8 || marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) continue;
     if (p + 2 > bytes.length) return "Dữ liệu ảnh không đầy đủ.";
     const segmentLength = (bytes[p] << 8) | bytes[p + 1];
@@ -36,5 +36,5 @@ export function validateNormalizedJpeg(bytes: Uint8Array): string | null {
     }
     p += segmentLength;
   }
-  return hasDimensions ? null : "Không xác định được kích thước ảnh.";
+  return hasDimensions && hasImageScan ? null : "Dữ liệu ảnh JPEG không đầy đủ.";
 }
