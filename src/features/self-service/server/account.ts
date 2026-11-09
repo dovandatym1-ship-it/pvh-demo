@@ -11,7 +11,7 @@ export async function getPersonalAccount() {
   if (error || !user || user.id !== ctx.userId) {
     return {
       userId: ctx.userId, email: null, displayName: null, contactPhone: null,
-      roles: [...ctx.roles], tenantId: ctx.tenantId, editable: false,
+      roles: [...ctx.roles], tenantId: ctx.tenantId, editable: false, avatarVersion: 0,
     };
   }
   const meta = user.user_metadata ?? {};
@@ -23,5 +23,7 @@ export async function getPersonalAccount() {
     roles: [...ctx.roles],
     tenantId: ctx.tenantId,
     editable: true,
+    avatarVersion: typeof meta.avatar_updated_at === "number" && Number.isFinite(meta.avatar_updated_at)
+      ? meta.avatar_updated_at : 0,
   };
 }
