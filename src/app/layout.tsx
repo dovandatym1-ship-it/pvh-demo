@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Be_Vietnam_Pro, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { deploymentBrand } from "@/config/deployment-brand";
 
 const inter = Inter({
   subsets: ["latin", "vietnamese"],
@@ -23,7 +24,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "PVH — Hệ thống thông tin Phòng Văn hóa – Xã hội cấp xã",
-  description: "Phần mềm tác nghiệp, quản lý dữ liệu, kiểm tra và báo cáo số cho Phòng Văn hóa – Xã hội cấp xã tại Thái Nguyên",
+  description: `Phần mềm quản lý công việc, dữ liệu và báo cáo Văn hóa – Xã hội: ${deploymentBrand.organizationName}`,
 };
 
 export default function RootLayout({
