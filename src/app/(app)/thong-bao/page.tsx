@@ -2,16 +2,18 @@ import { Bell } from "lucide-react";
 import { getRequestContext } from "@/lib/auth/request-context";
 import { getPersonalNotifications } from "@/features/notifications/server/queries";
 import { NotificationList } from "@/features/notifications/components/notification-list";
+import { normalizeNotificationFilters } from "@/features/notifications/filters";
 
 export const dynamic = "force-dynamic";
 
 export default async function NotificationCenterPage({ searchParams }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; status?: string; group?: string; period?: string }>;
 }) {
   const ctx = await getRequestContext();
   const query = await searchParams;
   const page = Math.max(1, Math.min(10000, Number(query.page) || 1));
-  const view = await getPersonalNotifications(ctx, page, 20);
+  const filters = normalizeNotificationFilters(query);
+  const view = await getPersonalNotifications(ctx, page, 20, filters);
   return <main className="mx-auto max-w-5xl space-y-6 pb-8">
     <header className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-7">
       <div className="flex items-center gap-3">
