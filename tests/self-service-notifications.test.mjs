@@ -47,8 +47,12 @@ test("Main navigation remains the baseline; empty permission-filtered groups do 
   const side = read("src/components/layout/sidebar.tsx");
   assert.match(side, /groups === undefined \? DEFAULT_GROUPS : groups/);
   const shell = read("src/app/(app)/layout.tsx");
-  assert.match(shell, /<TopbarActions/);
+  assert.match(shell, /<AppShell/);
+  const appShell = read("src/components/layout/app-shell.tsx");
+  assert.match(appShell, /<TopbarActions/);
+  assert.match(appShell, /mobileNavOpen/);
   assert.match(shell, /avatarVersion=/);
+  assert.match(appShell, /menuButton\.current\?\.focus/);
 });
 
 test("Shared contact validation rejects invalid fields in both client and server contract", () => {
