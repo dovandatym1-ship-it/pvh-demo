@@ -31,7 +31,7 @@ export default async function WorkbenchPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-gray-900">Bàn làm việc</h1>
         <p className="text-sm text-gray-500">
-          Tổng quan nhiệm vụ điều hành và công việc hành chính tại UBND cấp xã
+          Theo dõi công việc được giao và tiến độ xử lý tại cấp xã
         </p>
       </div>
 
@@ -43,13 +43,13 @@ export default async function WorkbenchPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900">{myTasks.length}</div>
-            <p className="text-xs text-gray-500 mt-1">Đang thực hiện hoặc đã tiếp nhận</p>
+            <p className="text-xs text-gray-500 mt-1">Công việc đã giao hoặc đang thực hiện</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium text-gray-600">Quá hạn & Khẩn</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Công việc ưu tiên khẩn</CardTitle>
             <AlertTriangle className="w-4 h-4 text-rose-600" />
           </CardHeader>
           <CardContent>
@@ -65,7 +65,7 @@ export default async function WorkbenchPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-600">{reviewTasks.length}</div>
-            <p className="text-xs text-gray-500 mt-1">Hồ sơ đã nộp chờ lãnh đạo ký duyệt</p>
+            <p className="text-xs text-gray-500 mt-1">Công việc đang chờ rà soát</p>
           </CardContent>
         </Card>
       </div>
@@ -76,7 +76,7 @@ export default async function WorkbenchPage() {
           <div className="p-8 text-center border rounded-lg bg-white shadow-sm">
             <CheckCircle className="w-10 h-10 text-green-500 mx-auto mb-2" />
             <p className="text-gray-700 font-medium">Bàn làm việc của bạn đang trống</p>
-            <p className="text-sm text-gray-400 mt-1">Hiện không có nhiệm vụ công việc nào cần xử lý</p>
+            <p className="text-sm text-gray-400 mt-1">Hiện chưa có công việc trong danh sách</p>
           </div>
         ) : (
           <WorkItemTable
