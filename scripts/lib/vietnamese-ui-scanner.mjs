@@ -6,6 +6,7 @@ const rules = [
   {
     // JSX text only. Skip braces/types so names such as snapshot.title are not UI copy.
     id: "UI_TECHNICAL",
+    jsxOnly: true,
     re: />[^<>{}]*(?:assigned_to\s*=|\bsnapshot\b|LEGACY_MOCK\b)[^<>{}]*</gi,
   },
   {
@@ -15,13 +16,15 @@ const rules = [
   },
   {
     id: "UI_AMPERSAND",
+    jsxOnly: true,
     re: />[^<>{}]*[À-ỹ][^<>{}]*\s&\s[^<>{}]*</g,
   },
 ];
 
 export function scanVietnameseUiSource(source, path) {
   const findings = [];
-  for (const { id, re } of rules) {
+  for (const { id, re, jsxOnly } of rules) {
+    if (jsxOnly && !/\.[jt]sx$/.test(path)) continue;
     re.lastIndex = 0;
     for (const match of source.matchAll(re)) {
       const line = source.slice(0, match.index).split("\n").length;
