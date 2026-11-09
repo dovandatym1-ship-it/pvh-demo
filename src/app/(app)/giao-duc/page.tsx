@@ -14,16 +14,15 @@ export default async function GiaoDucAppPage() {
   assertCanReadEducation(ctx);
 
   const canManage =
-    ctx.permissions.includes("m03:education:write") ||
-    ctx.roles.includes("chu_tich_xa") ||
-    ctx.roles.includes("can_bo_chuyen_trach") ||
-    ctx.permissions.includes("admin");
+    ctx.permissions.includes("m03:education:write");
 
   const [schools, privateFacilities, exemptions] = await Promise.all([
     getSchools(ctx),
     getPrivateChildcareFacilities(ctx),
     getTuitionExemptions(ctx),
   ]);
+
+  const publicFacilityRows = privateFacilities.map(({ ownerCccd: _secret, ...row }) => row);
 
   return (
     <div className="space-y-6">
@@ -41,7 +40,7 @@ export default async function GiaoDucAppPage() {
         </div>
       </div>
 
-      <SchoolTable schools={schools} privateFacilities={privateFacilities} />
+      <SchoolTable schools={schools} privateFacilities={publicFacilityRows} />
 
       <div className="pt-4">
         <ExemptionTable items={exemptions} canManage={canManage} />

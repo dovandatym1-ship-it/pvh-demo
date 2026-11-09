@@ -8,7 +8,7 @@ import { GraduationCap, School, Baby, ShieldCheck, AlertTriangle } from "lucide-
 
 interface SchoolTableProps {
   readonly schools: SchoolDTO[];
-  readonly privateFacilities: PrivateFacilityDTO[];
+  readonly privateFacilities: Omit<PrivateFacilityDTO, "ownerCccd">[];
 }
 
 export function SchoolTable({ schools, privateFacilities }: SchoolTableProps) {

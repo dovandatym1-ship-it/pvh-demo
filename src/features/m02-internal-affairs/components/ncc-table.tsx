@@ -3,12 +3,11 @@
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
-import { maskPII } from "@/lib/authorization/pii-mask";
-import type { NCCBeneficiaryDTO } from "../types";
+import type { NCCBeneficiaryDisplayDTO } from "../types";
 import { Award, ShieldAlert } from "lucide-react";
 
 interface NCCTableProps {
-  readonly items: NCCBeneficiaryDTO[];
+  readonly items: NCCBeneficiaryDisplayDTO[];
   readonly canUnmaskPII: boolean;
 }
 
@@ -70,7 +69,7 @@ export function NCCTable({ items, canUnmaskPII }: NCCTableProps) {
                 </TableCell>
                 <TableCell className="font-mono text-xs">
                   <span className={canUnmaskPII ? "text-slate-700" : "text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded"}>
-                    {maskPII(item.cccd, "cccd", canUnmaskPII)}
+                    {item.cccdDisplay}
                   </span>
                 </TableCell>
                 <TableCell>
@@ -89,7 +88,7 @@ export function NCCTable({ items, canUnmaskPII }: NCCTableProps) {
                   {item.medalTitle}
                 </TableCell>
                 <TableCell className="text-right font-medium text-xs text-slate-900">
-                  {maskPII(item.monthlyAllowance, "money", canUnmaskPII)}
+                  {item.allowanceDisplay}
                 </TableCell>
                 <TableCell className="text-center">
                   <Badge variant="success">Đang hưởng</Badge>

@@ -9,6 +9,7 @@ import {
 import { BeneficiaryTable } from "@/features/m06-health-social/components/beneficiary-table";
 import { HealthInspectionPanels } from "@/features/m06-health-social/components/health-inspection-panels";
 import { HeartHandshake } from "lucide-react";
+import { toSocialDisplayRows } from "@/lib/authorization/display-sensitive";
 
 export default async function YTeAnSinhAppPage() {
   const ctx = await getRequestContext();
@@ -16,10 +17,7 @@ export default async function YTeAnSinhAppPage() {
 
   const canUnmask = canViewUnmaskedPII(ctx);
   const canManage =
-    ctx.permissions.includes("m06:social:write") ||
-    ctx.roles.includes("chu_tich_xa") ||
-    ctx.roles.includes("can_bo_chuyen_trach") ||
-    ctx.permissions.includes("admin");
+    ctx.permissions.includes("m06:social:write");
 
   const [beneficiaries, foodSafeties, medicalFacilities, epidemicLogs] = await Promise.all([
     getSocialBeneficiaries(ctx),
@@ -45,7 +43,7 @@ export default async function YTeAnSinhAppPage() {
       </div>
 
       <BeneficiaryTable
-        items={beneficiaries}
+        items={toSocialDisplayRows(beneficiaries, canUnmask)}
         canUnmaskPII={canUnmask}
         canManage={canManage}
       />

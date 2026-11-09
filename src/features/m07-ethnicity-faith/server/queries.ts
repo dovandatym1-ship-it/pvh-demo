@@ -7,15 +7,21 @@ import type { ReligiousEstablishmentDTO, ReligiousEventDTO, ReputablePersonDTO }
 export async function getReligiousEstablishments(ctx: RequestContext): Promise<ReligiousEstablishmentDTO[]> {
   const supabase = await createServerSupabaseClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("religious_establishments")
     .select("*")
     .eq("tenant_id", ctx.tenantId)
     .order("created_at", { ascending: true });
-
-  if (error || !data) {
-    return [];
+  if (ctx.scopes.hamletIds) {
+    if (ctx.scopes.hamletIds.length === 0) return [];
+    query = query.in("hamlet_id", [...ctx.scopes.hamletIds]);
   }
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error("Không thể tải dữ liệu dân tộc, tín ngưỡng và tôn giáo.");
+  }
+  if (!data) return [];
 
   return data.map((row) => ({
     id: String(row.id),
@@ -37,15 +43,21 @@ export async function getReligiousEstablishments(ctx: RequestContext): Promise<R
 export async function getReputablePersons(ctx: RequestContext): Promise<ReputablePersonDTO[]> {
   const supabase = await createServerSupabaseClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("reputable_persons")
     .select("*")
     .eq("tenant_id", ctx.tenantId)
     .order("full_name", { ascending: true });
-
-  if (error || !data) {
-    return [];
+  if (ctx.scopes.hamletIds) {
+    if (ctx.scopes.hamletIds.length === 0) return [];
+    query = query.in("hamlet_id", [...ctx.scopes.hamletIds]);
   }
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error("Không thể tải dữ liệu dân tộc, tín ngưỡng và tôn giáo.");
+  }
+  if (!data) return [];
 
   return data.map((row) => ({
     id: String(row.id),

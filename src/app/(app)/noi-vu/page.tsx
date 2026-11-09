@@ -8,6 +8,7 @@ import {
 import { NCCTable } from "@/features/m02-internal-affairs/components/ncc-table";
 import { LaborPanels } from "@/features/m02-internal-affairs/components/labor-panels";
 import { Building } from "lucide-react";
+import { toNccDisplayRows } from "@/lib/authorization/display-sensitive";
 
 export default async function NoiVuAppPage() {
   const ctx = await getRequestContext();
@@ -37,7 +38,7 @@ export default async function NoiVuAppPage() {
         </div>
       </div>
 
-      <NCCTable items={nccBeneficiaries} canUnmaskPII={canUnmask} />
+      <NCCTable items={toNccDisplayRows(nccBeneficiaries, canUnmask)} canUnmaskPII={canUnmask} />
 
       <div className="pt-4">
         <LaborPanels contracts={laborContracts} disputes={laborDisputes} />

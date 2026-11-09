@@ -4,13 +4,13 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
-import { maskPII } from "@/lib/authorization/pii-mask";
 import { recordSocialAidPaymentAction } from "../server/actions";
-import type { SocialBeneficiaryDTO } from "../types";
+import type { SocialBeneficiaryDisplayDTO } from "../types";
 import { CheckCircle2, Clock, ShieldAlert, HeartHandshake } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface BeneficiaryTableProps {
-  readonly items: SocialBeneficiaryDTO[];
+  readonly items: SocialBeneficiaryDisplayDTO[];
   readonly canUnmaskPII: boolean;
   readonly canManage: boolean;
 }
@@ -19,6 +19,8 @@ export function BeneficiaryTable({ items, canUnmaskPII, canManage }: Beneficiary
   const [selectedHamlet, setSelectedHamlet] = React.useState<string>("ALL");
   const [selectedStatus, setSelectedStatus] = React.useState<string>("ALL");
   const [pendingId, setPendingId] = React.useState<string | null>(null);
+  const [feedback, setFeedback] = React.useState<string | null>(null);
+  const router = useRouter();
 
   const filtered = items.filter((item) => {
     if (selectedHamlet !== "ALL" && item.hamletId !== selectedHamlet) return false;
@@ -28,8 +30,17 @@ export function BeneficiaryTable({ items, canUnmaskPII, canManage }: Beneficiary
 
   const handlePay = async (id: string) => {
     setPendingId(id);
+    setFeedback(null);
     try {
-      await recordSocialAidPaymentAction({ beneficiaryId: id });
+      const result = await recordSocialAidPaymentAction({ beneficiaryId: id });
+      if (!result.ok) {
+        setFeedback(result.error.message);
+      } else {
+        setFeedback("Đã ghi nhận kết quả đối soát từ nguồn có thẩm quyền.");
+        router.refresh();
+      }
+    } catch {
+      setFeedback("Không thể đối soát dữ liệu. Vui lòng thử lại.");
     } finally {
       setPendingId(null);
     }
@@ -68,13 +79,14 @@ export function BeneficiaryTable({ items, canUnmaskPII, canManage }: Beneficiary
         </div>
       </div>
 
+      {feedback && <p role="status" className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-slate-800">{feedback}</p>}
       <div className="border border-slate-200 rounded-lg overflow-hidden bg-white">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-24">Mã số</TableHead>
               <TableHead>Họ và tên</TableHead>
-              <TableHead>CCCD (PII)</TableHead>
+              <TableHead>CCCD</TableHead>
               <TableHead>Địa bàn</TableHead>
               <TableHead>Diện trợ cấp</TableHead>
               <TableHead className="text-right">Mức trợ cấp</TableHead>
@@ -101,7 +113,7 @@ export function BeneficiaryTable({ items, canUnmaskPII, canManage }: Beneficiary
                   </TableCell>
                   <TableCell className="font-mono text-xs">
                     <span className={canUnmaskPII ? "text-slate-700" : "text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded"}>
-                      {maskPII(item.cccd, "cccd", canUnmaskPII)}
+                      {item.cccdDisplay}
                     </span>
                   </TableCell>
                   <TableCell>
@@ -111,10 +123,10 @@ export function BeneficiaryTable({ items, canUnmaskPII, canManage }: Beneficiary
                     {item.aidCategory}
                   </TableCell>
                   <TableCell className="text-right font-medium text-xs text-slate-900">
-                    {maskPII(item.monthlyAmount, "money", canUnmaskPII)}
+                    {item.amountDisplay}
                   </TableCell>
                   <TableCell className="text-xs text-slate-600 max-w-xs truncate">
-                    {maskPII(item.diagnosis || "Bình thường", "medical", canUnmaskPII)}
+                    {item.diagnosisDisplay}
                   </TableCell>
                   <TableCell className="text-center">
                     {item.paymentStatus === "PAID" ? (
@@ -136,7 +148,7 @@ export function BeneficiaryTable({ items, canUnmaskPII, canManage }: Beneficiary
                           disabled={pendingId === item.id}
                           onClick={() => handlePay(item.id)}
                         >
-                          {pendingId === item.id ? "Đang ghi..." : "Chi trả"}
+                          {pendingId === item.id ? "Đang ghi..." : "Ghi nhận đối soát"}
                         </Button>
                       )}
                     </TableCell>
@@ -152,7 +164,7 @@ export function BeneficiaryTable({ items, canUnmaskPII, canManage }: Beneficiary
         <div className="flex items-center gap-2 p-3 bg-amber-50 rounded border border-amber-200 text-xs text-amber-800">
           <ShieldAlert className="w-4 h-4 shrink-0 text-amber-700" />
           <span>
-            Chính sách bảo mật PII (ADR-002 / D03): Dữ liệu căn cước công dân và chẩn đoán bệnh án được mã hóa/che giấu đối với vai trò hiện tại.
+            Chính sách bảo mật PII (ADR-002 / D03): Các trường căn cước, y tế và khoản hỗ trợ đã được xử lý theo quyền truy cập trước khi gửi đến trình duyệt.
           </span>
         </div>
       )}
