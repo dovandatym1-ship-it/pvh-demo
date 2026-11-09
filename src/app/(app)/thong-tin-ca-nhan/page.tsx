@@ -1,6 +1,7 @@
 import { UserRound, Shield, Mail, Building2 } from "lucide-react";
 import { getPersonalAccount } from "@/features/self-service/server/account";
 import { PersonalDetailsForm, ChangePasswordForm } from "@/features/self-service/components/account-forms";
+import { AvatarUploader } from "@/features/self-service/components/avatar-uploader";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ export default async function PersonalAccountPage() {
         </span>
       </div>
     </header>
+    <AvatarUploader editable={account.editable} initialVersion={account.avatarVersion}/>
     <section className="grid gap-4 md:grid-cols-2" aria-label="Thông tin công tác">
       <div className="rounded-xl border border-slate-200 bg-white p-5">
         <div className="flex items-center gap-2 text-sm text-slate-500"><Mail size={16} aria-hidden="true"/> Email đăng nhập</div>
