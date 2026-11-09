@@ -24,6 +24,7 @@ jobs:
       - run: node --experimental-strip-types --test tests/m01-workflow-rules.test.mjs
       - run: node --test tests/m01-sql-guardrails.test.mjs
       - run: node --test tests/dashboard-metrics.test.mjs tests/dashboard-role-semantics.test.mjs
+      - run: node --experimental-strip-types --test tests/self-service-notifications.test.mjs
       - run: node --experimental-strip-types --test tests/dashboard-server-source.test.mjs
       - run: node --test tests/ph03-contract-static.test.mjs
       - run: node --experimental-strip-types --test tests/ph03-presentation.test.mjs

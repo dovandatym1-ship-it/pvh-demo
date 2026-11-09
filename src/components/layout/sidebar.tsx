@@ -93,19 +93,21 @@ const DEFAULT_GROUPS: NavigationGroupDisplay[] = [
 export function Sidebar({
   persona,
   tenant,
+  tenantLabel,
   groups,
   isOpen = true,
   onClose,
 }: {
   persona?: Persona;
   tenant?: TenantConfig;
+  tenantLabel?: string;
   groups?: readonly NavigationGroupDisplay[];
   isOpen?: boolean;
   onClose?: () => void;
 }) {
   const pathname = usePathname();
   // An explicitly empty list means no navigation entitlement, not the full demo menu.
-  const displayGroups = groups ?? DEFAULT_GROUPS;
+  const displayGroups = groups === undefined ? DEFAULT_GROUPS : groups;
 
   return (
     <>
@@ -134,7 +136,7 @@ export function Sidebar({
             </div>
             <div>
               <h1 className="text-sm font-bold text-slate-800 leading-tight">
-                {tenant?.name || deploymentBrand.organizationName}
+                {tenantLabel || tenant?.name || deploymentBrand.organizationName}
               </h1>
               <p className="text-[11px] text-slate-500 font-medium">{tenant?.province || deploymentBrand.regionLabel}</p>
             </div>

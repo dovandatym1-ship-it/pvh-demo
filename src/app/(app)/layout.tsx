@@ -2,7 +2,8 @@ import * as React from "react";
 import { getRequestContext } from "@/lib/auth/request-context";
 import { filterNavigation } from "@/config/navigation";
 import { AppShell } from "@/components/layout/app-shell";
-import { logoutAction } from "@/lib/auth/actions";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getPersonalNotifications, type NotificationsView } from "@/features/notifications/server/queries";
 import { deploymentBrand } from "@/config/deployment-brand";
 
 function roleLabel(roles: readonly string[]): string {
@@ -18,22 +19,30 @@ function roleLabel(roles: readonly string[]): string {
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   let groups: ReturnType<typeof filterNavigation> = [];
   let userLabel = "Chưa xác nhận vai trò";
+  let tenantLabel = deploymentBrand.organizationName;
+  let notifications: NotificationsView | null = null;
+  let avatarVersion = 0;
+
   try {
     const ctx = await getRequestContext();
     groups = filterNavigation(ctx.permissions, ctx.roles);
     userLabel = roleLabel(ctx.roles);
+    const db = await createServerSupabaseClient();
+    const [tenant, inbox, auth] = await Promise.all([
+      db.from("tenants").select("name").eq("id", ctx.tenantId).maybeSingle(),
+      getPersonalNotifications(ctx, 1, 5),
+      db.auth.getUser(),
+    ]);
+    if (!tenant.error && tenant.data?.name) tenantLabel = tenant.data.name;
+    const avatar = auth.data.user?.user_metadata?.avatar_updated_at;
+    if (auth.data.user?.id === ctx.userId && typeof avatar === "number" && Number.isFinite(avatar)) {
+      avatarVersion = avatar;
+    }
+    notifications = inbox;
   } catch {
-    // No navigation entitlement is inferred from a failed authentication request.
+    // No entitled routes or guessed personal data on failed authentication.
     groups = filterNavigation([]);
   }
-
-  return <AppShell groups={groups} userLabel={userLabel}
-    tenantLabel={deploymentBrand.organizationName}
-    logout={<form action={logoutAction}>
-      <button type="submit" className="rounded-md border border-transparent px-2.5 py-1.5 text-xs text-slate-600 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700">
-        Đăng xuất
-      </button>
-    </form>}>
-    {children}
-  </AppShell>;
+  return <AppShell groups={groups} tenantLabel={tenantLabel} roleLabel={userLabel}
+    notifications={notifications} avatarVersion={avatarVersion}>{children}</AppShell>;
 }

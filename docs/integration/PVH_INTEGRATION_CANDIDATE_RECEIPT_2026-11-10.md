@@ -66,3 +66,9 @@ Khôi phục từ `fix/pvh-ph02-completion-20261109` các màn tạo việc, l�
 - Nguồn hoàn thành `work_item_events` chưa có RPC aggregate chống trùng theo RLS nên **không bật** cột hoàn thành. Phân bổ cán bộ/địa bàn cũng chưa thống kê tổng hợp. Không trình bày 0 giả như đã có dữ liệu.
 - Responsive shell có nút điều hướng/đóng/Escape trên điện thoại, nav fail-closed; tên vai trò thiếu xác nhận không giả thành “Chủ tịch xã”.
 - **Chưa xác nhận G-PERF, G-UX/G-FLOW:** cần seed 101+, PostgREST EXPLAIN/trace, ảnh 375/768/1024/1440, keyboard/focus, RLS 3 vai trò sau migration replay.
+
+
+## Thông tin cá nhân / Thông báo (từ nhánh riêng)
+- Tiếp nhận 20 tệp chức năng/tài liệu/SQL/test từ `feat/pvh-personal-profile-notifications-20261109`, không chép đè sidebar/layout của main/PH06. Topbar dùng popover thông báo/tài khoản, theo dõi đã đọc, ảnh đại diện private; AppShell mới giữ menu responsive, đóng bằng Escape, trả focus, không lộ menu thiếu quyền.
+- Server Actions giới hạn tài khoản auth chính chủ; không cho client sửa quyền, scope, tenant; thông báo được phát sinh từ database trigger, không dùng thông báo giả hoặc email tự phát.
+- Migration `20261109130000_pvh_user_notifications.sql` **CHƯA ÁP DỤNG** vì lịch sử migration còn cần đối soát; notification query trả unavailable khi DB chưa sẵn sàng. Cần kiểm thử bucket Storage/RLS thật trước G-SEC.
