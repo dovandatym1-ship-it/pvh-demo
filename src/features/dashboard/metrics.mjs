@@ -86,7 +86,9 @@ export function scopeWorkItems(items, ctx) {
     const permitted = new Set(allowedHamlets);
     return tenantItems.filter((item) => item.assignedTo === ctx.userId || (item.hamletId && permitted.has(item.hamletId)));
   }
-  return tenantItems;
+  // Without a locality scope, officers must not inherit tenant-wide visibility.
+  // Direct assignment is the minimum safe operational scope.
+  return tenantItems.filter((item) => item.assignedTo === ctx.userId);
 }
 
 function mondayOf(dayKey) {
@@ -127,7 +129,8 @@ function makeWeeklyTrend(items, completionEvents, today) {
     const day = civilDate(event.createdAt);
     if (!day) continue;
     const row = byMonday.get(mondayOf(day));
-    const key = `${event.workItemId}|${day}`;
+    // One completed work item per week, even when the event ledger repeats a transition.
+    const key = event.workItemId;
     if (row && !seen.has(key)) {
       row.completed++;
       seen.add(key);
