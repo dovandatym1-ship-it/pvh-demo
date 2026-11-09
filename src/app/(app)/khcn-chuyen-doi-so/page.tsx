@@ -30,11 +30,11 @@ export default async function KhcnChuyenDoiSoAppPage() {
           <div className="flex items-center gap-2">
             <Cpu className="w-6 h-6 text-[#1F633E]" />
             <h1 className="text-xl font-bold text-slate-900">
-              Khoa học công nghệ & Chuyển đổi số
+              Khoa học, công nghệ và chuyển đổi số
             </h1>
           </div>
           <p className="mt-1 text-xs text-slate-600">
-            Giám sát Bộ 6 chỉ tiêu Chuyển đổi số cơ sở (DTI xã), theo dõi hoạt động Tổ công nghệ số cộng đồng các xóm.
+            Theo dõi các chỉ tiêu chuyển đổi số cấp xã và hoạt động của tổ công nghệ số cộng đồng.
           </p>
         </div>
       </div>
