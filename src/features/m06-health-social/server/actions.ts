@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getRequestContext } from "@/lib/auth/request-context";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { CreateBeneficiarySchema, RecordPaymentSchema } from "../schemas/health-social.schema";
-import { assertCanManageBeneficiaries, assertCanRecordPayment } from "./policy";
+import { assertCanManageBeneficiaries, assertCanRecordPayment, assertCanAccessHamlet } from "./policy";
 import { type Result, ok, fail } from "@/lib/types/result";
 
 export async function createBeneficiaryAction(
@@ -23,7 +23,8 @@ export async function createBeneficiaryAction(
     }
 
     const { fullName, cccd, phone, hamletId, aidCategory, monthlyAmount, diagnosis, healthInsuranceProvided } = parsed.data;
-    const generatedCode = `BT-${Date.now().toString().slice(-4)}`;
+    assertCanAccessHamlet(ctx, hamletId);
+    const generatedCode = `BT-${crypto.randomUUID().slice(0, 12).toUpperCase()}`;
 
     const supabase = await createServerSupabaseClient();
     const { data, error } = await supabase
@@ -45,12 +46,7 @@ export async function createBeneficiaryAction(
       .single();
 
     if (error || !data) {
-      // In local demo mode if table not created, return graceful response
-      revalidatePath("/y-te-an-sinh");
-      return ok({
-        id: "e0000000-0000-0000-0000-000000000099",
-        code: generatedCode,
-      });
+      return fail("INTERNAL", "Không thể lưu đối tượng bảo trợ; không tạo mã hoặc ID giả.");
     }
 
     // Insert audit log
@@ -91,31 +87,26 @@ export async function recordSocialAidPaymentAction(
 
     const { beneficiaryId, idempotencyKey } = parsed.data;
     const supabase = await createServerSupabaseClient();
+    // Verify tenant and territorial scope before the RPC; errors must never imply success.
+    const { data: beneficiary, error: lookupError } = await supabase
+      .from("social_protection_beneficiaries")
+      .select("hamlet_id")
+      .eq("tenant_id", ctx.tenantId)
+      .eq("id", beneficiaryId)
+      .maybeSingle();
+    if (lookupError) return fail("INTERNAL", "Không thể đối chiếu phạm vi hồ sơ.");
+    if (!beneficiary) return fail("NOT_FOUND", "Không tìm thấy hồ sơ thuộc đơn vị hiện tại.");
+    assertCanAccessHamlet(ctx, String(beneficiary.hamlet_id));
 
-    // Call RPC or fallback direct update
-    const { data, error } = await supabase.rpc("record_social_aid_payment", {
+    // Only the audited RPC may record an external reconciliation
+    const { error } = await supabase.rpc("record_social_aid_payment", {
       p_tenant_id: ctx.tenantId,
       p_beneficiary_id: beneficiaryId,
       p_idempotency_key: idempotencyKey ?? null,
     });
 
     if (error) {
-      // If RPC fails (e.g. dev schema), perform direct update
-      await supabase
-        .from("social_protection_beneficiaries")
-        .update({ payment_status: "PAID", updated_at: new Date().toISOString() })
-        .eq("tenant_id", ctx.tenantId)
-        .eq("id", beneficiaryId);
-
-      await supabase.from("audit_log").insert({
-        tenant_id: ctx.tenantId,
-        user_id: ctx.userId,
-        action: "m06.beneficiary.record_payment",
-        entity_type: "social_protection_beneficiary",
-        entity_id: beneficiaryId,
-        changes: { payment_status: "PAID" },
-        idempotency_key: idempotencyKey,
-      });
+      return fail("INTERNAL", "Không thể đối soát chi trả; không được tự ghi trạng thái PAID.");
     }
 
     revalidatePath("/y-te-an-sinh");

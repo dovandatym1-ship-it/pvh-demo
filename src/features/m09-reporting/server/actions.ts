@@ -1,110 +1,44 @@
 "use server";
-
 import { revalidatePath } from "next/cache";
 import { getRequestContext } from "@/lib/auth/request-context";
-import { assertPermission } from "@/lib/authorization/assert-permission";
-import { type Result, ok, fail } from "@/lib/types/result";
-import {
-  CreateReportSnapshotSchema,
-  FinalizeReportSnapshotSchema,
-} from "../schemas";
-import { reportingService, computeCanonicalSha256 } from "./service";
+import { type Result, fail } from "@/lib/types/result";
+import { CreateReportSnapshotSchema, AdvanceReportSnapshotSchema } from "../schemas";
+import { reportingService } from "./service";
+import { reportingRepository } from "./repository";
 import { assertCanReadReports } from "./policy";
 import type { ReportSnapshotDTO, SnapshotLineageDTO } from "../types";
 
-/**
- * Server Action: Create Draft Report Snapshot.
- */
-export async function createDraftSnapshotAction(
-  input: unknown
-): Promise<Result<ReportSnapshotDTO>> {
+function actionError(err: unknown) {
+  const msg = err instanceof Error ? err.message : "";
+  if (msg.includes("UNAUTHENTICATED")) return fail("UNAUTHENTICATED","Vui lòng đăng nhập");
+  if (msg.includes("FORBIDDEN")) return fail("FORBIDDEN","Không có quyền thực hiện thao tác");
+  return fail("INTERNAL","Lỗi máy chủ báo cáo");
+}
+export async function createDraftSnapshotAction(input: unknown): Promise<Result<ReportSnapshotDTO>> {
+  const parsed = CreateReportSnapshotSchema.safeParse(input);
+  if (!parsed.success) return fail("VALIDATION","Thông tin báo cáo không hợp lệ",parsed.error.flatten());
   try {
-    const parsed = CreateReportSnapshotSchema.safeParse(input);
-    if (!parsed.success) {
-      return fail("VALIDATION", "Dữ liệu tạo bản nháp snapshot không hợp lệ", parsed.error.flatten());
-    }
-
     const ctx = await getRequestContext();
-    assertPermission(ctx, "m09:draft");
-
-    const result = await reportingService.createDraftSnapshot(ctx, parsed.data);
-    if (!result.ok) return result;
-
-    revalidatePath("/bao-cao");
+    const result = await reportingService.createDraftSnapshot(ctx,parsed.data);
+    if (result.ok) revalidatePath("/bao-cao");
     return result;
-  } catch (err: unknown) {
-    return fail("INTERNAL", "Lỗi hệ thống khi tạo bản nháp snapshot", err);
-  }
+  } catch(err) { return actionError(err); }
 }
-
-/**
- * Server Action: Create and atomically finalize snapshot with SHA-256 calculation.
- */
-export async function createAndFinalizeSnapshotAction(
-  input: { period: string; year: number; title: string; reportCode?: string }
-): Promise<Result<{ id: string; sha256: string; snapshot: ReportSnapshotDTO }>> {
+export async function advanceSnapshotAction(input: unknown): Promise<Result<ReportSnapshotDTO>> {
+  const parsed = AdvanceReportSnapshotSchema.safeParse(input);
+  if (!parsed.success) return fail("VALIDATION","Trạng thái chuyển không hợp lệ",parsed.error.flatten());
   try {
     const ctx = await getRequestContext();
-    assertPermission(ctx, "m09:snapshot:sign");
-
-    const result = await reportingService.createAndFinalizeSnapshot(ctx, input);
-    if (!result.ok) return result;
-
-    revalidatePath("/bao-cao");
+    const result = await reportingService.advanceSnapshot(ctx,parsed.data);
+    if (result.ok) revalidatePath("/bao-cao");
     return result;
-  } catch (err: unknown) {
-    return fail("INTERNAL", "Lỗi hệ thống khi chốt snapshot báo cáo", err);
-  }
+  } catch(err) { return actionError(err); }
 }
-
-/**
- * Server Action: Finalize existing draft snapshot.
- */
-export async function finalizeSnapshotAction(
-  input: unknown
-): Promise<Result<{ id: string; sha256: string }>> {
-  try {
-    const parsed = FinalizeReportSnapshotSchema.safeParse(input);
-    if (!parsed.success) {
-      return fail("VALIDATION", "Dữ liệu chốt snapshot không hợp lệ", parsed.error.flatten());
-    }
-
-    const ctx = await getRequestContext();
-    assertPermission(ctx, "m09:snapshot:sign");
-
-    // Call service to finalize with canonical sha256
-    const sha256 = computeCanonicalSha256(parsed.data.canonicalPayload);
-    const { reportingRepository } = await import("./repository");
-    const rpcRes = await reportingRepository.finalizeSnapshotViaRpc(
-      ctx,
-      parsed.data.snapshotId,
-      parsed.data.canonicalPayload,
-      sha256
-    );
-
-    if (!rpcRes.ok) return rpcRes;
-
-    revalidatePath("/bao-cao");
-    return rpcRes;
-  } catch (err: unknown) {
-    return fail("INTERNAL", "Lỗi hệ thống khi chốt snapshot", err);
-  }
-}
-
-/**
- * Server Action: Query genuine snapshot lineage records.
- */
-export async function getSnapshotLineageAction(
-  snapshotId: string
-): Promise<Result<SnapshotLineageDTO[]>> {
+export async function getSnapshotLineageAction(snapshotId: string): Promise<Result<SnapshotLineageDTO[]>> {
+  if (!/^[0-9a-f-]{36}$/i.test(snapshotId)) return fail("VALIDATION","Mã snapshot không hợp lệ");
   try {
     const ctx = await getRequestContext();
     assertCanReadReports(ctx);
-
-    const { reportingRepository } = await import("./repository");
-    const lineage = await reportingRepository.getLineage(ctx, snapshotId);
-    return ok(lineage);
-  } catch (err: unknown) {
-    return fail("INTERNAL", "Lỗi hệ thống khi truy vấn lineage của snapshot", err);
-  }
+    return await reportingRepository.getLineage(ctx,snapshotId);
+  } catch(err) { return actionError(err); }
 }

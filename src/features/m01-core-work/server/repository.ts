@@ -3,149 +3,86 @@ import "server-only";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { type Result, ok, fail } from "@/lib/types/result";
 import type { RequestContext } from "@/lib/auth/request-context";
-import type { CreateWorkItemInput, TransitionWorkItemInput } from "../schemas/work-item.schema";
+import type { CreateWorkItemInput, TransitionWorkItemInput, AssignWorkItemInput } from "../schemas/work-item.schema";
 import type { WorkItemDTO } from "../types";
 
-export const workItemRepository = {
-  /**
-   * Invokes PostgreSQL single-transaction RPC app.create_work_item.
-   */
-  async createWorkItem(
-    ctx: RequestContext,
-    input: CreateWorkItemInput
-  ): Promise<Result<WorkItemDTO>> {
-    try {
-      const supabase = await createServerSupabaseClient();
+function dbFailure(error: { message: string; code?: string }): Result<never> {
+  if (error.code === "PV409" || /VERSION_CONFLICT|IDEMPOTENCY_CONFLICT/.test(error.message)) {
+    return fail("VERSION_CONFLICT", "Dữ liệu đã được xử lý hoặc thay đổi ở phiên khác", error.message);
+  }
+  if (/INVALID_TRANSITION/.test(error.message)) return fail("INVALID_TRANSITION", "Không thể chuyển trạng thái này");
+  if (/DUPLICATE_REQUEST/.test(error.message) || error.code === "23505") return fail("DUPLICATE_REQUEST", "Yêu cầu đã tồn tại với nội dung khác");
+  if (error.code === "42501" || /FORBIDDEN/.test(error.message)) return fail("FORBIDDEN", "Không có quyền hoặc ngoài phạm vi công việc");
+  if (error.code === "28000" || /UNAUTHENTICATED/.test(error.message)) return fail("UNAUTHENTICATED", "Cần đăng nhập lại");
+  if (error.code === "P0002" || /NOT_FOUND/.test(error.message)) return fail("NOT_FOUND", "Không tìm thấy công việc");
+  if (error.code === "22023" || /VALIDATION|INVALID_ASSIGNEE/.test(error.message)) return fail("VALIDATION", error.message);
+  return fail("INTERNAL", "Không thể lưu thay đổi vào cơ sở dữ liệu", error.message);
+}
 
-      const { data, error } = await supabase.rpc("create_work_item", {
-        p_idempotency_key: input.idempotencyKey || null,
+type Mutation = { id: string; status: string; version: number; cached?: boolean };
+function mutationResult(data: unknown): Result<Mutation> {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return fail("INTERNAL", "RPC không trả kết quả ghi hợp lệ");
+  const row = data as Record<string, unknown>;
+  if (typeof row.id !== "string" || typeof row.status !== "string" ||
+    typeof row.version !== "number" || !Number.isInteger(row.version)) {
+    return fail("INTERNAL", "Phản hồi RPC thiếu id, trạng thái hoặc phiên bản");
+  }
+  return ok({ id: row.id, status: row.status, version: row.version, cached: row.cached === true });
+}
+
+export const workItemRepository = {
+  async createWorkItem(ctx: RequestContext, input: CreateWorkItemInput): Promise<Result<WorkItemDTO>> {
+    try {
+      const db = await createServerSupabaseClient();
+      const { data, error } = await db.schema("app").rpc("create_work_item", {
+        p_idempotency_key: input.idempotencyKey,
         p_title: input.title,
         p_description: input.description || null,
-        p_priority: input.priority || "MEDIUM",
+        p_priority: input.priority,
         p_assigned_to: input.assignedTo || null,
         p_due_date: input.dueDate || null,
-        p_category: input.category || "CHUNG",
+        p_category: input.category,
         p_hamlet_id: input.hamletId || null,
         p_tenant_id: ctx.tenantId,
       });
-
-      if (error) {
-        if (process.env.NEXT_PUBLIC_DEMO_MODE === "true") {
-          const newId = `item-${Date.now()}`;
-          const fallbackDto: WorkItemDTO = {
-            id: newId,
-            tenantId: ctx.tenantId,
-            title: input.title,
-            description: input.description || null,
-            status: "NEW",
-            priority: input.priority || "MEDIUM",
-            category: input.category || "CHUNG",
-            assignedTo: input.assignedTo || null,
-            dueDate: input.dueDate || null,
-            hamletId: input.hamletId || null,
-            version: 1,
-            idempotencyKey: input.idempotencyKey || null,
-            createdAt: new Date().toISOString(),
-            createdBy: ctx.userId,
-            updatedAt: new Date().toISOString(),
-            updatedBy: ctx.userId,
-          };
-          return ok(fallbackDto);
-        }
-
-        if (error.message.includes("VERSION_CONFLICT")) {
-          return fail("VERSION_CONFLICT", "Xung đột phiên bản dữ liệu khi tạo công việc", error);
-        }
-        if (error.message.includes("DUPLICATE_REQUEST") || error.code === "23505") {
-          return fail("DUPLICATE_REQUEST", "Yêu cầu bị trùng lặp idempotency key", error);
-        }
-        if (error.message.includes("FORBIDDEN") || error.code === "42501") {
-          return fail("FORBIDDEN", "Không có quyền thực hiện thao tác trên CSDL (FORBIDDEN)", error);
-        }
-        if (error.message.includes("UNAUTHENTICATED") || error.code === "28000") {
-          return fail("UNAUTHENTICATED", "Chưa xác thực danh tính hợp lệ (UNAUTHENTICATED)", error);
-        }
-        return fail("INTERNAL", `Lỗi CSDL khi gọi RPC create_work_item: ${error.message}`, error);
-      }
-
-      const row = data as Record<string, unknown>;
-      const dto: WorkItemDTO = {
-        id: String(row.id),
-        tenantId: String(row.tenant_id),
-        title: String(row.title),
-        description: (row.description as string) || null,
-        status: (row.status as WorkItemDTO["status"]) || "NEW",
-        priority: (row.priority as WorkItemDTO["priority"]) || "MEDIUM",
-        category: (row.category as string) || "CHUNG",
-        assignedTo: (row.assigned_to as string) || null,
-        dueDate: (row.due_date as string) || null,
-        hamletId: (row.hamlet_id as string) || null,
-        version: Number(row.version) || 1,
-        idempotencyKey: (row.idempotency_key as string) || null,
-        createdAt: String(row.created_at),
-        createdBy: String(row.created_by),
-        updatedAt: String(row.updated_at),
-        updatedBy: String(row.updated_by),
-      };
-
-      return ok(dto);
-    } catch (err: unknown) {
-      return fail("INTERNAL", "Đã xảy ra lỗi hệ thống tại repository layer", err);
-    }
+      if (error) return dbFailure(error);
+      if (!data || typeof data !== "object" || Array.isArray(data)) return fail("INTERNAL", "RPC tạo công việc không trả bản ghi");
+      const r = data as Record<string, unknown>;
+      if (!r.id || !r.tenant_id || !r.created_at) return fail("INTERNAL", "Phản hồi tạo công việc không đầy đủ");
+      return ok({
+        id: String(r.id), tenantId: String(r.tenant_id), title: String(r.title),
+        description: r.description ? String(r.description) : null,
+        status: r.status as WorkItemDTO["status"],
+        priority: r.priority as WorkItemDTO["priority"], category: String(r.category),
+        assignedTo: r.assigned_to ? String(r.assigned_to) : null,
+        dueDate: r.due_date ? String(r.due_date) : null,
+        hamletId: r.hamlet_id ? String(r.hamlet_id) : null,
+        version: Number(r.version), idempotencyKey: String(r.idempotency_key),
+        createdAt: String(r.created_at), createdBy: String(r.created_by),
+        updatedAt: String(r.updated_at), updatedBy: String(r.updated_by),
+      });
+    } catch { return fail("INTERNAL", "Không kết nối được cơ sở dữ liệu"); }
   },
 
-  /**
-   * Invokes PostgreSQL single-transaction RPC app.transition_work_item with OCC (expectedVersion).
-   */
-  async transitionWorkItem(
-    ctx: RequestContext,
-    params: {
-      id: string;
-      toState: string;
-      expectedVersion: number;
-      idempotencyKey?: string | null;
-      reason?: string | null;
-    }
-  ): Promise<Result<{ id: string; status: string; version: number; cached?: boolean }>> {
+  async transitionWorkItem(_ctx: RequestContext, input: TransitionWorkItemInput): Promise<Result<Mutation>> {
     try {
-      const supabase = await createServerSupabaseClient();
-
-      const { data, error } = await supabase.rpc("transition_work_item", {
-        p_id: params.id,
-        p_to_state: params.toState,
-        p_expected_version: params.expectedVersion,
-        p_idempotency_key: params.idempotencyKey || null,
-        p_reason: params.reason || null,
+      const db = await createServerSupabaseClient();
+      const { data, error } = await db.schema("app").rpc("transition_work_item", {
+        p_id: input.id, p_to_state: input.toState, p_expected_version: input.expectedVersion,
+        p_reason: input.reason || null, p_idempotency_key: input.idempotencyKey,
       });
+      return error ? dbFailure(error) : mutationResult(data);
+    } catch { return fail("INTERNAL", "Không kết nối được cơ sở dữ liệu"); }
+  },
 
-      if (error) {
-        if (error.message.includes("VERSION_CONFLICT") || error.code === "PV409") {
-          return fail("VERSION_CONFLICT", "Xung đột phiên bản dữ liệu khi chuyển trạng thái (PV409 / VERSION_CONFLICT)", error);
-        }
-        if (error.message.includes("FORBIDDEN") || error.code === "42501") {
-          return fail("FORBIDDEN", "Không có quyền chuyển trạng thái công việc (FORBIDDEN)", error);
-        }
-        if (error.message.includes("UNAUTHENTICATED") || error.code === "28000") {
-          return fail("UNAUTHENTICATED", "Chưa xác thực danh tính hợp lệ (UNAUTHENTICATED)", error);
-        }
-        if (error.message.includes("VALIDATION") || error.code === "22023") {
-          return fail("VALIDATION", `Lỗi xác thực dữ liệu: ${error.message}`, error);
-        }
-        if (error.message.includes("NOT_FOUND") || error.code === "P0002") {
-          return fail("NOT_FOUND", `Không tìm thấy công việc: ${error.message}`, error);
-        }
-        return fail("INTERNAL", `Lỗi CSDL khi gọi RPC transition_work_item: ${error.message}`, error);
-      }
-
-      const res = data as Record<string, unknown>;
-      return ok({
-        id: String(res.id),
-        status: String(res.status),
-        version: Number(res.version),
-        cached: Boolean(res.cached),
+  async assignWorkItem(_ctx: RequestContext, input: AssignWorkItemInput): Promise<Result<Mutation>> {
+    try {
+      const db = await createServerSupabaseClient();
+      const { data, error } = await db.schema("app").rpc("assign_work_item", {
+        p_id: input.id, p_assigned_to: input.assignedTo, p_expected_version: input.expectedVersion,
+        p_reason: input.reason || null, p_idempotency_key: input.idempotencyKey,
       });
-    } catch (err: unknown) {
-      return fail("INTERNAL", "Đã xảy ra lỗi hệ thống tại repository layer khi chuyển trạng thái", err);
-    }
+      return error ? dbFailure(error) : mutationResult(data);
+    } catch { return fail("INTERNAL", "Không kết nối được cơ sở dữ liệu"); }
   },
 };

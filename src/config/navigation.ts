@@ -1,4 +1,5 @@
 import "server-only";
+import { hasExplicitPermission } from "@/lib/authorization/permission-check";
 
 export type NavigationStatus = "DEEP" | "FRAME" | "DEFERRED" | "LEGACY_MOCK";
 
@@ -40,8 +41,24 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
     ],
   },
   {
-    title: "Văn hóa - Thông tin & Giáo dục",
+    title: "Chuyên ngành VH-XH",
     items: [
+      {
+        title: "Nội vụ & Lao động",
+        route: "/noi-vu",
+        iconName: "Building",
+        moduleKey: "m02",
+        requiredPermission: "m02:internal:read",
+        status: "DEEP",
+      },
+      {
+        title: "Giáo dục & Đào tạo",
+        route: "/giao-duc",
+        iconName: "GraduationCap",
+        moduleKey: "m03",
+        requiredPermission: "m03:education:read",
+        status: "DEEP",
+      },
       {
         title: "Gia đình văn hóa",
         route: "/van-hoa/gia-dinh-van-hoa",
@@ -59,14 +76,6 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
-        title: "Giáo dục & Đào tạo",
-        route: "/giao-duc",
-        iconName: "GraduationCap",
-        moduleKey: "m03",
-        requiredPermission: "m03:education:read",
-        status: "DEEP",
-      },
-      {
         title: "Khoa học & Chuyển đổi số",
         route: "/khcn-chuyen-doi-so",
         iconName: "Cpu",
@@ -74,25 +83,12 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         requiredPermission: "m05:digital:read",
         status: "DEEP",
       },
-    ],
-  },
-  {
-    title: "Lao động, Y tế & Chính sách xã hội",
-    items: [
       {
         title: "Y tế & An sinh xã hội",
         route: "/y-te-an-sinh",
         iconName: "HeartHandshake",
         moduleKey: "m06",
         requiredPermission: "m06:social:read",
-        status: "DEEP",
-      },
-      {
-        title: "Nội vụ & Lao động",
-        route: "/noi-vu",
-        iconName: "Building",
-        moduleKey: "m02",
-        requiredPermission: "m02:internal:read",
         status: "DEEP",
       },
       {
@@ -125,6 +121,15 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
+        title: "Nhập chỉ tiêu có nguồn",
+        route: "/nhap-chi-tieu",
+        iconName: "FileInput",
+        moduleKey: "m10",
+        requiredPermission: "m10:indicator:import",
+        status: "DEEP",
+        description: "Nhập CSV mô phỏng có kiểm tra, đối soát và lịch sử nguồn.",
+      },
+      {
         title: "Dữ liệu dùng chung",
         route: "/du-lieu-dung-chung",
         iconName: "Database",
@@ -145,7 +150,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         route: "/quan-tri",
         iconName: "ShieldCheck",
         moduleKey: "m00",
-        requiredPermission: "m00:admin",
+        requiredPermission: "m00:membership:read",
         status: "LEGACY_MOCK",
       },
     ],
@@ -164,39 +169,11 @@ export function hasPermission(
     return true;
   }
 
-  // Superuser admin bypass
-  if (
-    userRoles.includes("LANH_DAO_XA") ||
-    userRoles.includes("SYSTEM_ADMIN") ||
-    userRoles.includes("admin") ||
-    userPermissions.includes("m00:admin") ||
-    userPermissions.includes("*")
-  ) {
-    return true;
-  }
-
-  // Check role requirement
-  if (item.requiredRole && userRoles.includes(item.requiredRole)) {
-    return true;
-  }
-
-  // Check permission requirement
-  if (item.requiredPermission) {
-    const required = item.requiredPermission;
-    if (userPermissions.includes(required)) return true;
-
-    // Check wildcard prefix (e.g. m01:* matches m01:work:read)
-    const [modulePrefix] = required.split(":");
-    if (
-      userPermissions.includes(`${modulePrefix}:*`) ||
-      userPermissions.includes(`${modulePrefix}:full`) ||
-      userPermissions.includes(`${modulePrefix}:view`)
-    ) {
-      return true;
-    }
-  }
-
-  return false;
+  // Both conditions must hold when both are configured; no leader/admin bypass.
+  return (
+    (!item.requiredRole || userRoles.includes(item.requiredRole)) &&
+    (!item.requiredPermission || hasExplicitPermission(userPermissions, item.requiredPermission))
+  );
 }
 
 /**

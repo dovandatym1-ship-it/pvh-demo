@@ -37,3 +37,9 @@ export interface LaborDisputeDTO {
   readonly status: "RECEIVED" | "SCHEDULED" | "RESOLVED_SUCCESS" | "RESOLVED_FAILED" | "ESCALATED_DISTRICT";
   readonly outcomeSummary?: string;
 }
+
+/** Safe browser DTO; sensitive source fields are never serialized. */
+export type NCCBeneficiaryDisplayDTO = Omit<NCCBeneficiaryDTO, "cccd" | "monthlyAllowance"> & {
+  readonly cccdDisplay: string;
+  readonly allowanceDisplay: string;
+};

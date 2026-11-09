@@ -1,0 +1,43 @@
+name: PVH Integration Candidate Gate
+on:
+  push:
+    branches: ['integrate/pvh-*']
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  source-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: cp .env.example .env.local
+      - run: node --test tests/security/*.test.mjs
+      - run: node --experimental-strip-types --test tests/m01-workflow-rules.test.mjs
+      - run: node --test tests/ph03-contract-static.test.mjs
+      - run: node --import tsx --test tests/ph06-data-safety.test.ts
+      - run: npm run test:ph04
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run fitness
+      - run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+  dependency-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high
+# Source checks ≠ DB migration replay, browser E2E or production authorization.

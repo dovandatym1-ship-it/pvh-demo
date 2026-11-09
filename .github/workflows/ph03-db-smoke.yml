@@ -1,0 +1,43 @@
+name: PH03 DB migration smoke (local only)
+
+on:
+  push:
+    branches: ['feat/pvh-ph03-domain-verticals']
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/ph03-db-smoke.yml'
+  pull_request:
+    branches: ['feat/pvh-ph02-core-workflow']
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/ph03-db-smoke.yml'
+
+concurrency:
+  group: ph03-db-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  local-db:
+    name: Reproduce migrations and pgTAP locally
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Supabase CLI v3 (no project login)
+        uses: supabase/setup-cli@v3
+        with:
+          version: 3.0.0
+      - name: Discover local-only CLI commands
+        run: |
+          supabase --version
+          supabase db start --help
+          supabase test db --help
+      - name: Start isolated local PostgreSQL and apply migrations
+        run: supabase db start
+      # Historical test suites in supabase/tests/01_* and 03_* predate the PH01/PH02
+      # schema reset. They require separate fixture modernization; they are not PH03 evidence.
+      - name: Run PH03 database contract tests
+        run: supabase test db supabase/tests/04_ph03_domain_contracts.sql supabase/tests/05_ph03_actor_workflows.sql

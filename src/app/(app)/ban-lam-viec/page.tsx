@@ -1,91 +1,49 @@
-import React from "react";
+import Link from "next/link";
 import { getRequestContext } from "@/lib/auth/request-context";
-import { getWorkItems } from "@/features/m01-core-work/server/queries";
-import { transitionWorkItemAction } from "@/features/m01-core-work/server/actions";
-import { WorkItemTable } from "@/features/m01-core-work/components/work-item-table";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Clock, AlertTriangle, CheckCircle, ListTodo } from "lucide-react";
-import type { WorkItemDTO } from "@/features/m01-core-work/types";
+import { getDashboardStats, getWorkItemsPage, getWorkInbox } from "@/features/m01-core-work/server/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function WorkbenchPage() {
   const ctx = await getRequestContext();
-  const items = await getWorkItems(ctx);
-
-  const myTasks = items.filter((item) => item.status === "ASSIGNED" || item.status === "IN_PROGRESS");
-  const overdueTasks = items.filter((item) => item.priority === "URGENT");
-  const reviewTasks = items.filter((item) => item.status === "UNDER_REVIEW");
-
-  async function handleTransition(item: WorkItemDTO, toState: string) {
-    "use server";
-    await transitionWorkItemAction({
-      id: item.id,
-      toState,
-      expectedVersion: item.version,
-    });
+  if (!ctx.permissions.includes("m01:work:read")) {
+    return <div role="alert" className="rounded-lg bg-amber-50 p-5 text-sm text-amber-900">
+      Tài khoản chưa được cấp quyền xem công việc. Liên hệ đầu mối quản trị phân quyền.
+    </div>;
   }
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">Bàn làm việc</h1>
-        <p className="text-sm text-gray-500">
-          Tổng quan nhiệm vụ điều hành và công việc hành chính tại UBND cấp xã
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium text-gray-600">Việc của tôi</CardTitle>
-            <ListTodo className="w-4 h-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-900">{myTasks.length}</div>
-            <p className="text-xs text-gray-500 mt-1">Đang thực hiện hoặc đã tiếp nhận</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium text-gray-600">Quá hạn & Khẩn</CardTitle>
-            <AlertTriangle className="w-4 h-4 text-rose-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-rose-600">{overdueTasks.length}</div>
-            <p className="text-xs text-gray-500 mt-1">Cần ưu tiên xử lý ngay trong ngày</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium text-gray-600">Chờ rà soát</CardTitle>
-            <Clock className="w-4 h-4 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-600">{reviewTasks.length}</div>
-            <p className="text-xs text-gray-500 mt-1">Hồ sơ đã nộp chờ lãnh đạo ký duyệt</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-800">Danh sách công việc đang xử lý</h2>
-        {items.length === 0 ? (
-          <div className="p-8 text-center border rounded-lg bg-white shadow-sm">
-            <CheckCircle className="w-10 h-10 text-green-500 mx-auto mb-2" />
-            <p className="text-gray-700 font-medium">Bàn làm việc của bạn đang trống</p>
-            <p className="text-sm text-gray-400 mt-1">Hiện không có nhiệm vụ công việc nào cần xử lý</p>
-          </div>
-        ) : (
-          <WorkItemTable
-            items={items}
-            userPermissions={ctx.permissions}
-            onTransition={handleTransition}
-          />
-        )}
-      </div>
-    </div>
-  );
+  const [stats, page, inbox] = await Promise.all([
+    getDashboardStats(ctx), getWorkItemsPage(ctx, { filter: "mine", pageSize: 20 }), getWorkInbox(ctx),
+  ]);
+  const cards = [
+    { label: "Việc của tôi", value: stats.mine, detail: "Đã giao, đang làm hoặc được trả lại" },
+    { label: "Quá hạn", value: stats.overdue, detail: "Hạn đã qua, chưa hoàn thành hoặc hủy" },
+    { label: "Chờ rà soát", value: stats.review, detail: "Trong phạm vi bạn được quyền xem" },
+  ];
+  return <div className="space-y-6">
+    <header><h1 className="text-2xl font-bold text-slate-900">Bàn làm việc</h1>
+      <p className="text-sm text-slate-600">Dữ liệu trực tiếp theo phân quyền, không có số liệu minh họa thay thế.</p></header>
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">{cards.map(c =>
+      <div key={c.label} className="rounded-xl border bg-white p-4">
+        <p className="text-sm font-medium text-slate-600">{c.label}</p>
+        <p className="text-3xl font-bold text-emerald-800 mt-2">{c.value}</p>
+        <p className="text-xs text-slate-500 mt-2">{c.detail}</p>
+      </div>)}</div>
+    <section className="rounded-xl border bg-white p-5 space-y-3">
+      <div className="flex justify-between items-center gap-3"><h2 className="font-semibold">Công việc được giao cho tôi</h2>
+        <Link href="/cong-viec" className="text-sm text-emerald-800 underline">Xem tất cả</Link></div>
+      {page.items.length === 0 ? <p className="text-sm text-slate-500">Chưa có việc được giao</p> :
+        <ul className="divide-y text-sm">{page.items.map(item => <li key={item.id} className="py-3 flex flex-wrap justify-between gap-2">
+          <Link className="text-emerald-800 font-medium hover:underline" href={`/cong-viec/${item.id}`}>{item.title}</Link>
+          <span className="text-slate-500">{item.status}</span>
+        </li>)}</ul>}
+    </section>
+    <section className="rounded-xl border bg-white p-5 space-y-3">
+      <h2 className="font-semibold">Thông báo nội bộ gần đây</h2>
+      {inbox.length === 0 ? <p className="text-sm text-slate-500">Chưa có thông báo</p> :
+        <ul className="divide-y text-sm">{inbox.map(n => <li key={n.id} className="py-2 flex justify-between gap-3">
+          <Link href={`/cong-viec/${n.workItemId}`} className="text-emerald-800 hover:underline">{n.kind}</Link>
+          <span className="text-slate-500">{new Date(n.createdAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}</span>
+        </li>)}</ul>}
+    </section>
+  </div>;
 }

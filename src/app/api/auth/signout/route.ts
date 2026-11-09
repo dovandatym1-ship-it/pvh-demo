@@ -1,10 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   const supabase = await createServerSupabaseClient();
-  await supabase.auth.signOut();
-  return NextResponse.redirect(
-    new URL("/login", process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000")
-  );
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    return NextResponse.json({ ok: false, error: { code: "INTERNAL", message: "Không thể kết thúc phiên đăng nhập" } }, { status: 500 });
+  }
+  const response = NextResponse.redirect(new URL("/login", request.url), { status: 303 });
+  response.cookies.delete("pvh_demo_session");
+  return response;
 }

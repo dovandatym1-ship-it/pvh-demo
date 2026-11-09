@@ -2,24 +2,15 @@ import "server-only";
 
 import { ForbiddenError } from "@/lib/errors/app-error";
 import type { RequestContext } from "@/lib/auth/request-context";
+import { hasExplicitPermission } from "@/lib/authorization/permission-check";
 
 /**
- * Asserts that the actor possesses the specified permission or admin privilege.
+ * Asserts one explicit server-side permission from the database projection.
+ * A system administrator or commune leader is not a universal data reader.
  * Throws ForbiddenError if the assertion fails.
  */
 export function assertPermission(ctx: RequestContext, permission: string): void {
-  const [modulePrefix] = permission.split(":");
-
-  const hasPerm =
-    ctx.permissions.includes(permission) ||
-    ctx.permissions.includes("m00:admin") ||
-    ctx.permissions.includes("all") ||
-    ctx.permissions.includes(`${modulePrefix}:*`) ||
-    ctx.permissions.includes(`${modulePrefix}:full`) ||
-    ctx.roles.includes("LANH_DAO_XA") ||
-    ctx.roles.includes("ADMIN");
-
-  if (!hasPerm) {
+  if (!hasExplicitPermission(ctx.permissions, permission)) {
     throw new ForbiddenError(`Hành động bị từ chối: thiếu quyền ${permission} (FORBIDDEN)`);
   }
 }

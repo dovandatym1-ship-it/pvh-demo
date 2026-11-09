@@ -34,25 +34,7 @@ export async function resolveLaborDisputeAction(
     });
 
     if (error) {
-      await supabase
-        .from("labor_disputes")
-        .update({
-          status,
-          outcome_summary: outcome,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("tenant_id", ctx.tenantId)
-        .eq("id", disputeId);
-
-      await supabase.from("audit_log").insert({
-        tenant_id: ctx.tenantId,
-        user_id: ctx.userId,
-        action: "m02.labor_dispute.resolve",
-        entity_type: "labor_dispute",
-        entity_id: disputeId,
-        changes: { status, outcome },
-        idempotency_key: idempotencyKey,
-      });
+      return fail("INTERNAL", "Không thể xác nhận kết quả xử lý; dữ liệu chưa được thay đổi.");
     }
 
     revalidatePath("/noi-vu");

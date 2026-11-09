@@ -33,21 +33,7 @@ export async function approveTuitionExemptionAction(
     });
 
     if (error) {
-      await supabase
-        .from("tuition_exemptions")
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq("tenant_id", ctx.tenantId)
-        .eq("id", exemptionId);
-
-      await supabase.from("audit_log").insert({
-        tenant_id: ctx.tenantId,
-        user_id: ctx.userId,
-        action: "m03.exemption.status_transition",
-        entity_type: "tuition_exemption",
-        entity_id: exemptionId,
-        changes: { status },
-        idempotency_key: idempotencyKey,
-      });
+      return fail("INTERNAL", "Không thể xác nhận kết quả xử lý; dữ liệu chưa được thay đổi.");
     }
 
     revalidatePath("/giao-duc");

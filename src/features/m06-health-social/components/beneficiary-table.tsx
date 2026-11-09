@@ -4,56 +4,43 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
-import { maskPII } from "@/lib/authorization/pii-mask";
 import { recordSocialAidPaymentAction } from "../server/actions";
-import { CreateBeneficiaryModal } from "./create-beneficiary-modal";
-import type { SocialBeneficiaryDTO } from "../types";
-import { CheckCircle2, Clock, ShieldAlert, HeartHandshake, Plus, Search } from "lucide-react";
+import type { SocialBeneficiaryDisplayDTO } from "../types";
+import { CheckCircle2, Clock, ShieldAlert, HeartHandshake } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface BeneficiaryTableProps {
-  readonly items: SocialBeneficiaryDTO[];
+  readonly items: SocialBeneficiaryDisplayDTO[];
   readonly canUnmaskPII: boolean;
   readonly canManage: boolean;
 }
 
-export function BeneficiaryTable({ items: initialItems, canUnmaskPII, canManage }: BeneficiaryTableProps) {
-  const [items, setItems] = React.useState<SocialBeneficiaryDTO[]>(initialItems);
+export function BeneficiaryTable({ items, canUnmaskPII, canManage }: BeneficiaryTableProps) {
   const [selectedHamlet, setSelectedHamlet] = React.useState<string>("ALL");
   const [selectedStatus, setSelectedStatus] = React.useState<string>("ALL");
-  const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [pendingId, setPendingId] = React.useState<string | null>(null);
-  const [isCreateOpen, setIsCreateOpen] = React.useState(false);
-  const [successToast, setSuccessToast] = React.useState<string | null>(null);
+  const [feedback, setFeedback] = React.useState<string | null>(null);
+  const router = useRouter();
 
-  const filtered = React.useMemo(() => {
-    return items.filter((item) => {
-      if (selectedHamlet !== "ALL" && item.hamletId !== selectedHamlet) return false;
-      if (selectedStatus !== "ALL" && item.paymentStatus !== selectedStatus) return false;
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        if (!item.fullName.toLowerCase().includes(q) && !item.cccd.toLowerCase().includes(q) && !item.code.toLowerCase().includes(q)) {
-          return false;
-        }
-      }
-      return true;
-    });
-  }, [items, selectedHamlet, selectedStatus, searchQuery]);
-
-  const showToast = (msg: string) => {
-    setSuccessToast(msg);
-    setTimeout(() => setSuccessToast(null), 3500);
-  };
+  const filtered = items.filter((item) => {
+    if (selectedHamlet !== "ALL" && item.hamletId !== selectedHamlet) return false;
+    if (selectedStatus !== "ALL" && item.paymentStatus !== selectedStatus) return false;
+    return true;
+  });
 
   const handlePay = async (id: string) => {
     setPendingId(id);
+    setFeedback(null);
     try {
-      const res = await recordSocialAidPaymentAction({ beneficiaryId: id });
-      if (res.ok) {
-        setItems((prev) => prev.map((item) => (item.id === id ? { ...item, paymentStatus: "PAID" } : item)));
-        showToast("Đã ghi nhận chi trả trợ cấp xã hội thành công!");
+      const result = await recordSocialAidPaymentAction({ beneficiaryId: id });
+      if (!result.ok) {
+        setFeedback(result.error.message);
       } else {
-        alert(res.error.message || "Không thể thực hiện chi trả");
+        setFeedback("Đã ghi nhận kết quả đối soát từ nguồn có thẩm quyền.");
+        router.refresh();
       }
+    } catch {
+      setFeedback("Không thể đối soát dữ liệu. Vui lòng thử lại.");
     } finally {
       setPendingId(null);
     }
@@ -61,32 +48,14 @@ export function BeneficiaryTable({ items: initialItems, canUnmaskPII, canManage 
 
   return (
     <div className="space-y-4">
-      {successToast && (
-        <div className="fixed bottom-5 right-5 z-50 bg-emerald-700 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 text-xs font-semibold animate-in slide-in-from-bottom duration-200">
-          <CheckCircle2 className="w-4 h-4 text-emerald-200" />
-          <span>{successToast}</span>
-        </div>
-      )}
-
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 rounded-lg border border-slate-200">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-lg border border-slate-200">
         <div className="flex items-center gap-2">
           <HeartHandshake className="w-5 h-5 text-emerald-700" />
-          <h3 className="font-semibold text-slate-800 text-sm">Hồ sơ đối tượng bảo trợ xã hội</h3>
+          <h3 className="font-semibold text-slate-800">Danh sách đối tượng bảo trợ xã hội</h3>
           <Badge variant="neutral">{filtered.length} đối tượng</Badge>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-48">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
-            <input
-              type="text"
-              placeholder="Tìm theo họ tên, CCCD..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-emerald-600"
-            />
-          </div>
-
+        <div className="flex items-center gap-3">
           <select
             value={selectedHamlet}
             onChange={(e) => setSelectedHamlet(e.target.value)}
@@ -107,23 +76,17 @@ export function BeneficiaryTable({ items: initialItems, canUnmaskPII, canManage 
             <option value="PENDING">Chưa chi trả</option>
             <option value="PAID">Đã chi trả</option>
           </select>
-
-          {canManage && (
-            <Button variant="primary" size="sm" onClick={() => setIsCreateOpen(true)} className="flex items-center gap-1.5">
-              <Plus className="w-4 h-4" />
-              <span>Thêm đối tượng</span>
-            </Button>
-          )}
         </div>
       </div>
 
+      {feedback && <p role="status" className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-slate-800">{feedback}</p>}
       <div className="border border-slate-200 rounded-lg overflow-hidden bg-white">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-24">Mã số</TableHead>
               <TableHead>Họ và tên</TableHead>
-              <TableHead>CCCD (PII)</TableHead>
+              <TableHead>CCCD</TableHead>
               <TableHead>Địa bàn</TableHead>
               <TableHead>Diện trợ cấp</TableHead>
               <TableHead className="text-right">Mức trợ cấp</TableHead>
@@ -142,33 +105,50 @@ export function BeneficiaryTable({ items: initialItems, canUnmaskPII, canManage 
             ) : (
               filtered.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-mono text-xs font-medium text-slate-600">{item.code}</TableCell>
-                  <TableCell className="font-medium text-slate-900">{item.fullName}</TableCell>
+                  <TableCell className="font-mono text-xs font-medium text-slate-600">
+                    {item.code}
+                  </TableCell>
+                  <TableCell className="font-medium text-slate-900">
+                    {item.fullName}
+                  </TableCell>
                   <TableCell className="font-mono text-xs">
                     <span className={canUnmaskPII ? "text-slate-700" : "text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded"}>
-                      {maskPII(item.cccd, "cccd", canUnmaskPII)}
+                      {item.cccdDisplay}
                     </span>
                   </TableCell>
-                  <TableCell><Badge variant="neutral">Xóm {item.hamletId}</Badge></TableCell>
-                  <TableCell className="text-xs text-slate-700">{item.aidCategory}</TableCell>
+                  <TableCell>
+                    <Badge variant="neutral">Xóm {item.hamletId}</Badge>
+                  </TableCell>
+                  <TableCell className="text-xs text-slate-700">
+                    {item.aidCategory}
+                  </TableCell>
                   <TableCell className="text-right font-medium text-xs text-slate-900">
-                    {maskPII(item.monthlyAmount, "money", canUnmaskPII)}
+                    {item.amountDisplay}
                   </TableCell>
                   <TableCell className="text-xs text-slate-600 max-w-xs truncate">
-                    {maskPII(item.diagnosis || "Bình thường", "medical", canUnmaskPII)}
+                    {item.diagnosisDisplay}
                   </TableCell>
                   <TableCell className="text-center">
                     {item.paymentStatus === "PAID" ? (
-                      <Badge variant="success"><CheckCircle2 className="w-3 h-3 mr-1 inline" /> Đã chi trả</Badge>
+                      <Badge variant="success">
+                        <CheckCircle2 className="w-3 h-3 mr-1 inline" /> Đã chi trả
+                      </Badge>
                     ) : (
-                      <Badge variant="warning"><Clock className="w-3 h-3 mr-1 inline" /> Chưa chi trả</Badge>
+                      <Badge variant="warning">
+                        <Clock className="w-3 h-3 mr-1 inline" /> Chưa chi trả
+                      </Badge>
                     )}
                   </TableCell>
                   {canManage && (
                     <TableCell className="text-right">
                       {item.paymentStatus === "PENDING" && (
-                        <Button variant="secondary" size="xs" disabled={pendingId === item.id} onClick={() => handlePay(item.id)}>
-                          {pendingId === item.id ? "Đang ghi..." : "Chi trả"}
+                        <Button
+                          variant="secondary"
+                          size="xs"
+                          disabled={pendingId === item.id}
+                          onClick={() => handlePay(item.id)}
+                        >
+                          {pendingId === item.id ? "Đang ghi..." : "Ghi nhận đối soát"}
                         </Button>
                       )}
                     </TableCell>
@@ -184,19 +164,10 @@ export function BeneficiaryTable({ items: initialItems, canUnmaskPII, canManage 
         <div className="flex items-center gap-2 p-3 bg-amber-50 rounded border border-amber-200 text-xs text-amber-800">
           <ShieldAlert className="w-4 h-4 shrink-0 text-amber-700" />
           <span>
-            Chính sách bảo mật PII (ADR-002 / D03): Dữ liệu căn cước công dân và chẩn đoán bệnh án được che giấu đối với vai trò hiện tại.
+            Chính sách bảo mật PII (ADR-002 / D03): Các trường căn cước, y tế và khoản hỗ trợ đã được xử lý theo quyền truy cập trước khi gửi đến trình duyệt.
           </span>
         </div>
       )}
-
-      <CreateBeneficiaryModal
-        isOpen={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
-        onSuccess={(newItem) => {
-          setItems((prev) => [newItem, ...prev]);
-          showToast(`Đã thêm đối tượng bảo trợ [${newItem.code}] thành công!`);
-        }}
-      />
     </div>
   );
 }
