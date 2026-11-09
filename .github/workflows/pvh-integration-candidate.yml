@@ -20,6 +20,7 @@ jobs:
       - run: cp .env.example .env.local
       - run: node --test tests/security/*.test.mjs
       - run: node --test tests/m00-route-guard.test.mjs
+      - run: node --test tests/m04-legacy-retirement.test.mjs
       - run: node --experimental-strip-types --test tests/m01-workflow-rules.test.mjs
       - run: node --test tests/ph03-contract-static.test.mjs
       - run: node --experimental-strip-types --test tests/ph03-presentation.test.mjs

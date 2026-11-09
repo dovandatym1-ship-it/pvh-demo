@@ -46,3 +46,6 @@ Các delta PH03 PR #8 (8 tệp), PH04 PR #9 (9 tệp), PH05 PR #10 (11 tệp) đ
 
 ## Truy hồi M00 PH01 (bổ sung candidate)
 Đưa vào màn quản lý tài khoản/role, action backend và Supabase admin client **server-only** từ `feat/pvh-ph01-platform-auth` cùng migration security contract để phục vụ kiểm toán. Menu con có quyền `m00:membership:manage`; matcher ưu tiên route cụ thể hơn route cha, action/page vẫn tự kiểm quyền. **Chưa thực thi lời mời thật, chưa apply migration và chưa xác nhận RPC/RLS trên staging**. Việc phục hồi này chưa thay thế review đầy đủ 7 commit PH01 độc lập.
+
+## Sửa xung đột M04 UI (typecheck)
+CI candidate phát hiện `propose-household-modal.tsx` của main gọi `createCultureSubmissionAction` đã bị PH03 chặn vì thiếu thẩm quyền/rule version. Đã chuyển modal legacy thành hướng dẫn điều hướng tới PH03 workflow, **không khôi phục action thiếu kiểm chứng**; loại bỏ ngưỡng điểm 80/100 hard-code. Đây là sửa tương thích ở candidate, không tác động nhánh main/gốc. Cần visual regression sau khi có staging.
