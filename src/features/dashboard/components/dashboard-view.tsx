@@ -44,7 +44,7 @@ export function DashboardView({
     <section className={styles.dashboard} data-theme={dark ? "dark" : "light"} aria-label={roleView.title}>
       <div className={styles.topbar}>
         <div className={styles.pillGroup}>
-          <span className={styles.locationPill}>Hệ thống Văn hóa – Xã hội</span>
+          <span className={styles.locationPill}>Phòng Văn hóa – Xã hội · Cấp xã</span>
           <span className={styles.datePill}>Ngày {formatDay(model.today)}</span>
           {model.demo && <span className={styles.demoPill}>Dữ liệu minh họa</span>}
         </div>
@@ -63,7 +63,7 @@ export function DashboardView({
       </div>
 
       <header className={styles.titleArea}>
-        <p className={styles.roleEyebrow}>TỔNG QUAN THEO VAI TRÒ</p>
+        <p className={styles.roleEyebrow}>THÔNG TIN PHỤC VỤ CHỈ ĐẠO, ĐIỀU HÀNH</p>
         <h1>{roleView.title}</h1>
         <p className={styles.subTitle}>{roleView.subtitle}</p>
         <p className={hasAlerts ? styles.takeaway : styles.takeawaySafe}>
@@ -93,11 +93,11 @@ export function DashboardView({
             <p><strong>M09/M10:</strong> Có <code>report_snapshots</code>, nguồn truy xuất <code>report_snapshot_lineage</code> và nhập chỉ tiêu qua <code>commit_indicator_import</code> trên nhánh Phase 4; chưa kết nối vào biểu đồ Dashboard.</p>
             <p><strong>Điều kiện sau merge:</strong> Merge nhánh code không tự triển khai migration, không tự tạo bản ghi và không tự kết nối KPI. Cần áp dụng migration, xác nhận RPC/RLS, bổ sung truy vấn tổng hợp và kiểm thử dữ liệu đầu-cuối trước khi bật các KPI chuyên ngành.</p>
           </div>
-          <p className={styles.sourceFoot}>Cập nhật bản ghi gần nhất: {formatMoment(model.lastUpdated)} · {model.demo ? "Chế độ minh họa." : "Dữ liệu truy vấn tại thời điểm tải trang."}</p>
+          <p className={styles.sourceFoot}>Thời điểm cập nhật dữ liệu công việc gần nhất: {formatMoment(model.lastUpdated)} · {model.demo ? "Chế độ minh họa." : "Dữ liệu truy vấn tại thời điểm tải trang."}</p>
         </aside>
       )}
 
-      <div className={styles.kpiGrid} aria-label="Các chỉ số chính theo vai trò">
+      <div className={styles.kpiGrid} aria-label="Các chỉ số công việc phục vụ điều hành theo vai trò">
         {roleView.cards.map((card) => (
           <button type="button" key={card.id} className={styles.kpi + " " + (
             card.tone === "bad" ? styles.kpiBad : card.tone === "warn" ? styles.kpiWarn : card.tone === "info" ? styles.kpiInfo : styles.kpiPrimary
