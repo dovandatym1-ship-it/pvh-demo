@@ -106,10 +106,10 @@ export function WorkItemManager({
 
   const getCategoryLabel = (cat?: string | null) => {
     switch (cat) {
-      case "VAN_HOA": return "Văn hóa - Gia đình";
-      case "LAO_DONG_XH": return "Lao động - An sinh";
-      case "CHUYEN_DOI_SO": return "Chuyển đổi số & KHCN";
-      case "GIAO_DUC": return "Giáo dục & Đào tạo";
+      case "VAN_HOA": return "Văn hóa và gia đình";
+      case "LAO_DONG_XH": return "Lao động và an sinh xã hội";
+      case "CHUYEN_DOI_SO": return "Chuyển đổi số và khoa học, công nghệ";
+      case "GIAO_DUC": return "Giáo dục và đào tạo";
       default: return "Hành chính chung";
     }
   };
@@ -137,7 +137,7 @@ export function WorkItemManager({
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Quản lý công việc điều hành & tác nghiệp</h1>
+          <h1 className="text-xl font-bold text-slate-900">Quản lý công việc điều hành và tác nghiệp</h1>
           <p className="text-xs text-slate-500 mt-0.5">
             Phân công, theo dõi tiến độ, kiểm soát hạn xử lý và ký duyệt hồ sơ công việc cấp xã
           </p>
@@ -180,10 +180,10 @@ export function WorkItemManager({
             </select>
             <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="text-xs border border-slate-300 rounded px-2.5 py-1.5 bg-white text-slate-700">
               <option value="ALL">Tất cả lĩnh vực</option>
-              <option value="VAN_HOA">Văn hóa - Gia đình</option>
-              <option value="LAO_DONG_XH">Lao động - An sinh</option>
-              <option value="CHUYEN_DOI_SO">Chuyển đổi số & KHCN</option>
-              <option value="GIAO_DUC">Giáo dục & Đào tạo</option>
+              <option value="VAN_HOA">Văn hóa và gia đình</option>
+              <option value="LAO_DONG_XH">Lao động và an sinh xã hội</option>
+              <option value="CHUYEN_DOI_SO">Chuyển đổi số và khoa học, công nghệ</option>
+              <option value="GIAO_DUC">Giáo dục và đào tạo</option>
               <option value="CHUNG">Hành chính chung</option>
             </select>
           </div>
@@ -196,7 +196,7 @@ export function WorkItemManager({
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
               <tr>
                 <th className="px-4 py-3 w-28">Mã việc</th>
-                <th className="px-4 py-3">Tiêu đề & Nội dung</th>
+                <th className="px-4 py-3">Tiêu đề và nội dung</th>
                 <th className="px-4 py-3 w-36">Lĩnh vực</th>
                 <th className="px-4 py-3 w-28">Độ ưu tiên</th>
                 <th className="px-4 py-3 w-32">Hạn hoàn thành</th>
