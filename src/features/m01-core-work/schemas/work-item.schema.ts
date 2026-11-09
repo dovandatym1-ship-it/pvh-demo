@@ -6,6 +6,7 @@ const uuid = z.string().uuid();
 export const CreateWorkItemSchema = z.object({
   title: z.string().trim().min(3, "Tiêu đề tối thiểu 3 ký tự").max(500),
   description: z.string().trim().max(5000).optional().default(""),
+  sourceRef: z.string().trim().max(500).optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).default("MEDIUM"),
   category: z.string().trim().min(1).max(100).default("CHUNG"),
   assignedTo: uuid.optional(),
@@ -35,3 +36,24 @@ export const AssignWorkItemSchema = z.object({
 }).strict();
 
 export type AssignWorkItemInput = z.infer<typeof AssignWorkItemSchema>;
+
+export const UpdateWorkItemDetailsSchema = z.object({
+  id: uuid,
+  expectedVersion: z.number().int().min(1),
+  dueDate: z.string().datetime({ offset: true }).nullable(),
+  hamletId: uuid.nullable(),
+  reason: z.string().trim().min(3, "Cần lý do điều chỉnh").max(2000),
+  idempotencyKey: key,
+}).strict();
+
+export type UpdateWorkItemDetailsInput = z.infer<typeof UpdateWorkItemDetailsSchema>;
+
+export const SetWorkCollaboratorsSchema = z.object({
+  id: uuid,
+  expectedVersion: z.number().int().min(1),
+  userIds: z.array(uuid).max(20).refine(ids => new Set(ids).size === ids.length, "Người phối hợp bị trùng"),
+  reason: z.string().trim().min(3).max(2000),
+  idempotencyKey: key,
+}).strict();
+
+export type SetWorkCollaboratorsInput = z.infer<typeof SetWorkCollaboratorsSchema>;

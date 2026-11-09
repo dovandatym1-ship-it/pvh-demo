@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getRequestContext } from "@/lib/auth/request-context";
 import { getDashboardStats, getWorkItemsPage, getWorkInbox } from "@/features/m01-core-work/server/queries";
+import { MarkInboxReadButton } from "@/features/m01-core-work/components/mark-inbox-read-button";
+import { workInboxLabel, workStatusLabel } from "@/features/m01-core-work/types/presentation";
 
 export const dynamic = "force-dynamic";
 
@@ -16,8 +18,8 @@ export default async function WorkbenchPage() {
   ]);
   const cards = [
     { label: "Việc của tôi", value: stats.mine, detail: "Đã giao, đang làm hoặc được trả lại" },
-    { label: "Quá hạn", value: stats.overdue, detail: "Hạn đã qua, chưa hoàn thành hoặc hủy" },
-    { label: "Chờ rà soát", value: stats.review, detail: "Trong phạm vi bạn được quyền xem" },
+    { label: "Quá hạn", value: stats.overdue, detail: "Trong phạm vi được xem; hạn đã qua, chưa kết thúc" },
+    { label: "Chờ rà soát", value: stats.review, detail: "Bạn có quyền duyệt; loại trừ việc do mình đang xử lý" },
   ];
   return <div className="space-y-6">
     <header><h1 className="text-2xl font-bold text-slate-900">Bàn làm việc</h1>
@@ -34,15 +36,18 @@ export default async function WorkbenchPage() {
       {page.items.length === 0 ? <p className="text-sm text-slate-500">Chưa có việc được giao</p> :
         <ul className="divide-y text-sm">{page.items.map(item => <li key={item.id} className="py-3 flex flex-wrap justify-between gap-2">
           <Link className="text-emerald-800 font-medium hover:underline" href={`/cong-viec/${item.id}`}>{item.title}</Link>
-          <span className="text-slate-500">{item.status}</span>
+          <span className="text-slate-500">{workStatusLabel(item.status)}</span>
         </li>)}</ul>}
     </section>
     <section className="rounded-xl border bg-white p-5 space-y-3">
       <h2 className="font-semibold">Thông báo nội bộ gần đây</h2>
       {inbox.length === 0 ? <p className="text-sm text-slate-500">Chưa có thông báo</p> :
-        <ul className="divide-y text-sm">{inbox.map(n => <li key={n.id} className="py-2 flex justify-between gap-3">
-          <Link href={`/cong-viec/${n.workItemId}`} className="text-emerald-800 hover:underline">{n.kind}</Link>
-          <span className="text-slate-500">{new Date(n.createdAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}</span>
+        <ul className="divide-y text-sm">{inbox.map(n => <li key={n.id} className="py-2 flex flex-wrap justify-between items-center gap-3">
+          <div className="space-y-1">
+            <Link href={`/cong-viec/${n.workItemId}`} className="text-emerald-800 hover:underline">{workInboxLabel(n.kind)}</Link>
+            <p className="text-xs text-slate-500">{new Date(n.createdAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}</p>
+          </div>
+          {n.readAt ? <span className="text-xs text-slate-500">Đã đọc</span> : <MarkInboxReadButton id={n.id} />}
         </li>)}</ul>}
     </section>
   </div>;

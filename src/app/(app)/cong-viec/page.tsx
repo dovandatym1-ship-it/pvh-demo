@@ -1,18 +1,20 @@
 import Link from "next/link";
 import { getRequestContext } from "@/lib/auth/request-context";
 import { assertRoutePermission } from "@/config/navigation";
-import { getAssignees, getWorkItemsPage, type WorkFilter } from "@/features/m01-core-work/server/queries";
+import { getActiveHamlets, getAssignees, getWorkItemsPage, type WorkFilter, type WorkSort } from "@/features/m01-core-work/server/queries";
 import { CreateWorkItemForm } from "@/features/m01-core-work/components/create-work-item-form";
+import { workStatusLabel, workPriorityLabel } from "@/features/m01-core-work/types/presentation";
 
 export const dynamic = "force-dynamic";
 
 const filters: { id: WorkFilter; label: string }[] = [
   { id: "mine", label: "Việc của tôi" }, { id: "created", label: "Do tôi tạo" },
-  { id: "review", label: "Chờ rà soát" }, { id: "all", label: "Toàn đơn vị" },
+  { id: "review", label: "Chờ rà soát" }, { id: "hamlet", label: "Theo thôn/xóm" },
+  { id: "all", label: "Toàn đơn vị" },
 ];
 
 export default async function CongViecPage({ searchParams }: {
-  searchParams: Promise<{ view?: string; page?: string; q?: string }>;
+  searchParams: Promise<{ view?: string; page?: string; q?: string; hamlet?: string; sort?: string }>;
 }) {
   const ctx = await getRequestContext();
   assertRoutePermission("/cong-viec", ctx.permissions, ctx.roles);
@@ -22,28 +24,45 @@ export default async function CongViecPage({ searchParams }: {
   const selectedView = view === "all" && !showAll ? "mine" : view;
   const pageNum = Math.max(1, Number.parseInt(params.page || "1", 10) || 1);
   const search = (params.q || "").slice(0, 100);
-  const [list, assignees] = await Promise.all([
-    getWorkItemsPage(ctx, { filter: selectedView, page: pageNum, search }),
+  const sort: WorkSort = (["newest", "oldest", "due_soon"] as const).find(s => s === params.sort) || "newest";
+  const hamletId = params.hamlet || "";
+  const [list, assignees, hamlets] = await Promise.all([
+    getWorkItemsPage(ctx, { filter: selectedView, page: pageNum, search, hamletId, sort }),
     ctx.permissions.includes("m01:work:create") ? getAssignees(ctx) : Promise.resolve([]),
+    getActiveHamlets(ctx),
   ]);
-  const linkTo = (nextPage: number) => `/cong-viec?view=${selectedView}&page=${nextPage}&q=${encodeURIComponent(search)}`;
+  const filterParams = `view=${selectedView}&q=${encodeURIComponent(search)}&hamlet=${encodeURIComponent(hamletId)}&sort=${sort}`;
+  const linkTo = (nextPage: number) => `/cong-viec?${filterParams}&page=${nextPage}`;
 
   return (
     <div className="space-y-6">
       <header><h1 className="text-xl font-bold text-slate-900">Quản lý công việc</h1>
         <p className="text-sm text-slate-500">Tạo, giao, theo dõi và rà soát nhiệm vụ theo phân quyền</p></header>
-      {ctx.permissions.includes("m01:work:create") && <CreateWorkItemForm assignees={assignees} />}
+      {ctx.permissions.includes("m01:work:create") && <CreateWorkItemForm assignees={assignees} hamlets={hamlets} />}
       <section className="rounded-xl border border-slate-200 bg-white overflow-hidden">
         <div className="p-4 border-b space-y-3">
           <nav aria-label="Bộ lọc công việc" className="flex gap-2 flex-wrap text-sm">
             {filters.filter(f => f.id !== "all" || showAll).map(f =>
-              <Link key={f.id} href={`/cong-viec?view=${f.id}&q=${encodeURIComponent(search)}`}
+              <Link key={f.id} href={`/cong-viec?view=${f.id}&q=${encodeURIComponent(search)}&hamlet=${encodeURIComponent(hamletId)}&sort=${sort}`}
                 aria-current={selectedView === f.id ? "page" : undefined}
                 className={`rounded-full px-3 py-1.5 ${selectedView === f.id ? "bg-emerald-800 text-white" : "bg-slate-100 text-slate-700"}`}>{f.label}</Link>)}
           </nav>
           <form method="GET" className="flex gap-2 flex-wrap">
             <input type="hidden" name="view" value={selectedView} />
-            <input name="q" defaultValue={search} maxLength={100} placeholder="Tìm theo tiêu đề..."
+            <label className="sr-only" htmlFor="work-sort">Sắp xếp</label>
+            <select id="work-sort" name="sort" defaultValue={sort} className="rounded-md border border-slate-300 px-2 py-2 text-sm">
+              <option value="newest">Mới nhất</option><option value="oldest">Cũ nhất</option>
+              <option value="due_soon">Hạn gần nhất</option>
+            </select>
+            {selectedView === "hamlet" && <>
+              <label className="sr-only" htmlFor="work-hamlet">Thôn/xóm</label>
+              <select id="work-hamlet" name="hamlet" defaultValue={hamletId}
+                className="rounded-md border border-slate-300 px-2 py-2 text-sm">
+                <option value="">Chọn thôn/xóm</option>
+                {hamlets.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
+              </select>
+            </>}
+            <input name="q" defaultValue={search} maxLength={100} aria-label="Tìm công việc theo tiêu đề" placeholder="Tìm theo tiêu đề..."
               className="min-w-0 flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />
             <button className="rounded-md bg-slate-800 px-4 py-2 text-sm text-white">Tìm kiếm</button>
           </form>
@@ -57,7 +76,7 @@ export default async function CongViecPage({ searchParams }: {
             <tbody className="divide-y divide-slate-100">
               {list.items.map(item => <tr key={item.id} className="hover:bg-slate-50">
                 <td className="px-4 py-3 font-medium"><Link className="text-emerald-800 hover:underline" href={`/cong-viec/${item.id}`}>{item.title}</Link></td>
-                <td className="px-4 py-3">{item.status}</td><td className="px-4 py-3">{item.priority}</td>
+                <td className="px-4 py-3">{workStatusLabel(item.status)}</td><td className="px-4 py-3">{workPriorityLabel(item.priority)}</td>
                 <td className="px-4 py-3">{item.dueDate ? new Date(item.dueDate).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }) : "—"}</td>
               </tr>)}
               {list.items.length === 0 && <tr><td colSpan={4} className="p-8 text-center text-slate-500">Không có công việc phù hợp bộ lọc</td></tr>}

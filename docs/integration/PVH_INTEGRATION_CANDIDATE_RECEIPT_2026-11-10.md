@@ -49,3 +49,6 @@ Các delta PH03 PR #8 (8 tệp), PH04 PR #9 (9 tệp), PH05 PR #10 (11 tệp) đ
 
 ## Sửa xung đột M04 UI (typecheck)
 CI candidate phát hiện `propose-household-modal.tsx` của main gọi `createCultureSubmissionAction` đã bị PH03 chặn vì thiếu thẩm quyền/rule version. Đã chuyển modal legacy thành hướng dẫn điều hướng tới PH03 workflow, **không khôi phục action thiếu kiểm chứng**; loại bỏ ngưỡng điểm 80/100 hard-code. Đây là sửa tương thích ở candidate, không tác động nhánh main/gốc. Cần visual regression sau khi có staging.
+
+## PH02 core-workflow backport (candidate)
+Khôi phục từ `fix/pvh-ph02-completion-20261109` các màn tạo việc, lọc/phân trang, chỉnh hạn/địa bàn, người phối hợp, thông báo đã đọc, xử lý tệp pending và nhãn tiếng Việt. Query giữ RLS tenant và giới hạn `ctx.scopes.hamletIds` khi lọc thôn/xóm; giữ riêng nguồn thay đổi PH06 an toàn. Bổ sung PH02 workflow SQL + guardrail tests theo đúng tip branch. **Migration `20261108060000_m01_core_workflow.sql` đã có thay đổi nội dung chưa triển khai trên cloud**; tuyệt đối không replay lên DB hiện có khi chưa xác nhận checksum từng môi trường. G-DB/G-SEC vẫn BLOCKED.

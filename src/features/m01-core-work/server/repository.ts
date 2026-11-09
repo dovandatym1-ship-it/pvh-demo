@@ -3,7 +3,7 @@ import "server-only";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { type Result, ok, fail } from "@/lib/types/result";
 import type { RequestContext } from "@/lib/auth/request-context";
-import type { CreateWorkItemInput, TransitionWorkItemInput, AssignWorkItemInput } from "../schemas/work-item.schema";
+import type { CreateWorkItemInput, TransitionWorkItemInput, AssignWorkItemInput, UpdateWorkItemDetailsInput, SetWorkCollaboratorsInput } from "../schemas/work-item.schema";
 import type { WorkItemDTO } from "../types";
 
 function dbFailure(error: { message: string; code?: string }): Result<never> {
@@ -15,7 +15,7 @@ function dbFailure(error: { message: string; code?: string }): Result<never> {
   if (error.code === "42501" || /FORBIDDEN/.test(error.message)) return fail("FORBIDDEN", "Không có quyền hoặc ngoài phạm vi công việc");
   if (error.code === "28000" || /UNAUTHENTICATED/.test(error.message)) return fail("UNAUTHENTICATED", "Cần đăng nhập lại");
   if (error.code === "P0002" || /NOT_FOUND/.test(error.message)) return fail("NOT_FOUND", "Không tìm thấy công việc");
-  if (error.code === "22023" || /VALIDATION|INVALID_ASSIGNEE/.test(error.message)) return fail("VALIDATION", error.message);
+  if (error.code === "22023" || /VALIDATION|INVALID_ASSIGNEE|INVALID_COLLABORATOR|INVALID_HAMLET/.test(error.message)) return fail("VALIDATION", error.message);
   return fail("INTERNAL", "Không thể lưu thay đổi vào cơ sở dữ liệu", error.message);
 }
 
@@ -34,7 +34,7 @@ export const workItemRepository = {
   async createWorkItem(ctx: RequestContext, input: CreateWorkItemInput): Promise<Result<WorkItemDTO>> {
     try {
       const db = await createServerSupabaseClient();
-      const { data, error } = await db.schema("app").rpc("create_work_item", {
+      const { data, error } = await db.schema("app").rpc("create_work_item_v2", {
         p_idempotency_key: input.idempotencyKey,
         p_title: input.title,
         p_description: input.description || null,
@@ -44,6 +44,7 @@ export const workItemRepository = {
         p_category: input.category,
         p_hamlet_id: input.hamletId || null,
         p_tenant_id: ctx.tenantId,
+        p_source_ref: input.sourceRef?.trim() || null,
       });
       if (error) return dbFailure(error);
       if (!data || typeof data !== "object" || Array.isArray(data)) return fail("INTERNAL", "RPC tạo công việc không trả bản ghi");
@@ -52,6 +53,7 @@ export const workItemRepository = {
       return ok({
         id: String(r.id), tenantId: String(r.tenant_id), title: String(r.title),
         description: r.description ? String(r.description) : null,
+        sourceRef: r.source_ref ? String(r.source_ref) : null,
         status: r.status as WorkItemDTO["status"],
         priority: r.priority as WorkItemDTO["priority"], category: String(r.category),
         assignedTo: r.assigned_to ? String(r.assigned_to) : null,
@@ -81,6 +83,30 @@ export const workItemRepository = {
       const { data, error } = await db.schema("app").rpc("assign_work_item", {
         p_id: input.id, p_assigned_to: input.assignedTo, p_expected_version: input.expectedVersion,
         p_reason: input.reason || null, p_idempotency_key: input.idempotencyKey,
+      });
+      return error ? dbFailure(error) : mutationResult(data);
+    } catch { return fail("INTERNAL", "Không kết nối được cơ sở dữ liệu"); }
+  },
+
+  async updateWorkItemDetails(_ctx: RequestContext, input: UpdateWorkItemDetailsInput): Promise<Result<Mutation>> {
+    try {
+      const db = await createServerSupabaseClient();
+      const { data, error } = await db.schema("app").rpc("update_work_item_details", {
+        p_id: input.id, p_expected_version: input.expectedVersion,
+        p_due_date: input.dueDate, p_hamlet_id: input.hamletId,
+        p_reason: input.reason, p_idempotency_key: input.idempotencyKey,
+      });
+      return error ? dbFailure(error) : mutationResult(data);
+    } catch { return fail("INTERNAL", "Không kết nối được cơ sở dữ liệu"); }
+  },
+
+  async setWorkCollaborators(_ctx: RequestContext, input: SetWorkCollaboratorsInput): Promise<Result<Mutation>> {
+    try {
+      const db = await createServerSupabaseClient();
+      const { data, error } = await db.schema("app").rpc("set_work_collaborators", {
+        p_id: input.id, p_expected_version: input.expectedVersion,
+        p_user_ids: input.userIds, p_reason: input.reason,
+        p_idempotency_key: input.idempotencyKey,
       });
       return error ? dbFailure(error) : mutationResult(data);
     } catch { return fail("INTERNAL", "Không kết nối được cơ sở dữ liệu"); }
