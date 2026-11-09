@@ -4,13 +4,14 @@ import { filterNavigation } from "@/config/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getPersonalNotifications, type NotificationsView } from "@/features/notifications/server/queries";
-import { AccountMenu, NotificationBell } from "@/features/notifications/components/topbar-actions";
+import { TopbarActions } from "@/features/notifications/components/topbar-actions";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   let filteredGroups: ReturnType<typeof filterNavigation> = [];
   let userLabel = "Tài khoản";
   let tenantLabel = "Đơn vị công tác";
   let notifications: NotificationsView | null = null;
+  let avatarVersion = 0;
 
   try {
     const ctx = await getRequestContext();
@@ -29,10 +30,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       userLabel = "Cán bộ địa bàn";
     }
     const db = await createServerSupabaseClient();
-    const [tenant, inbox] = await Promise.all([
+    const [tenant, inbox, auth] = await Promise.all([
       db.from("tenants").select("name").eq("id", ctx.tenantId).maybeSingle(),
       getPersonalNotifications(ctx, 1, 5),
+      db.auth.getUser(),
     ]);
+    const avatar = auth.data.user?.user_metadata?.avatar_updated_at;
+    if (auth.data.user?.id === ctx.userId && typeof avatar === "number" && Number.isFinite(avatar)) {
+      avatarVersion = avatar;
+    }
     tenantLabel = tenant.data?.name || "Đơn vị công tác";
     notifications = inbox;
   } catch {
@@ -50,8 +56,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </span>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
-          <NotificationBell view={notifications}/>
-          <AccountMenu roleLabel={userLabel}/>
+          <TopbarActions view={notifications} roleLabel={userLabel} avatarVersion={avatarVersion}/>
         </div>
       </header>
       <main className="min-w-0 flex-1 overflow-x-hidden p-4 sm:p-6">{children}</main>
