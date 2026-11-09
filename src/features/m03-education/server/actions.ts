@@ -25,29 +25,15 @@ export async function approveTuitionExemptionAction(
     const { exemptionId, status, idempotencyKey } = parsed.data;
     const supabase = await createServerSupabaseClient();
 
-    const { error } = await supabase.rpc("approve_tuition_exemption", {
+    const { data, error } = await supabase.schema("app").rpc("approve_tuition_exemption", {
       p_tenant_id: ctx.tenantId,
       p_exemption_id: exemptionId,
       p_status: status,
       p_idempotency_key: idempotencyKey ?? null,
     });
 
-    if (error) {
-      await supabase
-        .from("tuition_exemptions")
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq("tenant_id", ctx.tenantId)
-        .eq("id", exemptionId);
-
-      await supabase.from("audit_log").insert({
-        tenant_id: ctx.tenantId,
-        user_id: ctx.userId,
-        action: "m03.exemption.status_transition",
-        entity_type: "tuition_exemption",
-        entity_id: exemptionId,
-        changes: { status },
-        idempotency_key: idempotencyKey,
-      });
+    if (error || !data) {
+      return fail("INTERNAL", "CSDL chưa xác nhận quyết định miễn giảm học phí; không có thay đổi được ghi nhận");
     }
 
     revalidatePath("/giao-duc");

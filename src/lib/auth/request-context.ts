@@ -2,10 +2,12 @@ import React from "react";
 import { cookies } from "next/headers";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { ForbiddenError, UnauthorizedError } from "@/lib/errors/app-error";
+import { isDemoAuthEnabled, isValidDemoPersona } from "@/lib/auth/demo-mode";
+import { isMembershipCurrentlyActive } from "@/lib/auth/membership-validity";
 
 export interface RequestContext {
   readonly userId: string;
-  readonly tenantId: string; // UUID of TN-DEMO-A
+  readonly tenantId: string;
   readonly membershipId: string;
   readonly roles: readonly string[]; // ["LANH_DAO_XA", "CAN_BO_MOT_CUA", ...]
   readonly permissions: readonly string[]; // ["m01:work:create", ...]
@@ -29,32 +31,18 @@ export const getRequestContext = React.cache(async (): Promise<RequestContext> =
   } = await supabase.auth.getUser();
 
   const cookieStore = await cookies();
-  const isDemo = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+  const isDemo = isDemoAuthEnabled();
   const demoPersona = cookieStore.get("pvh_demo_session")?.value;
 
   // In demo mode without cloud auth account, provide authorized test profile
-  if ((authError || !user) && isDemo && demoPersona) {
+  if ((authError || !user) && isDemo && isValidDemoPersona(demoPersona)) {
     if (demoPersona === "ADMIN") {
       return {
         userId: "user-admin",
         tenantId: "TN-DEMO-A",
         membershipId: "mem-admin",
-        roles: ["SYSTEM_ADMIN", "LANH_DAO_XA", "admin"],
-        permissions: [
-          "m00:admin",
-          "*",
-          "m01:full",
-          "m02:full",
-          "m03:full",
-          "m04:full",
-          "m05:full",
-          "m06:full",
-          "m07:full",
-          "m08:full",
-          "m09:full",
-          "m10:full",
-          "health:view_pii",
-        ],
+        roles: ["SYSTEM_ADMIN"],
+        permissions: ["m00:membership:read", "m00:audit:read", "m00:jobs:read"],
         scopes: {},
       };
     }
@@ -82,26 +70,6 @@ export const getRequestContext = React.cache(async (): Promise<RequestContext> =
         scopes: { hamletIds: ["xom-a1", "xom-a2"], sectorIds: ["van-hoa", "xa-hoi"] },
       };
     }
-    if (demoPersona === "P3") {
-      return {
-        userId: "user-p3",
-        tenantId: "TN-DEMO-A",
-        membershipId: "mem-p3",
-        roles: ["CONG_CHUC_VHXH", "CAN_BO_CHUYEN_TRACH"],
-        permissions: ["m01:view", "m04:full", "m05:view", "m09:draft", "health:view_pii"],
-        scopes: {},
-      };
-    }
-    if (demoPersona === "P4") {
-      return {
-        userId: "user-p4",
-        tenantId: "TN-DEMO-A",
-        membershipId: "mem-p4",
-        roles: ["TRUONG_THON"],
-        permissions: ["m01:hamlet_view", "m04:propose_title", "m06:propose_aid"],
-        scopes: { hamletIds: ["xom-a1"] },
-      };
-    }
     if (demoPersona === "P5") {
       return {
         userId: "user-p5",
@@ -121,6 +89,29 @@ export const getRequestContext = React.cache(async (): Promise<RequestContext> =
         permissions: ["m08:full", "m04:inspect", "m06:inspect", "m09:view", "health:view_pii"],
         scopes: {},
       };
+    }
+    if (demoPersona === "P3") {
+      return {
+        userId: "user-p3",
+        tenantId: "TN-DEMO-A",
+        membershipId: "mem-p3",
+        roles: ["CONG_CHUC_VHXH", "CAN_BO_CHUYEN_TRACH"],
+        permissions: ["m01:work:read", "m04:culture:read", "m05:digital:read"],
+        scopes: {},
+      };
+    }
+    if (demoPersona === "P4") {
+      return {
+        userId: "user-p4",
+        tenantId: "TN-DEMO-A",
+        membershipId: "mem-p4",
+        roles: ["TRUONG_THON"],
+        permissions: ["m04:culture:read"],
+        scopes: { hamletIds: ["xom-a1"] },
+      };
+    }
+    if (demoPersona !== "P1") {
+      throw new ForbiddenError("Vai trò demo không hợp lệ (FORBIDDEN)");
     }
     return {
       userId: "user-p1",
@@ -152,35 +143,26 @@ export const getRequestContext = React.cache(async (): Promise<RequestContext> =
     .from("memberships")
     .select("id, tenant_id, roles, permissions, scopes, is_active, valid_from, valid_to")
     .eq("user_id", user.id)
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .limit(2);
 
   if (memberError || !memberships || memberships.length === 0) {
     throw new ForbiddenError("Người dùng không có quyền công tác tại đơn vị xã nào (FORBIDDEN)");
   }
 
-  // 3. Read tenant cookie pvh_tenant & validate against memberships (Fail-Closed)
+  // 3. MVP: one live commune per deployment; never select a tenant by cookie.
   const tenantCookie = cookieStore.get("pvh_tenant")?.value;
-
-  let activeMembership = memberships[0];
-
-  if (tenantCookie) {
-    const matched = memberships.find((m) => m.tenant_id === tenantCookie);
-    if (!matched) {
-      // Cookie is spoofed or points to an unassigned tenant -> fail closed!
-      throw new ForbiddenError(
-        "Không có quyền truy cập đơn vị xã được chỉ định trong cookie pvh_tenant (FORBIDDEN)"
-      );
-    }
-    activeMembership = matched;
+  if (memberships.length !== 1) {
+    throw new ForbiddenError("Phiên đăng nhập có nhiều phân công xã, cần kiểm tra cấu hình (FORBIDDEN)");
+  }
+  const activeMembership = memberships[0];
+  if (tenantCookie && tenantCookie !== activeMembership.tenant_id) {
+    throw new ForbiddenError("Cookie đơn vị không khớp phân công hiện hành (FORBIDDEN)");
   }
 
   // 4. Validate time-bound validity period if configured
-  const now = new Date().toISOString();
-  if (activeMembership.valid_from && activeMembership.valid_from > now) {
-    throw new ForbiddenError("Tài khoản chưa đến thời hạn hiệu lực công tác (FORBIDDEN)");
-  }
-  if (activeMembership.valid_to && activeMembership.valid_to < now) {
-    throw new ForbiddenError("Quyền công tác tại đơn vị xã đã hết hạn hiệu lực (FORBIDDEN)");
+  if (!isMembershipCurrentlyActive(activeMembership)) {
+    throw new ForbiddenError("Phân công công tác đã hết hạn hoặc chưa có hiệu lực (FORBIDDEN)");
   }
 
   // 5. Construct RequestContext

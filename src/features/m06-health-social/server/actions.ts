@@ -23,45 +23,23 @@ export async function createBeneficiaryAction(
     }
 
     const { fullName, cccd, phone, hamletId, aidCategory, monthlyAmount, diagnosis, healthInsuranceProvided } = parsed.data;
-    const generatedCode = `BT-${Date.now().toString().slice(-4)}`;
-
     const supabase = await createServerSupabaseClient();
-    const { data, error } = await supabase
-      .from("social_protection_beneficiaries")
-      .insert({
-        tenant_id: ctx.tenantId,
-        code: generatedCode,
-        full_name: fullName,
-        cccd,
-        phone: phone || null,
-        hamlet_id: hamletId,
-        aid_category: aidCategory,
-        monthly_amount: monthlyAmount,
-        diagnosis: diagnosis || null,
-        payment_status: "PENDING",
-        health_insurance_provided: healthInsuranceProvided,
-      })
-      .select("id, code")
-      .single();
-
-    if (error || !data) {
-      // In local demo mode if table not created, return graceful response
-      revalidatePath("/y-te-an-sinh");
-      return ok({
-        id: "e0000000-0000-0000-0000-000000000099",
-        code: generatedCode,
-      });
-    }
-
-    // Insert audit log
-    await supabase.from("audit_log").insert({
-      tenant_id: ctx.tenantId,
-      user_id: ctx.userId,
-      action: "m06.beneficiary.create",
-      entity_type: "social_protection_beneficiary",
-      entity_id: data.id,
-      changes: { code: data.code, fullName, aidCategory },
+    // Domain module remains unavailable until its audited DB RPC is deployed.
+    const { data, error } = await supabase.schema("app").rpc("create_social_beneficiary", {
+      p_tenant_id: ctx.tenantId,
+      p_full_name: fullName,
+      p_cccd: cccd,
+      p_phone: phone || null,
+      p_hamlet_id: hamletId,
+      p_aid_category: aidCategory,
+      p_monthly_amount: monthlyAmount,
+      p_diagnosis: diagnosis || null,
+      p_health_insurance_provided: healthInsuranceProvided,
     });
+
+    if (error || !data || !data.id || !data.code) {
+      return fail("INTERNAL", "CSDL chưa xác nhận tạo đối tượng; không trả mã hồ sơ giả");
+    }
 
     revalidatePath("/y-te-an-sinh");
     return ok({
@@ -92,30 +70,14 @@ export async function recordSocialAidPaymentAction(
     const { beneficiaryId, idempotencyKey } = parsed.data;
     const supabase = await createServerSupabaseClient();
 
-    // Call RPC or fallback direct update
-    const { data, error } = await supabase.rpc("record_social_aid_payment", {
+    const { data, error } = await supabase.schema("app").rpc("record_social_aid_payment", {
       p_tenant_id: ctx.tenantId,
       p_beneficiary_id: beneficiaryId,
       p_idempotency_key: idempotencyKey ?? null,
     });
 
-    if (error) {
-      // If RPC fails (e.g. dev schema), perform direct update
-      await supabase
-        .from("social_protection_beneficiaries")
-        .update({ payment_status: "PAID", updated_at: new Date().toISOString() })
-        .eq("tenant_id", ctx.tenantId)
-        .eq("id", beneficiaryId);
-
-      await supabase.from("audit_log").insert({
-        tenant_id: ctx.tenantId,
-        user_id: ctx.userId,
-        action: "m06.beneficiary.record_payment",
-        entity_type: "social_protection_beneficiary",
-        entity_id: beneficiaryId,
-        changes: { payment_status: "PAID" },
-        idempotency_key: idempotencyKey,
-      });
+    if (error || !data) {
+      return fail("INTERNAL", "CSDL chưa xác nhận chi trả; không được ghi nhận là đã thanh toán");
     }
 
     revalidatePath("/y-te-an-sinh");

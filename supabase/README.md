@@ -15,11 +15,21 @@ Applied migration receipts:
 
 Exact SQL snapshots are under `deployed/`. Behavioral verification: 46/46 checks passed against PostgreSQL under anon/authenticated roles; all test accounts and business records rolled back. This is NOT a browser/Auth login E2E result.
 
+### PH01 source-only extension awaiting G1
+
+`migrations/20261108104745_ph01_security_contract.sql` is a **new, unapplied** feature-branch migration generated with the Supabase CLI. It introduces permission catalog entries and audited management RPCs (`app.provision_membership`, `app.set_membership_role`, `app.revoke_membership`). It does **not** create Auth identities, change deployed cloud data, or enable unfinished modules. DO NOT execute against the cloud before accepting the deployment checklist.
+
+The PR's `.github/workflows/db-ci.yml` replays all active migrations on isolated Supabase Postgres and runs `supabase/tests/01_ph01_single_commune_rls.sql` as a pgTAP contract. Tests are rolled back and use `.invalid` email Auth fixtures. Do not use the old multi-commune suites under `_legacy` as current acceptance criteria.
+
+The already-applied cloud baseline references the project-specific pre-existing RLS event-trigger helper `public.rls_auto_enable()` / `ensure_rls`. Stock Supabase local Postgres lacks it, so DB CI copies `_ci_fixtures/rls_event_trigger.sql` into a temporary **CI-only** earlier migration before replay. Its location is deliberately outside `supabase/tests` (which pgTAP auto-discovers). The helper's function body, event and DDL tags were inspected with read-only queries against the cloud. This is not an additional deployable migration; do not copy it into the active migration directory or repair the cloud migration history.
+
+To reproduce this on a developer machine, run `npm run db:reset` (requires Docker + Supabase CLI). The script explicitly uses only the local default target, temporarily stages the exact cloud prerequisite, starts/resets local Postgres, runs pgTAP, and removes the temporary migration even if validation fails. **This command erases local development database records**; back them up first if needed. Never pass a remote DB URL or run `supabase db reset --linked` as a substitute.
+
 ## Reconcile before any db push/reset
 
-The concurrently authored `migrations/20261108000001_walking_skeleton_core.sql` and `seed.sql` are based on the superseded two-commune prototype. They are NOT the deployed cloud baseline. Do not apply them to this cloud: they can recreate broad grants, replace security helpers and introduce a second commune.
+**PH01 feature branch reconciliation (source only):** active `supabase/migrations/` now contains exact byte-for-byte copies of the two SQL snapshots already applied in cloud. The nine older two-commune prototype migrations are preserved under `supabase/_legacy/superseded_20261108/`, not executed. `supabase/seed.sql` is intentionally non-personal and empty; baseline SQL provisions the singleton placeholder and permission catalogue.
 
-Integration must explicitly reconcile migration history and select a single reproducible baseline. Keep the worker's in-progress files until the owner reviews the diff; do not run `db push --include-all`, migration repair, reset, or stale seed automatically. Import the two matching cloud snapshots into the active history only after resolving the earlier conflicting worker migration. No cloud history was falsified or repaired in this task.
+This is a **source reconciliation**, not a new migration and not a cloud migration-history repair. The cloud still reports versions `20261108054202` and `20261108054701`. Do not `db push --include-all`, run a cloud reset, or attempt to reapply those versions. An isolated clean replay and 32/32 pgTAP assertions passed in [database CI 42474578262](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42474578262) with the explicitly documented cloud RLS precondition. Manual local Mac replay has not been run. Do not declare the broader G1 gate PASS without real-account/Storage verification and owner approval.
 
 ## Server contract
 
@@ -31,11 +41,13 @@ Integration must explicitly reconcile migration history and select a single repr
 - `create_work_item` accepts the same parameter names as the worker blueprint, but derives actor and commune from Auth + DB; supplied tenant must match the singleton. Idempotency key is required and scoped by account, same key with a changed payload is rejected.
 - Work records are SELECT-only over REST. Writes go through `app.create_work_item`, atomically recording a work item, event, audit. Full workflow transition RPC is a Sprint 2 item, not implemented by this foundation.
 - `app.register_evidence(p_work_item_id,p_original_name)` returns metadata including an opaque storage path bound to that work item. Upload using the authenticated user client to private bucket `evidence`. Read/signing requires current work-record read permission. Signed URL TTL must be <=60 seconds in the app; the DB cannot force a maximum TTL on an otherwise authorized Storage signing request.
-- Restrict Supabase Auth signups operationally to invitations when provisioning real staff. A newly created Auth account has no membership/role by default and cannot access business data.
+- Restrict Supabase Auth signups operationally to invitations when provisioning real staff. The local `config.toml` disables public signup and requires confirmed email; these local settings do NOT configure cloud Auth. A newly created Auth account has no membership/role by default and cannot access business data.
+- Real account invitation (`/quan-tri/tai-khoan`) requires `m00:membership:manage` (and directory SELECT requires `m00:membership:read`). The server-only `SUPABASE_SERVICE_ROLE_KEY` must be configured securely. The invitation sends a real email when an authorized user submits the form; subsequent membership creation and audit are atomic in `app.provision_membership`. If Auth succeeds but membership fails, the Auth identity remains unassigned and needs operator reconciliation. Never seed a fixed password.
+- Initial SYS_ADMIN bootstrap cannot be accomplished by a user who lacks `m00:membership:manage`. A project operator must explicitly provision the first real admin membership using a reviewed, id-scoped one-time bootstrap procedure; this is not covered by runtime self-registration.
 - Only M00/M01 enabled initially. Enabling a future module is not a substitute for defining its own record/PII policies.
 
-## Current status
+## Current status at PH01 branch baseline
 
-14 application tables, 1 commune (`TN-DEMO-A`, placeholder name), 5 configurable roles, 10 permissions, 1 private bucket. ZERO permanent Auth accounts or business records. No default passwords. Actual commune name and admin email await user input.
+14 application tables, 1 commune (`TN-DEMO-A`, placeholder name), 5 configurable roles, 10 baseline permissions (the unapplied PH01 extension adds catalog entries), 1 private bucket. Live record counts and Auth account provisioning can change; verify afresh before release. No default passwords. Actual commune name and admin email await user input.
 
 See `DB_DEPLOYMENT_RECEIPT.md` at repo root and project Working/DB_PVH_SINGLE_COMMUNE for evidence and operator provisioning SQL.

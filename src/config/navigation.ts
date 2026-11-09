@@ -1,4 +1,5 @@
 import "server-only";
+import { hasExplicitPermission } from "@/lib/authorization/permission-check";
 
 export type NavigationStatus = "DEEP" | "FRAME" | "DEFERRED" | "LEGACY_MOCK";
 
@@ -145,8 +146,16 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         route: "/quan-tri",
         iconName: "ShieldCheck",
         moduleKey: "m00",
-        requiredPermission: "m00:admin",
+        requiredPermission: "m00:membership:read",
         status: "LEGACY_MOCK",
+      },
+      {
+        title: "Tài khoản & Phân quyền",
+        route: "/quan-tri/tai-khoan",
+        iconName: "Users",
+        moduleKey: "m00",
+        requiredPermission: "m00:membership:manage",
+        status: "DEEP",
       },
     ],
   },
@@ -164,39 +173,11 @@ export function hasPermission(
     return true;
   }
 
-  // Superuser admin bypass
-  if (
-    userRoles.includes("LANH_DAO_XA") ||
-    userRoles.includes("SYSTEM_ADMIN") ||
-    userRoles.includes("admin") ||
-    userPermissions.includes("m00:admin") ||
-    userPermissions.includes("*")
-  ) {
-    return true;
-  }
-
-  // Check role requirement
-  if (item.requiredRole && userRoles.includes(item.requiredRole)) {
-    return true;
-  }
-
-  // Check permission requirement
-  if (item.requiredPermission) {
-    const required = item.requiredPermission;
-    if (userPermissions.includes(required)) return true;
-
-    // Check wildcard prefix (e.g. m01:* matches m01:work:read)
-    const [modulePrefix] = required.split(":");
-    if (
-      userPermissions.includes(`${modulePrefix}:*`) ||
-      userPermissions.includes(`${modulePrefix}:full`) ||
-      userPermissions.includes(`${modulePrefix}:view`)
-    ) {
-      return true;
-    }
-  }
-
-  return false;
+  // Both conditions must hold when both are configured; no leader/admin bypass.
+  return (
+    (!item.requiredRole || userRoles.includes(item.requiredRole)) &&
+    (!item.requiredPermission || hasExplicitPermission(userPermissions, item.requiredPermission))
+  );
 }
 
 /**
@@ -223,14 +204,17 @@ export function canAccessRoute(
   userPermissions: readonly string[] = [],
   userRoles: readonly string[] = []
 ): boolean {
+  // Evaluate the most specific registered route first. A parent /quan-tri
+  // permission must not shadow /quan-tri/tai-khoan's stricter manage grant.
+  let match: NavigationItem | undefined;
   for (const group of NAVIGATION_REGISTRY) {
     for (const item of group.items) {
       if (item.route === route || route.startsWith(item.route + "/")) {
-        return hasPermission(item, userPermissions, userRoles);
+        if (!match || item.route.length > match.route.length) match = item;
       }
     }
   }
-  return true;
+  return match ? hasPermission(match, userPermissions, userRoles) : true;
 }
 
 /**
