@@ -50,7 +50,7 @@ export function NotificationList({ view }: { view: NotificationsView }) {
   if (view.status === "demo") return <div role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-900">
     Phiên demo không có thông báo xác thực. Đăng nhập bằng tài khoản thật để sử dụng trung tâm thông báo.
   </div>;
-  if (view.status === "unavailable") return <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-800">
+  if (view.status !== "ready") return <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-800">
     Chưa tải được thông báo. Kiểm tra kết nối và migration dữ liệu trước khi sử dụng.
   </div>;
   if (view.total === 0) return <div role="status" className="rounded-xl border border-slate-200 bg-white p-10 text-center">
