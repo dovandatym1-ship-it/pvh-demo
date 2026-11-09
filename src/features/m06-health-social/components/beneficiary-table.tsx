@@ -80,7 +80,7 @@ export function BeneficiaryTable({ items: initialItems, canUnmaskPII, canManage 
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
             <input
               type="text"
-              placeholder="Tìm theo họ tên, CCCD..."
+              placeholder="Tìm theo họ tên hoặc số căn cước..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-8 pr-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-emerald-600"
@@ -92,7 +92,7 @@ export function BeneficiaryTable({ items: initialItems, canUnmaskPII, canManage 
             onChange={(e) => setSelectedHamlet(e.target.value)}
             className="text-xs border border-slate-300 rounded px-2.5 py-1.5 bg-white text-slate-700"
           >
-            <option value="ALL">Tất cả thôn/xóm</option>
+            <option value="ALL">Tất cả thôn, xóm</option>
             <option value="A1">Xóm A1</option>
             <option value="A2">Xóm A2</option>
             <option value="A3">Xóm A3</option>
@@ -127,9 +127,9 @@ export function BeneficiaryTable({ items: initialItems, canUnmaskPII, canManage 
               <TableHead>Địa bàn</TableHead>
               <TableHead>Diện trợ cấp</TableHead>
               <TableHead className="text-right">Mức trợ cấp</TableHead>
-              <TableHead>Bệnh lý / Tình trạng</TableHead>
+              <TableHead>Bệnh lý hoặc tình trạng</TableHead>
               <TableHead className="text-center">Trạng thái</TableHead>
-              {canManage && <TableHead className="text-right">Tác vụ</TableHead>}
+              {canManage && <TableHead className="text-right">Thao tác</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
