@@ -1,23 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
+import { PersonalContactSchema, PasswordChangeSchema } from "../schemas";
 import { getRequestContext } from "@/lib/auth/request-context";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { ok, fail, type Result } from "@/lib/types/result";
 
-const ProfileInput = z.object({
-  displayName: z.string().trim().min(2, "Họ tên hiển thị phải từ 2 ký tự").max(80).regex(/^[^<>\\r\\n]+$/, "Không được dùng ký tự đặc biệt này"),
-  contactPhone: z.string().trim().max(20).regex(/^(?:|\\+?[0-9 ()-]{9,20})$/, "Số liên hệ không hợp lệ"),
-}).strict();
-
-const PasswordInput = z.object({
-  currentPassword: z.string().min(1),
-  newPassword: z.string().min(12).max(72),
-}).strict();
-
 export async function updateOwnProfileAction(input: unknown): Promise<Result<{ displayName: string; contactPhone: string }>> {
-  const parsed = ProfileInput.safeParse(input);
+  const parsed = PersonalContactSchema.safeParse(input);
   if (!parsed.success) return fail("VALIDATION", "Dữ liệu cá nhân chưa hợp lệ", parsed.error.flatten());
   try {
     const ctx = await getRequestContext();
@@ -37,10 +27,8 @@ export async function updateOwnProfileAction(input: unknown): Promise<Result<{ d
 }
 
 export async function changeOwnPasswordAction(input: unknown): Promise<Result<{ changed: true }>> {
-  const parsed = PasswordInput.safeParse(input);
+  const parsed = PasswordChangeSchema.safeParse(input);
   if (!parsed.success) return fail("VALIDATION", "Mật khẩu mới phải từ 12 đến 72 ký tự");
-  if (parsed.data.currentPassword === parsed.data.newPassword)
-    return fail("VALIDATION", "Mật khẩu mới phải khác mật khẩu hiện tại");
   try {
     const ctx = await getRequestContext();
     const db = await createServerSupabaseClient();
