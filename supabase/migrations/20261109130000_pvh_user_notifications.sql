@@ -105,3 +105,71 @@ for each row execute function public.pvh_emit_work_item_notification();
 
 -- The UI only supports read-after-write; due-date scheduled reminders, push/email,
 -- read-all, bulk archive, and user preference delivery are deferred to later phases.
+
+
+-- Private, size-limited avatar bucket for authenticated self-service.
+-- Applied only after the existing main/deployed single-commune migration history is reconciled.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('pvh-avatars', 'pvh-avatars', false, 1048576, array['image/jpeg']::text[])
+on conflict (id) do nothing;
+
+do $$
+begin
+  if not exists (
+    select 1 from storage.buckets where id='pvh-avatars'
+      and public=false and file_size_limit <= 1048576
+      and allowed_mime_types = array['image/jpeg']::text[]
+  ) then
+    raise exception 'PVH_AVATAR_BUCKET_POLICY_MISMATCH';
+  end if;
+end $$;
+
+-- A private object is located only at the authenticated user's own UUID path.
+-- Membership remains a live constraint, not an editable Auth metadata claim.
+create policy pvh_avatar_owner_read on storage.objects for select to authenticated
+using (
+  bucket_id='pvh-avatars'
+  and name=(select auth.uid())::text || '/avatar.jpg'
+  and exists(select 1 from public.memberships m
+      where m.user_id=(select auth.uid())
+        and m.is_active and m.valid_from <= now()
+        and (m.valid_to is null or m.valid_to > now()))
+);
+
+create policy pvh_avatar_owner_create on storage.objects for insert to authenticated
+with check (
+  bucket_id='pvh-avatars'
+  and name=(select auth.uid())::text || '/avatar.jpg'
+  and exists(select 1 from public.memberships m
+      where m.user_id=(select auth.uid())
+        and m.is_active and m.valid_from <= now()
+        and (m.valid_to is null or m.valid_to > now()))
+);
+
+create policy pvh_avatar_owner_replace on storage.objects for update to authenticated
+using (
+  bucket_id='pvh-avatars'
+  and name=(select auth.uid())::text || '/avatar.jpg'
+  and exists(select 1 from public.memberships m
+      where m.user_id=(select auth.uid())
+        and m.is_active and m.valid_from <= now()
+        and (m.valid_to is null or m.valid_to > now()))
+)
+with check (
+  bucket_id='pvh-avatars'
+  and name=(select auth.uid())::text || '/avatar.jpg'
+  and exists(select 1 from public.memberships m
+      where m.user_id=(select auth.uid())
+        and m.is_active and m.valid_from <= now()
+        and (m.valid_to is null or m.valid_to > now()))
+);
+
+create policy pvh_avatar_owner_delete on storage.objects for delete to authenticated
+using (
+  bucket_id='pvh-avatars'
+  and name=(select auth.uid())::text || '/avatar.jpg'
+  and exists(select 1 from public.memberships m
+      where m.user_id=(select auth.uid())
+        and m.is_active and m.valid_from <= now()
+        and (m.valid_to is null or m.valid_to > now()))
+);
