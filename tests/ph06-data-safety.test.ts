@@ -57,3 +57,11 @@ test("M07 applies explicit route guard; education never sends private owner CCCD
   assert.match(source("src/app/(app)/dan-toc-ton-giao/page.tsx"), /assertCanViewFaith\(ctx\)/);
   assert.match(source("src/app/(app)/giao-duc/page.tsx"), /ownerCccd:\s*_secret/);
 });
+
+test("territorial boundaries checked for M02/M06 read queries and M06 writes", () => {
+  for (const domain of ["m02-internal-affairs", "m06-health-social"]) {
+    assert.match(source("src/features/" + domain + "/server/queries.ts"), /query\.in\("hamlet_id"/);
+  }
+  assert.match(source("src/features/m06-health-social/server/actions.ts"), /assertCanAccessHamlet\(ctx,\s*hamletId\)/);
+  assert.match(source("src/features/m06-health-social/server/actions.ts"), /assertCanAccessHamlet\(ctx,\s*String\(beneficiary\.hamlet_id\)\)/);
+});

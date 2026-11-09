@@ -12,11 +12,16 @@ import type {
 export async function getSocialBeneficiaries(ctx: RequestContext): Promise<SocialBeneficiaryDTO[]> {
   const supabase = await createServerSupabaseClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("social_protection_beneficiaries")
     .select("*")
     .eq("tenant_id", ctx.tenantId)
     .order("created_at", { ascending: true });
+  if (ctx.scopes.hamletIds) {
+    if (ctx.scopes.hamletIds.length === 0) return [];
+    query = query.in("hamlet_id", [...ctx.scopes.hamletIds]);
+  }
+  const { data, error } = await query;
 
   if (error) {
     throw new Error("Không thể tải dữ liệu chuyên ngành; vui lòng thử lại.");
@@ -96,11 +101,16 @@ export async function getMedicalFacilities(ctx: RequestContext): Promise<Medical
 export async function getEpidemicLogs(ctx: RequestContext): Promise<EpidemicLogDTO[]> {
   const supabase = await createServerSupabaseClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("epidemic_logs")
     .select("*")
     .eq("tenant_id", ctx.tenantId)
     .order("reported_date", { ascending: false });
+  if (ctx.scopes.hamletIds) {
+    if (ctx.scopes.hamletIds.length === 0) return [];
+    query = query.in("hamlet_id", [...ctx.scopes.hamletIds]);
+  }
+  const { data, error } = await query;
 
   if (error) {
     throw new Error("Không thể tải dữ liệu chuyên ngành; vui lòng thử lại.");

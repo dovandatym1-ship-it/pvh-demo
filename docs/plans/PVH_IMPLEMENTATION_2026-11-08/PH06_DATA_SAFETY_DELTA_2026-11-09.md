@@ -16,3 +16,9 @@
 - Cần kiểm tra thêm những dữ liệu cá nhân được phép hiển thị (họ tên, dân tộc, người đại diện), điều kiện purpose/retention, và xuất báo cáo; không coi test tĩnh là bằng chứng tuân thủ.
 
 **Gate G6: BLOCKED** cho đến khi G5 được owner duyệt cùng E2E RLS/Storage/DB readback.
+
+## Phần mở rộng kiểm soát địa bàn
+- Truy vấn M02 Người có công, M06 bảo trợ và dịch tễ áp dụng điều kiện `hamlet_id IN (hamletIds)` khi phiên người dùng có giới hạn thôn/xóm; scope rỗng trả tập rỗng.
+- M06 tạo hồ sơ và ghi nhận đối soát chi trả kiểm tra thôn/xóm thuộc phân công; đối soát tra cứu hồ sơ theo tenant trước khi gọi RPC.
+- Mã bản ghi bảo trợ chuyển từ 4 chữ số mili-giây dễ trùng sang định danh ngẫu nhiên.
+- Chưa xác nhận các bảng M02/M06 có RLS hamlet đồng nhất, chưa có atomic audited RPC và dữ liệu kiểm thử thật; CI mới là kiểm tra tĩnh/type/build.

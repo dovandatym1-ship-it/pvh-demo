@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getRequestContext } from "@/lib/auth/request-context";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { CreateBeneficiarySchema, RecordPaymentSchema } from "../schemas/health-social.schema";
-import { assertCanManageBeneficiaries, assertCanRecordPayment } from "./policy";
+import { assertCanManageBeneficiaries, assertCanRecordPayment, assertCanAccessHamlet } from "./policy";
 import { type Result, ok, fail } from "@/lib/types/result";
 
 export async function createBeneficiaryAction(
@@ -23,7 +23,8 @@ export async function createBeneficiaryAction(
     }
 
     const { fullName, cccd, phone, hamletId, aidCategory, monthlyAmount, diagnosis, healthInsuranceProvided } = parsed.data;
-    const generatedCode = `BT-${Date.now().toString().slice(-4)}`;
+    assertCanAccessHamlet(ctx, hamletId);
+    const generatedCode = `BT-${crypto.randomUUID().slice(0, 12).toUpperCase()}`;
 
     const supabase = await createServerSupabaseClient();
     const { data, error } = await supabase
@@ -86,8 +87,18 @@ export async function recordSocialAidPaymentAction(
 
     const { beneficiaryId, idempotencyKey } = parsed.data;
     const supabase = await createServerSupabaseClient();
+    // Verify tenant and territorial scope before the RPC; errors must never imply success.
+    const { data: beneficiary, error: lookupError } = await supabase
+      .from("social_protection_beneficiaries")
+      .select("hamlet_id")
+      .eq("tenant_id", ctx.tenantId)
+      .eq("id", beneficiaryId)
+      .maybeSingle();
+    if (lookupError) return fail("INTERNAL", "Không thể đối chiếu phạm vi hồ sơ.");
+    if (!beneficiary) return fail("NOT_FOUND", "Không tìm thấy hồ sơ thuộc đơn vị hiện tại.");
+    assertCanAccessHamlet(ctx, String(beneficiary.hamlet_id));
 
-    // Call RPC or fallback direct update
+    // Only the audited RPC may record an external reconciliation
     const { error } = await supabase.rpc("record_social_aid_payment", {
       p_tenant_id: ctx.tenantId,
       p_beneficiary_id: beneficiaryId,

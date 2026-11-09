@@ -7,11 +7,16 @@ import type { NCCBeneficiaryDTO, LaborContractDTO, LaborDisputeDTO } from "../ty
 export async function getNCCBeneficiaries(ctx: RequestContext): Promise<NCCBeneficiaryDTO[]> {
   const supabase = await createServerSupabaseClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("ncc_beneficiaries")
     .select("*")
     .eq("tenant_id", ctx.tenantId)
     .order("code", { ascending: true });
+  if (ctx.scopes.hamletIds) {
+    if (ctx.scopes.hamletIds.length === 0) return [];
+    query = query.in("hamlet_id", [...ctx.scopes.hamletIds]);
+  }
+  const { data, error } = await query;
 
   if (error) {
     throw new Error("Không thể tải dữ liệu chuyên ngành; vui lòng thử lại.");
