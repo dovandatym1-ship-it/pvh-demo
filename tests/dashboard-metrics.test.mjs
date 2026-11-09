@@ -38,6 +38,7 @@ test("Tenant and role scopes are enforced before aggregation", () => {
   assert.deepEqual(scopeWorkItems(fixture, P4).map((i) => i.id), ["a", "c", "d", "e"]);
   assert.deepEqual(scopeWorkItems(fixture, P2).map((i) => i.id), ["a", "c", "d", "e", "g"]);
   assert.equal(scopeWorkItems(fixture, { ...P4, scopes: {} }).length, 0);
+  assert.deepEqual(scopeWorkItems(fixture, { ...P2, scopes: {} }).map((i) => i.id), ["a", "d", "e", "g"]);
   assert.ok(!scopeWorkItems(fixture, P1).some((i) => i.id === "secret"));
 });
 
