@@ -101,7 +101,7 @@ export function DashboardView({
         {roleView.cards.map((card) => (
           <button type="button" key={card.id} className={styles.kpi + " " + (
             card.tone === "bad" ? styles.kpiBad : card.tone === "warn" ? styles.kpiWarn : card.tone === "info" ? styles.kpiInfo : styles.kpiPrimary
-          )} onClick={() => setFilter(card.filter)}>
+          )} onClick={() => { setFilter(card.filter); if (allowedRoutes.includes("/cong-viec")) router.push("/cong-viec?dashboardFilter=" + encodeURIComponent(card.filter)); }}>
             <span className={styles.kpiLabel}>{card.label}</span>
             <span className={styles.kpiValue}>{card.value}</span>
             <span className={styles.kpiFoot}>{card.detail} <span aria-hidden="true">↗</span></span>
