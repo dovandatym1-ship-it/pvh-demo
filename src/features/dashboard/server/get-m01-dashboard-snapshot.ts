@@ -104,7 +104,18 @@ export async function getM01DashboardSnapshot(ctx: RequestContext): Promise<Dash
   ]);
   if (last.error || queue.error) throw new Error("DB_ERROR: Không tải được danh sách thống kê M01");
 
-  const rows = (queue.data || []) as Record<string, unknown>[];
+  const rawRows: unknown = queue.data;
+  if (!Array.isArray(rawRows)) throw new Error("DB_ERROR: Phản hồi danh sách công việc không hợp lệ");
+  const rows = rawRows.map(value => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("DB_ERROR: Công việc thiếu dữ liệu");
+    const row = value as Record<string, unknown>;
+    if (typeof row.id !== "string" || typeof row.tenant_id !== "string" ||
+        typeof row.title !== "string" || typeof row.status !== "string" ||
+        typeof row.created_at !== "string" || typeof row.updated_at !== "string") {
+      throw new Error("DB_ERROR: Bản ghi công việc không đầy đủ");
+    }
+    return row;
+  });
   const items: DashboardItem[] = rows.map(row => ({
     id: String(row.id), tenantId: String(row.tenant_id), title: String(row.title),
     status: String(row.status), priority: String(row.priority), category: String(row.category),
@@ -132,12 +143,16 @@ export async function getM01DashboardSnapshot(ctx: RequestContext): Promise<Dash
     { key: "later", label: "Trên 7 ngày", count: ages[4] },
     { key: "unset", label: "Chưa có hạn", count: ages[5] },
   ];
+  const lastRows: unknown = last.data;
+  const lastEntry = Array.isArray(lastRows) && lastRows[0] && typeof lastRows[0] === "object" &&
+    !Array.isArray(lastRows[0]) ? lastRows[0] as Record<string, unknown> : null;
+  const lastUpdated = typeof lastEntry?.updated_at === "string" ? lastEntry.updated_at : null;
   return {
     today, role, userId: ctx.userId, items, total, open: active, overdue: overdueCount,
     dueSoon, review, focus: { label: "Việc chưa đóng", value: active },
     queueIds: items.map(item => item.id), queueCount: active, statuses, domains,
     workload: [], hamlets: [], weekly, eventsAvailable: false,
-    lastUpdated: last.data?.[0]?.updated_at ? String(last.data[0].updated_at) : null,
+    lastUpdated,
     demo: ctx.tenantId.startsWith("TN-DEMO-"), scopeLabel, roleLabel,
     serverSummary: { total, open: active, overdue: overdueCount, dueSoon, returned,
       unassigned, review, ages: aging, statuses, domains },
