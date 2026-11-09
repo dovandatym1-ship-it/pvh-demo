@@ -27,6 +27,7 @@ test("shared layout and login must not contain frozen Thái Nguyên / Định H�
 
 test("explicit empty entitlement must never render full fallback navigation", () => {
   const source = read("src/components/layout/sidebar.tsx");
-  assert.match(source, /groups \?\? DEFAULT_GROUPS/);
+  assert.ok(/groups \?\? DEFAULT_GROUPS/.test(source) || /groups === undefined \? DEFAULT_GROUPS : groups/.test(source),
+    "explicit empty group list must remain empty");
   assert.doesNotMatch(source, /groups\.length\s*>\s*0/);
 });

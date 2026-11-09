@@ -9,8 +9,8 @@ import { deploymentBrand } from "@/config/deployment-brand";
 function roleLabel(roles: readonly string[]): string {
   if (roles.includes("SYSTEM_ADMIN") || roles.includes("admin")) return "Quản trị viên hệ thống";
   if (roles.includes("LANH_DAO_XA")) return "Lãnh đạo cấp xã";
-  if (roles.includes("CONG_CHUC_VHXH") || roles.includes("CAN_BO_KIEM_NHIEM") || roles.includes("WORK_OFFICER")) return "Công chức Văn hóa – Xã hội";
-  if (roles.includes("CAN_BO_MOT_CUA")) return "Cán bộ Một cửa";
+  if (roles.includes("CONG_CHUC_VHXH") || roles.includes("CAN_BO_KIEM_NHIEM") || roles.includes("WORK_OFFICER")) return "Công chức văn hóa – xã hội";
+  if (roles.includes("CAN_BO_MOT_CUA")) return "Cán bộ bộ phận một cửa";
   if (roles.includes("CAN_BO_THANH_TRA") || roles.includes("AUDITOR")) return "Cán bộ kiểm tra";
   if (roles.includes("TRUONG_THON")) return "Cán bộ thôn, xóm";
   return "Người sử dụng";

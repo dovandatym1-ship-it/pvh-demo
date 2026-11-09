@@ -21,17 +21,17 @@ export default async function DanTocTonGiaoPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-          Công tác Dân tộc & Tôn giáo
+          Công tác dân tộc và tôn giáo
         </h1>
         <p className="text-sm text-gray-500">
-          Quản lý cơ sở tín ngưỡng, điểm nhóm sinh hoạt và chính sách đồng bào DTTS trên địa bàn xã
+          Quản lý cơ sở tín ngưỡng, điểm nhóm sinh hoạt và chính sách đồng bào dân tộc thiểu số trên địa bàn xã
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium text-gray-600">Cơ sở tín ngưỡng / tôn giáo</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Cơ sở tín ngưỡng, tôn giáo</CardTitle>
             <Landmark className="w-4 h-4 text-indigo-600" />
           </CardHeader>
           <CardContent>
@@ -53,7 +53,7 @@ export default async function DanTocTonGiaoPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium text-gray-600">Người có uy tín trong DTTS</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Người có uy tín trong đồng bào dân tộc thiểu số</CardTitle>
             <HeartHandshake className="w-4 h-4 text-green-600" />
           </CardHeader>
           <CardContent>
@@ -64,12 +64,12 @@ export default async function DanTocTonGiaoPage() {
       </div>
 
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-800">Danh mục cơ sở tín ngưỡng & điểm nhóm tôn giáo</h2>
+        <h2 className="text-lg font-semibold text-gray-800">Danh mục cơ sở tín ngưỡng và điểm nhóm tôn giáo</h2>
         <EstablishmentTable items={establishments} userPermissions={ctx.permissions} />
       </div>
 
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-800">Danh sách người có uy tín trong đồng bào DTTS</h2>
+        <h2 className="text-lg font-semibold text-gray-800">Danh sách người có uy tín trong đồng bào dân tộc thiểu số</h2>
         <ReputablePersonTable items={reputablePersons} userPermissions={ctx.permissions} />
       </div>
     </div>

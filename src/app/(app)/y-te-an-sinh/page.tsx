@@ -33,7 +33,7 @@ export default async function YTeAnSinhAppPage() {
           <div className="flex items-center gap-2">
             <HeartHandshake className="w-6 h-6 text-[#1F633E]" />
             <h1 className="text-xl font-bold text-slate-900">
-              Y tế & An sinh xã hội
+              Y tế và an sinh xã hội
             </h1>
           </div>
           <p className="mt-1 text-xs text-slate-600">

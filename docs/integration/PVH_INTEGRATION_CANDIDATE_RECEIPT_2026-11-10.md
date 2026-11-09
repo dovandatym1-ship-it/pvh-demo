@@ -37,8 +37,8 @@ Các file `20261108000001`–`20261108000009` trong main được **giữ lại 
 ## Cổng nghiệm thu còn thiếu
 - PH01/02 unique-tip audit và backport chính xác.
 - PH03/04/05 fix PR #8–#10 và PH06 safety PR #11 được đối chiếu theo file/commit, không merge chồng branch.
-- Dashboard, login split-screen, profile/notifications, chuẩn thuật ngữ tiếng Việt cần review riêng; không thay thế source khi chưa audit.
-- npm security audit còn cảnh báo; staging RLS/Storage/DB/E2E/UAT NOT_RUN.
+- Dashboard, login split-screen, profile/notifications và chuẩn tiếng Việt đã được đưa từng phần vào candidate có kiểm soát; còn cần CI và kiểm thử thực tế.
+- Security audit từng PASS tại `49cef46b`; phải tái kiểm ở HEAD. Staging RLS/Storage/DB/E2E/UAT vẫn NOT_RUN.
 - **Không merge main, không deploy Vercel, không chạy migration trên Demo-pvh**. Owner Đỗ Văn Đạt duyệt lần cuối.
 
 ## Bổ sung PR safety/UX tương thích cây nguồn
@@ -72,3 +72,10 @@ Khôi phục từ `fix/pvh-ph02-completion-20261109` các màn tạo việc, l�
 - Tiếp nhận 20 tệp chức năng/tài liệu/SQL/test từ `feat/pvh-personal-profile-notifications-20261109`, không chép đè sidebar/layout của main/PH06. Topbar dùng popover thông báo/tài khoản, theo dõi đã đọc, ảnh đại diện private; AppShell mới giữ menu responsive, đóng bằng Escape, trả focus, không lộ menu thiếu quyền.
 - Server Actions giới hạn tài khoản auth chính chủ; không cho client sửa quyền, scope, tenant; thông báo được phát sinh từ database trigger, không dùng thông báo giả hoặc email tự phát.
 - Migration `20261109130000_pvh_user_notifications.sql` **CHƯA ÁP DỤNG** vì lịch sử migration còn cần đối soát; notification query trả unavailable khi DB chưa sẵn sàng. Cần kiểm thử bucket Storage/RLS thật trước G-SEC.
+
+
+## Chuẩn tiếng Việt và login Split Screen — candidate
+- Áp các nhãn ngôn ngữ khớp đúng phần code hiện tại từ `fix/pvh-vietnamese-language-standardization-20261109`, giữ nguyên những tuyến trang đã được thay bằng workspace PH03/PH06 để không phục hồi mock. Chuyển nhãn điều hướng và cụm từ trong các bảng, không đổi enum/quyền/RPC/DB.
+- Đưa `docs/ux/PVH_VIETNAMESE_LANGUAGE_STANDARD.md` và bộ quét tĩnh vào CI; các thay đổi chưa qua review ngữ cảnh nghiệp vụ/truy xuất bản xuất phải kiểm chứng tiếp.
+- Chọn màn đăng nhập Split Screen từ `feat/pvh-government-login-split-screen`, giữ `deploymentBrand` và luồng xác thực Supabase. Có xử lý loading/lỗi, hiện/ẩn mật khẩu, tương thích mobile; chưa có ảnh browser đa kích thước, nên G-UX vẫn BLOCKED.
+- PH05/sidebar và profile đều cam kết **nhóm menu được cấp quyền rỗng không fallback mặc định**. Điều chỉnh test PH05 chấp nhận hai cách viết tương đương, không hạ điều kiện chặn. Chưa áp migration cloud.

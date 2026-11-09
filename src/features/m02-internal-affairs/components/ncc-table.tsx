@@ -37,7 +37,7 @@ export function NCCTable({ items, canUnmaskPII }: NCCTableProps) {
         >
           <option value="ALL">Tất cả diện chính sách</option>
           <option value="THUONG_BINH">Thương binh</option>
-          <option value="BA_ME_VNAH">Bà Mẹ VNAH</option>
+          <option value="BA_ME_VNAH">Bà mẹ Việt Nam anh hùng</option>
           <option value="BENH_BINH">Bệnh binh</option>
           <option value="CHAT_DOC_HOA_HOC">Chất độc hóa học</option>
           <option value="LIET_SI">Liệt sĩ</option>
@@ -53,8 +53,8 @@ export function NCCTable({ items, canUnmaskPII }: NCCTableProps) {
               <TableHead>CCCD (PII)</TableHead>
               <TableHead>Địa bàn</TableHead>
               <TableHead>Diện chính sách</TableHead>
-              <TableHead>Danh hiệu / Huân chương</TableHead>
-              <TableHead className="text-right">Trợ cấp hàng tháng</TableHead>
+              <TableHead>Danh hiệu, huân chương</TableHead>
+              <TableHead className="text-right">Trợ cấp hằng tháng</TableHead>
               <TableHead className="text-center">Trạng thái</TableHead>
             </TableRow>
           </TableHeader>
@@ -77,7 +77,7 @@ export function NCCTable({ items, canUnmaskPII }: NCCTableProps) {
                 </TableCell>
                 <TableCell className="text-xs text-slate-700 font-medium">
                   {item.category === "BA_ME_VNAH"
-                    ? "Bà Mẹ VNAH"
+                    ? "Bà mẹ Việt Nam anh hùng"
                     : item.category === "THUONG_BINH"
                     ? "Thương binh"
                     : item.category === "BENH_BINH"

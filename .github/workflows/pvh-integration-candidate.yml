@@ -32,6 +32,8 @@ jobs:
       - run: npm run test:ph04
       - run: node --experimental-strip-types --test tests/ph04-presentation.test.mjs
       - run: node --experimental-strip-types --test tests/ph05-clone-brand.test.mjs
+      - run: node scripts/check-vietnamese-ui.mjs
+      - run: node --test tests/locale-and-login.test.mjs
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run fitness

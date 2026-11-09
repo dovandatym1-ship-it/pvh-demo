@@ -59,33 +59,33 @@ export interface NavigationGroupDisplay {
 
 const DEFAULT_GROUPS: NavigationGroupDisplay[] = [
   {
-    title: "Điều hành & Tác nghiệp",
+    title: "Điều hành và tác nghiệp",
     items: [
       { title: "Bàn làm việc", route: "/ban-lam-viec", iconName: "LayoutDashboard" },
       { title: "Quản lý công việc", route: "/cong-viec", iconName: "CalendarCheck" },
     ],
   },
   {
-    title: "Chuyên ngành VH-XH",
+    title: "Chuyên ngành văn hóa – xã hội",
     items: [
-      { title: "Nội vụ & Lao động", route: "/noi-vu", iconName: "Building" },
-      { title: "Giáo dục & Đào tạo", route: "/giao-duc", iconName: "GraduationCap" },
+      { title: "Nội vụ và lao động", route: "/noi-vu", iconName: "Building" },
+      { title: "Giáo dục và đào tạo", route: "/giao-duc", iconName: "GraduationCap" },
       { title: "Gia đình văn hóa", route: "/van-hoa/gia-dinh-van-hoa", iconName: "Sparkles" },
-      { title: "Thôn / Xóm văn hóa", route: "/van-hoa/thon-van-hoa", iconName: "Compass" },
-      { title: "Khoa học & Chuyển đổi số", route: "/khcn-chuyen-doi-so", iconName: "Cpu" },
-      { title: "Y tế & An sinh xã hội", route: "/y-te-an-sinh", iconName: "HeartHandshake" },
-      { title: "Dân tộc & Tôn giáo", route: "/dan-toc-ton-giao", iconName: "Compass" },
+      { title: "Thôn, xóm văn hóa", route: "/van-hoa/thon-van-hoa", iconName: "Compass" },
+      { title: "Khoa học và chuyển đổi số", route: "/khcn-chuyen-doi-so", iconName: "Cpu" },
+      { title: "Y tế và an sinh xã hội", route: "/y-te-an-sinh", iconName: "HeartHandshake" },
+      { title: "Dân tộc và tôn giáo", route: "/dan-toc-ton-giao", iconName: "Compass" },
     ],
   },
   {
-    title: "Kiểm tra, Báo cáo & Nền tảng",
+    title: "Kiểm tra, báo cáo và quản trị",
     items: [
-      { title: "Kiểm tra & Kiến nghị", route: "/kiem-tra", iconName: "ClipboardList" },
+      { title: "Kiểm tra và kiến nghị", route: "/kiem-tra", iconName: "ClipboardList" },
       { title: "Báo cáo thống kê", route: "/bao-cao", iconName: "BarChart3" },
       { title: "Nhập chỉ tiêu có nguồn", route: "/nhap-chi-tieu", iconName: "FileInput" },
       { title: "Dữ liệu dùng chung", route: "/du-lieu-dung-chung", iconName: "Database" },
       { title: "Cổng tích hợp liên thông", route: "/tich-hop", iconName: "RefreshCw" },
-      { title: "Quản trị hệ thống & Cán bộ", route: "/quan-tri", iconName: "ShieldCheck" },
+      { title: "Quản trị hệ thống và cán bộ", route: "/quan-tri", iconName: "ShieldCheck" },
     ],
   },
 ];
