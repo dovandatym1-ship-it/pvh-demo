@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Bell, ChevronDown, LogOut, Settings2, UserRound } from "lucide-react";
+import { logoutAction } from "@/lib/auth/actions";
 import { notificationLabel } from "../presentation";
 import type { NotificationsView } from "../server/queries";
 
@@ -65,8 +66,10 @@ export function AccountMenu({ roleLabel }: { roleLabel: string }) {
         <Settings2 size={16} aria-hidden="true"/> Quản lý thông báo
       </Link>
       <div className="my-1 border-t border-slate-100"/>
-      <form action="/logout" method="post">
-        <p className="px-3 py-2 text-xs text-slate-400">Đăng xuất bằng nút trên thanh hệ thống hoặc trang cá nhân.</p>
+      <form action={logoutAction}>
+        <button type="submit" className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-rose-700 hover:bg-rose-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
+          <LogOut size={16} aria-hidden="true"/> Đăng xuất
+        </button>
       </form>
     </div>}
   </div>;
