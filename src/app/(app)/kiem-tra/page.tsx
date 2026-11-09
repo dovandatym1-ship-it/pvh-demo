@@ -30,7 +30,7 @@ export default async function KiemTraAppPage() {
           <div className="flex items-center gap-2">
             <ClipboardList className="w-6 h-6 text-[#1F633E]" />
             <h1 className="text-xl font-bold text-slate-900">
-              Kiểm tra & Xử lý kiến nghị liên ngành
+              Kiểm tra và xử lý kiến nghị liên ngành
             </h1>
           </div>
           <p className="mt-1 text-xs text-slate-600">
