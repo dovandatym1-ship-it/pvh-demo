@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, 'feat/pvh-ph02-core-workflow']
   pull_request:
-    branches: [main, master]
+    branches: [main, master, 'feat/pvh-ph01-platform-auth']
 
 jobs:
   validate:
@@ -28,6 +28,9 @@ jobs:
 
       - name: PH01 explicit-permission and demo-auth regression
         run: node --test tests/security/*.test.mjs
+
+      - name: PH02 M01 workflow projection regression
+        run: node --experimental-strip-types --test tests/m01-*.test.mjs
 
       - name: Type check
         run: npm run typecheck
