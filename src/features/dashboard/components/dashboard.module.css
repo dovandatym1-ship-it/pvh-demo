@@ -1,15 +1,15 @@
 .dashboard {
-  --dash-bg: #f8fafc;
+  --dash-bg: #f6f8f7;
   --dash-panel: #fff;
   --dash-panel-alt: #f1f5f9;
   --dash-ink: #142235;
   --dash-muted: #64748b;
   --dash-border: #e2e8f0;
   --dash-strong: #cbd5e1;
-  --dash-primary: #1f633e;
-  --dash-primary-soft: #eef7f1;
+  --dash-primary: #1f633e; /* PVH gov-600, tailwind.config.ts */
+  --dash-primary-soft: #f2f8f4; /* PVH gov-50 */
   --dash-chart: #1f633e;
-  --dash-chart-alt: #0284c7;
+  --dash-chart-alt: #5f8c72;
   --dash-track: #e6ebef;
   --dash-shadow: 0 1px 2px rgb(17 24 39 / 5%);
   min-height: 100%;
@@ -126,7 +126,7 @@
 .kpiValue { font-size: clamp(28px, 3vw, 39px); font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .kpiBad .kpiValue { color: #dc3553; }
 .kpiWarn .kpiValue { color: #ca7b13; }
-.kpiInfo .kpiValue { color: #0284c7; }
+.kpiInfo .kpiValue { color: var(--dash-primary); }
 .kpiPrimary .kpiValue { color: var(--dash-primary); }
 .kpiFoot { justify-content: space-between; gap: 5px; width: 100%; font-size: 11px; color: var(--dash-muted); }
 .kpiFoot svg { flex-shrink: 0; }
@@ -176,7 +176,7 @@
 .selectWrap select, .searchWrap input { min-width: 0; width: 100%; color: var(--dash-ink); background: transparent; border: 0; outline: 0; font-size: 12px; }
 .searchWrap input::placeholder { color: var(--dash-muted); }
 .checkLabel { display: inline-flex; align-items: center; white-space: nowrap; gap: 6px; font-size: 12px; color: var(--dash-ink); cursor: pointer; }
-.checkLabel input { accent-color: #1f633e; width: 15px; height: 15px; }
+.checkLabel input { accent-color: var(--dash-primary); width: 15px; height: 15px; }
 .tableScroll { overflow-x: auto; width: 100%; flex: 1; }
 .table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
 .table th { background: var(--dash-panel-alt); color: var(--dash-muted); font-size: 10px; text-transform: uppercase; letter-spacing: .02em; padding: 10px 8px; white-space: nowrap; }
@@ -291,3 +291,20 @@
   .roleMainGrid, .roleInsightsGrid { gap: 10px; }
   .roleInsightsGrid { margin-top: 10px; }
 }
+
+/* PVH Government Dashboard: restrained public-administration hierarchy, same gov palette as shell. */
+.titleArea { background: var(--dash-panel); border: 1px solid var(--dash-border); border-left: 4px solid var(--dash-primary); border-radius: 10px; padding: 18px 20px; }
+.roleEyebrow { letter-spacing: .055em; }
+.kpi { border-radius: 10px; box-shadow: none; }
+.kpi:hover { transform: none; border-color: var(--dash-primary); background: var(--dash-primary-soft); }
+.kpi:focus-visible { outline-color: var(--dash-primary); }
+.card { border-radius: 10px; box-shadow: none; }
+.kpiBad { border-top: 3px solid #b45309; }
+.kpiWarn { border-top: 3px solid #a16207; }
+.kpiInfo { border-top: 3px solid #5f8c72; }
+.kpiPrimary { border-top: 3px solid var(--dash-primary); }
+.kpiBad .kpiValue { color: #a34822; }
+.kpiWarn .kpiValue { color: #92610b; }
+.kpiFoot { line-height: 1.45; }
+.sourcePanel { background: var(--dash-panel); }
+@media (max-width: 480px) { .titleArea { padding: 14px; } .kpiValue { font-size: 26px; } }
