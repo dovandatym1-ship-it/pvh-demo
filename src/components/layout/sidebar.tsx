@@ -56,37 +56,37 @@ export interface NavigationGroupDisplay {
 
 const DEFAULT_GROUPS: NavigationGroupDisplay[] = [
   {
-    title: "Điều hành & Tác nghiệp",
+    title: "Điều hành và tác nghiệp",
     items: [
       { title: "Bàn làm việc", route: "/ban-lam-viec", iconName: "LayoutDashboard" },
       { title: "Quản lý công việc", route: "/cong-viec", iconName: "CalendarCheck" },
     ],
   },
   {
-    title: "Văn hóa - Thông tin & Giáo dục",
+    title: "Văn hóa, thông tin và giáo dục",
     items: [
       { title: "Gia đình văn hóa", route: "/van-hoa/gia-dinh-van-hoa", iconName: "Sparkles" },
-      { title: "Thôn / Xóm văn hóa", route: "/van-hoa/thon-van-hoa", iconName: "Landmark" },
-      { title: "Giáo dục & Đào tạo", route: "/giao-duc", iconName: "GraduationCap" },
-      { title: "Khoa học & Chuyển đổi số", route: "/khcn-chuyen-doi-so", iconName: "Cpu" },
+      { title: "Thôn, xóm văn hóa", route: "/van-hoa/thon-van-hoa", iconName: "Landmark" },
+      { title: "Giáo dục và đào tạo", route: "/giao-duc", iconName: "GraduationCap" },
+      { title: "Khoa học và chuyển đổi số", route: "/khcn-chuyen-doi-so", iconName: "Cpu" },
     ],
   },
   {
-    title: "Lao động, Y tế & Chính sách xã hội",
+    title: "Lao động, y tế và chính sách xã hội",
     items: [
-      { title: "Y tế & An sinh xã hội", route: "/y-te-an-sinh", iconName: "HeartHandshake" },
-      { title: "Nội vụ & Lao động", route: "/noi-vu", iconName: "Building" },
-      { title: "Dân tộc & Tôn giáo", route: "/dan-toc-ton-giao", iconName: "Compass" },
+      { title: "Y tế và an sinh xã hội", route: "/y-te-an-sinh", iconName: "HeartHandshake" },
+      { title: "Nội vụ và lao động", route: "/noi-vu", iconName: "Building" },
+      { title: "Dân tộc và tôn giáo", route: "/dan-toc-ton-giao", iconName: "Compass" },
     ],
   },
   {
-    title: "Kiểm tra, Báo cáo & Nền tảng",
+    title: "Kiểm tra, báo cáo và quản trị",
     items: [
-      { title: "Kiểm tra & Kiến nghị", route: "/kiem-tra", iconName: "ClipboardList" },
+      { title: "Kiểm tra và kiến nghị", route: "/kiem-tra", iconName: "ClipboardList" },
       { title: "Báo cáo thống kê", route: "/bao-cao", iconName: "BarChart3" },
       { title: "Dữ liệu dùng chung", route: "/du-lieu-dung-chung", iconName: "Database" },
       { title: "Cổng tích hợp liên thông", route: "/tich-hop", iconName: "RefreshCw" },
-      { title: "Quản trị hệ thống & Cán bộ", route: "/quan-tri", iconName: "ShieldCheck" },
+      { title: "Quản trị hệ thống và cán bộ", route: "/quan-tri", iconName: "ShieldCheck" },
     ],
   },
 ];
@@ -130,9 +130,9 @@ export function Sidebar({
             </div>
             <div>
               <h1 className="text-sm font-bold text-slate-800 leading-tight">
-                {tenant?.name || "UBND Xã Định Hóa"}
+                {tenant?.name || "Ủy ban nhân dân cấp xã"}
               </h1>
-              <p className="text-[11px] text-slate-500 font-medium">Huyện Định Hóa, Thái Nguyên</p>
+              <p className="text-[11px] text-slate-500 font-medium">Hệ thống quản lý văn hóa – xã hội</p>
             </div>
           </div>
         </div>
