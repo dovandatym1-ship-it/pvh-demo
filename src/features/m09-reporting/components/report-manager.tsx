@@ -6,6 +6,7 @@ import { SnapshotLineageTable } from "./snapshot-lineage-table";
 import { FinalizeSnapshotModal } from "./finalize-snapshot-modal";
 import { getSnapshotLineageAction,advanceSnapshotAction } from "../server/actions";
 import type { ReportSnapshotDTO,SnapshotLineageDTO,ReportCatalogEntry,SnapshotTransition } from "../types";
+import { metricDelta, metricNameLabel, metricValueLabel } from "../types/presentation";
 interface Props {
  readonly initialSnapshots:ReportSnapshotDTO[];
  readonly userPermissions:readonly string[];
@@ -55,7 +56,7 @@ export function ReportManager({initialSnapshots,userPermissions,userId,catalog}:
   {selected&&<div className="flex items-center gap-2">
    {transition&&<button className="rounded bg-indigo-700 px-4 py-2 text-sm text-white disabled:opacity-60"
      onClick={changeState} disabled={busy}>{busy?"Đang xử lý...":labels[transition]}</button>}
-   <span className="text-xs text-slate-600">Version {selected.version}; quyền và trạng thái được xác minh lại tại CSDL.</span>
+   <span className="text-xs text-slate-600">Lần cập nhật {selected.version}; quyền và trạng thái được xác minh lại tại CSDL.</span>
   </div>}
   {actionError&&<p role="alert" className="text-sm text-rose-700">{actionError}</p>}
   <SnapshotDetailsCard snapshot={selected} isLiveView={!selected} canExport={canExport}/>
@@ -63,8 +64,10 @@ export function ReportManager({initialSnapshots,userPermissions,userId,catalog}:
    <h3 className="text-sm font-semibold">So sánh với bản v{previous.revision}</h3>
    <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
     {Object.entries((selected.payload.metrics??{}) as Record<string,number>).map(([key,value])=>{
-     const old=((previous.payload.metrics??{}) as Record<string,number>)[key]??0;
-     return <p key={key} className="text-xs">{key}: {old} → {value} ({value-old>=0?"+":""}{value-old})</p>;
+     const old=((previous.payload.metrics??{}) as Record<string,unknown>)[key];
+     const delta=metricDelta(value,old);
+     return <p key={key} className="text-xs">{metricNameLabel(key)}: {metricValueLabel(old)} → {metricValueLabel(value)}
+      {delta===null?" (Không đủ dữ liệu để so sánh)":` (${delta>=0?"+":""}${delta})`}</p>;
     })}
    </div></div>}
   {selected&&<>{lineageError&&<p role="alert" className="text-xs text-rose-600">{lineageError}</p>}

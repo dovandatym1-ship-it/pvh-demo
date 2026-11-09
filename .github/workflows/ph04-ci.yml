@@ -1,8 +1,9 @@
 name: PH04 Reporting & Integrations
 on:
   push:
-    branches: [feat/pvh-ph04-reporting-integrations]
+    branches: [feat/pvh-ph04-reporting-integrations, 'fix/pvh-ph04-*']
   pull_request:
+    branches: [feat/pvh-ph04-reporting-integrations]
 permissions:
   contents: read
 jobs:
@@ -19,4 +20,5 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test:ph04
+      - run: node --experimental-strip-types --test tests/ph04-presentation.test.mjs
       - run: npm run build

@@ -2,16 +2,8 @@
 import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import type { ReportSnapshotDTO } from "../types";
+import { metricNameLabel, metricValueLabel, qualityStatusLabel, reportStatusLabel } from "../types/presentation";
 import { AsyncExportButton } from "./async-export-button";
-const LABELS:Record<string,string>={
- tasksTotal:"Tổng công việc",tasksCompleted:"Công việc hoàn thành",tasksOverdue:"Công việc quá hạn",
- cultureSubmissions:"Hồ sơ văn hóa",cultureEligible:"Hồ sơ đạt theo rule demo",
- plansTotal:"Kế hoạch CĐS",indicatorsConfirmed:"Chỉ tiêu đã xác nhận",
- indicatorsConfirmedZero:"Chỉ tiêu xác nhận = 0",indicatorsNotReported:"Chỉ tiêu chưa báo cáo",
- indicatorsNotApplicable:"Chỉ tiêu không áp dụng",inspectionsTotal:"Cuộc kiểm tra",
- recommendationsTotal:"Kiến nghị",recommendationsClosed:"Kiến nghị khép lại",
- importedValues:"Bản ghi chỉ tiêu nhập từ file",
-};
 export function SnapshotDetailsCard({snapshot,canExport=false}:{readonly snapshot:ReportSnapshotDTO|null;readonly isLiveView?:boolean;readonly canExport?:boolean}){
  const [copied,setCopied]=useState(false);
  if(!snapshot) return <div className="rounded-lg border bg-white p-8 text-sm text-slate-600">
@@ -23,7 +15,7 @@ export function SnapshotDetailsCard({snapshot,canExport=false}:{readonly snapsho
    <div className="flex flex-wrap justify-between gap-3">
     <div><h2 className="text-lg font-bold text-slate-900">{snapshot.title}</h2>
      <p className="text-xs text-slate-500">{snapshot.reportCode} • {snapshot.period} • Bản {snapshot.revision}
-      {" • "}Trạng thái: {snapshot.status}</p>
+      {" • "}Trạng thái: {reportStatusLabel(snapshot.status)}</p>
     </div>
     <Badge variant={snapshot.isFinalized?"success":"info"}>{snapshot.isFinalized?"ĐÃ CHỐT NỘI BỘ":"CHƯA CHỐT"}</Badge>
    </div>
@@ -44,13 +36,13 @@ export function SnapshotDetailsCard({snapshot,canExport=false}:{readonly snapsho
   </div>
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
    {Object.entries(metrics).map(([key,value])=><div key={key} className="rounded-lg border bg-white p-4">
-    <div className="text-xs text-slate-500">{LABELS[key]??key}</div>
-    <div className="text-2xl font-semibold tabular-nums">{typeof value==="number"?value.toLocaleString("vi-VN"):"NOT_REPORTED"}</div>
+    <div className="text-xs text-slate-500">{metricNameLabel(key)}</div>
+    <div className="text-2xl font-semibold tabular-nums">{metricValueLabel(value)}</div>
    </div>)}
    {Object.entries(quality).map(([key,detail])=><div key={key} className="rounded-lg border bg-amber-50 p-4">
-    <div className="text-xs text-slate-600">{LABELS[key]??key}</div>
+    <div className="text-xs text-slate-600">{metricNameLabel(key)}</div>
     <div className="text-lg font-medium">{detail?.value===null?"Chưa có số liệu":String(detail?.value??"Chưa có số liệu")}</div>
-    <div className="text-xs text-amber-800">{detail?.status??"NOT_REPORTED"}</div>
+    <div className="text-xs text-amber-800">{qualityStatusLabel(detail?.status??"NOT_REPORTED")}</div>
    </div>)}
   </div>
   <p className="text-xs text-slate-500">Nguồn: {String(snapshot.payload.sourceType??"Không rõ")} •

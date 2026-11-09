@@ -7,7 +7,7 @@ interface Preview {
 }
 export function IndicatorImportManager(){
  const [file,setFile]=useState<File|null>(null);
- const [owner,setOwner]=useState("Đơn vị báo cáo demo");
+ const [owner,setOwner]=useState("");
  const [policy,setPolicy]=useState<"REJECT_ALL"|"ACCEPT_VALID">("REJECT_ALL");
  const [preview,setPreview]=useState<Preview|null>(null);
  const [receipt,setReceipt]=useState<Record<string,unknown>|null>(null);
@@ -39,7 +39,8 @@ export function IndicatorImportManager(){
      <input type="file" accept=".csv,text/csv" className="mt-1 block w-full text-sm"
       onChange={e=>{setFile(e.target.files?.[0]??null);changed();}}/></label>
     <label className="text-sm">Chủ sở hữu nguồn
-     <input value={owner} onChange={e=>{setOwner(e.target.value);changed();}}
+     <input value={owner} required minLength={3} maxLength={150} placeholder="Tên đơn vị cung cấp dữ liệu"
+      onChange={e=>{setOwner(e.target.value);changed();}}
       className="mt-1 block w-full rounded border p-2"/></label>
     <label className="text-sm">Chính sách lỗi
      <select value={policy} onChange={e=>{setPolicy(e.target.value as typeof policy);changed();}}
@@ -49,7 +50,7 @@ export function IndicatorImportManager(){
      </select></label>
    </div>
    <button className="rounded bg-indigo-700 px-4 py-2 text-sm text-white disabled:opacity-50"
-    disabled={busy||!file} onClick={()=>invoke("preview")}>{busy?"Đang xử lý...":"Kiểm tra & xem trước"}</button>
+    disabled={busy||!file||owner.trim().length<3} onClick={()=>invoke("preview")}>{busy?"Đang xử lý...":"Kiểm tra & xem trước"}</button>
   </div>
   {error&&<p role="alert" className="rounded border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
   {preview&&<div className="rounded-lg border bg-white p-5 space-y-3">
@@ -70,10 +71,10 @@ export function IndicatorImportManager(){
     <p className="text-sm text-amber-700">Sửa lỗi CSV hoặc chọn chính sách chấp nhận dòng hợp lệ.</p>}
   </div>}
   {receipt&&<div className="rounded-lg border bg-emerald-50 p-5 space-y-2">
-   <h3 className="font-semibold">Receipt nhập dữ liệu</h3>
+   <h3 className="font-semibold">Biên nhận nhập dữ liệu</h3>
    <p className="text-sm">Trạng thái: {String(receipt.status)} • Tổng dòng: {String(receipt.total_rows)}
     {" • "}Đã thêm: {String(receipt.inserted_rows)} • Lỗi: {String(receipt.invalid_rows)}</p>
-   <p className="font-mono text-xs break-all">Batch ID: {String(receipt.id)}</p>
+   <p className="font-mono text-xs break-all">Mã đợt nhập: {String(receipt.id)}</p>
    <pre className="text-xs max-h-72 overflow-auto whitespace-pre-wrap">{JSON.stringify(receipt.receipt,null,2)}</pre>
   </div>}
   <p className="text-xs text-rose-700">MÔ PHỎNG DEMO — KHÔNG CÓ GIÁ TRỊ PHÁP LÝ.
