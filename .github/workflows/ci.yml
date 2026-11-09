@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, master, 'feat/pvh-ph02-core-workflow', 'feat/pvh-ph03-domain-verticals']
+    branches: [main, master, 'feat/pvh-ph02-core-workflow', 'feat/pvh-ph03-domain-verticals', 'fix/pvh-ph03-*']
   pull_request:
-    branches: [main, master, 'feat/pvh-ph01-platform-auth', 'feat/pvh-ph02-core-workflow']
+    branches: [main, master, 'feat/pvh-ph01-platform-auth', 'feat/pvh-ph02-core-workflow', 'feat/pvh-ph03-domain-verticals']
 
 jobs:
   validate:
@@ -34,6 +34,9 @@ jobs:
 
       - name: PH03 static contract (not E2E)
         run: node --test tests/ph03-contract-static.test.mjs
+
+      - name: PH03 Vietnamese display and form contract
+        run: node --experimental-strip-types --test tests/ph03-presentation.test.mjs
 
       - name: Type check
         run: npm run typecheck

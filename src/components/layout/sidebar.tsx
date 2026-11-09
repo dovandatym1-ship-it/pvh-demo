@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { Persona } from "@/lib/auth/session";
 import { TenantConfig } from "@/lib/tenancy/tenant-config";
+import { deploymentBrand } from "@/config/deployment-brand";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   LayoutDashboard,
@@ -103,7 +104,8 @@ export function Sidebar({
   onClose?: () => void;
 }) {
   const pathname = usePathname();
-  const displayGroups = groups && groups.length > 0 ? groups : DEFAULT_GROUPS;
+  // An explicitly empty list means no navigation entitlement, not the full demo menu.
+  const displayGroups = groups ?? DEFAULT_GROUPS;
 
   return (
     <>
@@ -128,9 +130,9 @@ export function Sidebar({
             </div>
             <div>
               <h1 className="text-sm font-bold text-slate-800 leading-tight">
-                {tenant?.name || "UBND Xã Định Hóa"}
+                {tenant?.name || deploymentBrand.organizationName}
               </h1>
-              <p className="text-[11px] text-slate-500 font-medium">Huyện Định Hóa, Thái Nguyên</p>
+              <p className="text-[11px] text-slate-500 font-medium">{tenant?.province || deploymentBrand.regionLabel}</p>
             </div>
           </div>
         </div>

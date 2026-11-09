@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { openIllustrativeCultureCampaignAction, submitCultureDossierAction,
   reviewCultureDossierAction } from "../server/ph03-actions";
 import type { CultureCampaign, CultureDossier, HamletOption, TitleType } from "../server/ph03-queries";
+import { campaignStatusLabel, dossierStatusLabel, ruleStatusLabel, vietnameseToday } from "@/lib/presentation/ph03-labels";
 
 type Props = {kind:TitleType;campaigns:CultureCampaign[];dossiers:CultureDossier[];
   hamlets:HamletOption[];canSubmit:boolean;canReview:boolean};
@@ -25,7 +26,7 @@ export function CultureWorkspace({kind,campaigns,dossiers,hamlets,canSubmit,canR
   const [reviewStatus,setReviewStatus]=useState("THIEU_MINH_CHUNG");
   const [reviewScore,setReviewScore]=useState("");
   const [reason,setReason]=useState("");
-  const [newYear,setNewYear]=useState(new Date().getFullYear());
+  const [newYear,setNewYear]=useState(()=>Number(vietnameseToday().slice(0,4)));
   const [campaignTitle,setCampaignTitle]=useState("");
   const retryKey=useRef<string|null>(null);
   const chosen=campaigns.find(c=>c.id===campaignId);
@@ -42,7 +43,7 @@ export function CultureWorkspace({kind,campaigns,dossiers,hamlets,canSubmit,canR
         closesAt:new Date(Date.UTC(newYear,11,31,16,59,59)).toISOString(),
       });
       if(!opened.ok) throw new Error(opened.error.message);
-      setCampaignId(opened.data.id);
+      setCampaignId(opened.data.id);setCampaignTitle("");
       setMessage("Đã mở đợt minh họa; không có giá trị công nhận.");router.refresh();
     } catch(error) {setMessage(error instanceof Error?error.message:"Không thể mở đợt");}
     finally {setBusy(false);}
@@ -99,11 +100,11 @@ export function CultureWorkspace({kind,campaigns,dossiers,hamlets,canSubmit,canR
       <h2 className="font-semibold">Đợt đang theo dõi</h2>
       <select className={field} value={campaignId} onChange={e=>{setCampaignId(e.target.value);resetRetryKey();setReviewId("");}}>
         <option value="">Chọn đợt bình xét</option>
-        {campaigns.map(c=><option key={c.id} value={c.id}>{c.title} · {c.year} · {c.status}
-          {" "}· quy tắc v{c.ruleVersion} ({c.ruleStatus})</option>)}
+        {campaigns.map(c=><option key={c.id} value={c.id}>{c.title} · {c.year} · {campaignStatusLabel(c.status)}
+          {" "}· bộ tiêu chí phiên bản {c.ruleVersion} ({ruleStatusLabel(c.ruleStatus)})</option>)}
       </select>
       {chosen&&<p className="text-sm text-slate-600">Hạn tiếp nhận: {new Date(chosen.closesAt).toLocaleDateString("vi-VN")}.
-        {" "}Quy tắc: {chosen.ruleStatus}; không phát hành kết quả chính thức.</p>}
+        {" "}Quy tắc: {ruleStatusLabel(chosen.ruleStatus)}; không phát hành kết quả chính thức.</p>}
     </div>
 
     {canSubmit&&<form onSubmit={submit} className="rounded bg-white border p-4 space-y-3">
@@ -132,8 +133,8 @@ export function CultureWorkspace({kind,campaigns,dossiers,hamlets,canSubmit,canR
         <tbody>{dossiers.filter(d=>!campaignId||d.campaignId===campaignId).map(d=><tr key={d.id} className="border-t">
           <td className="p-3">{d.subjectRef}</td><td className="p-3">{d.subjectName}</td>
           <td className="p-3">{hamlets.find(h=>h.id===d.hamletId)?.name??"Trong phạm vi"}</td>
-          <td className="p-3">{d.status}</td><td className="p-3">{d.score??"Chưa đánh giá"}</td>
-          <td className="p-3">v{d.ruleVersion} / #{d.version}</td>
+          <td className="p-3">{dossierStatusLabel(d.status)}</td><td className="p-3">{d.score??"Chưa đánh giá"}</td>
+          <td className="p-3">Bộ tiêu chí {d.ruleVersion} / lần cập nhật {d.version}</td>
           <td className="p-3">{d.sourceRef}</td>
           <td className="p-3">{canReview&&!["DAT","KHONG_DAT"].includes(d.status)&&<button
             type="button" className="text-emerald-800 underline"

@@ -41,6 +41,9 @@ export interface ImportPreview {
   readonly templateVersion: number;
 }
 export function isUnsafeCsvCell(cell:string):boolean {
+  // A plain negative decimal is a number, not a spreadsheet formula.
+  // Other leading operators (=, +, @, -expression) remain forbidden.
+  if (/^-[0-9]+(?:\.[0-9]+)?$/.test(cell.trim())) return false;
   return /^[\s\u0000-\u001f]*[=+@-]/.test(cell);
 }
 /** RFC 4180-ish CSV, with quoted fields/newlines and a strict single header. */

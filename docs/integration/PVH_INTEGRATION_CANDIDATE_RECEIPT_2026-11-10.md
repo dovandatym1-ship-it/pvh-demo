@@ -40,3 +40,6 @@ Các file `20261108000001`–`20261108000009` trong main được **giữ lại 
 - Dashboard, login split-screen, profile/notifications, chuẩn thuật ngữ tiếng Việt cần review riêng; không thay thế source khi chưa audit.
 - npm security audit còn cảnh báo; staging RLS/Storage/DB/E2E/UAT NOT_RUN.
 - **Không merge main, không deploy Vercel, không chạy migration trên Demo-pvh**. Owner Đỗ Văn Đạt duyệt lần cuối.
+
+## Bổ sung PR safety/UX tương thích cây nguồn
+Các delta PH03 PR #8 (8 tệp), PH04 PR #9 (9 tệp), PH05 PR #10 (11 tệp) đã được kiểm đối chiếu SHA từng tệp với commit PH03/PH04/PH05 gốc trước khi đưa vào candidate; **28/28 tệp có blob ở candidate trùng baseline của từng delta**, không có bản cập nhật độc lập cần ghi đè. Chạy lại CI integration và kiểm thử; không suy diễn G-MERGE PASS.

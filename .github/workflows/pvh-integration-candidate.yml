@@ -21,8 +21,11 @@ jobs:
       - run: node --test tests/security/*.test.mjs
       - run: node --experimental-strip-types --test tests/m01-workflow-rules.test.mjs
       - run: node --test tests/ph03-contract-static.test.mjs
+      - run: node --experimental-strip-types --test tests/ph03-presentation.test.mjs
       - run: node --import tsx --test tests/ph06-data-safety.test.ts
       - run: npm run test:ph04
+      - run: node --experimental-strip-types --test tests/ph04-presentation.test.mjs
+      - run: node --experimental-strip-types --test tests/ph05-clone-brand.test.mjs
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run fitness
