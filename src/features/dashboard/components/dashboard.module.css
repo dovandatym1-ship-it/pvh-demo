@@ -249,3 +249,45 @@
   .checkLabel { grid-column: auto; }
 }
 @media (prefers-reduced-motion: reduce) { .dashboard, .kpi { transition: none; } }
+
+
+/* Role-first V2 composition: actionable queue first, evidence and trends below. */
+.roleEyebrow {
+  margin: 0 0 5px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .09em;
+  color: var(--dash-primary);
+}
+.roleMainGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(270px, .85fr);
+  gap: 14px;
+  align-items: start;
+}
+.roleMainGrid > .queueCard { grid-area: auto; min-height: 520px; }
+.roleMainGrid > .column { min-width: 0; }
+.roleInsightsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.roleMainGrid .controls { grid-template-columns: minmax(170px, .75fr) minmax(170px, 1fr); }
+.contextPoints { display: flex; flex-direction: column; gap: 12px; }
+.contextPoints p { margin: 0; line-height: 1.6; font-size: 12px; color: var(--dash-muted); }
+.contextPoints strong { color: var(--dash-ink); }
+.roleMainGrid .cardHead h2,
+.roleInsightsGrid .cardHead h2 { font-size: 14px; }
+@media (max-width: 1150px) {
+  .roleMainGrid { grid-template-columns: minmax(0, 1.4fr) minmax(250px, .85fr); }
+}
+@media (max-width: 900px) {
+  .roleMainGrid, .roleInsightsGrid { grid-template-columns: minmax(0, 1fr); }
+  .roleMainGrid > .queueCard { min-height: 0; }
+}
+@media (max-width: 480px) {
+  .roleMainGrid .controls { grid-template-columns: minmax(0, 1fr); }
+  .roleMainGrid, .roleInsightsGrid { gap: 10px; }
+  .roleInsightsGrid { margin-top: 10px; }
+}
