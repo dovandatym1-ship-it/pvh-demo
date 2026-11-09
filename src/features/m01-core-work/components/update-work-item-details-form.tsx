@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import type { WorkItemDTO } from "../types";
 import { updateWorkItemDetailsAction } from "../server/actions";
+import { vietnameseLocalToIso } from "../types/presentation";
 
 type Hamlet = { id: string; name: string };
 
@@ -31,14 +32,14 @@ export function UpdateWorkItemDetailsForm({ item, hamlets }: {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending || !hasChanges || !reason.trim()) return;
-    const isoDate = dueDate ? new Date(`${dueDate}:00+07:00`) : null;
-    if (isoDate && Number.isNaN(isoDate.getTime())) { setError("Hạn xử lý không hợp lệ"); return; }
+    const isoDate = dueDate ? vietnameseLocalToIso(dueDate) : null;
+    if (dueDate && !isoDate) { setError("Hạn xử lý không hợp lệ"); return; }
     key.current ||= crypto.randomUUID();
     setPending(true); setError(""); setNotice("");
     try {
       const result = await updateWorkItemDetailsAction({
         id: item.id, expectedVersion: item.version,
-        dueDate: isoDate?.toISOString() || null,
+        dueDate: isoDate,
         hamletId: hamletId || null,
         reason: reason.trim(), idempotencyKey: key.current,
       });

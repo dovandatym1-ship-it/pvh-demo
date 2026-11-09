@@ -3,6 +3,7 @@ import { getRequestContext } from "@/lib/auth/request-context";
 import { assertRoutePermission } from "@/config/navigation";
 import { getActiveHamlets, getAssignees, getWorkItemsPage, type WorkFilter, type WorkSort } from "@/features/m01-core-work/server/queries";
 import { CreateWorkItemForm } from "@/features/m01-core-work/components/create-work-item-form";
+import { workStatusLabel, workPriorityLabel } from "@/features/m01-core-work/types/presentation";
 
 export const dynamic = "force-dynamic";
 
@@ -61,7 +62,7 @@ export default async function CongViecPage({ searchParams }: {
                 {hamlets.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
               </select>
             </>}
-            <input name="q" defaultValue={search} maxLength={100} placeholder="Tìm theo tiêu đề..."
+            <input name="q" defaultValue={search} maxLength={100} aria-label="Tìm công việc theo tiêu đề" placeholder="Tìm theo tiêu đề..."
               className="min-w-0 flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm" />
             <button className="rounded-md bg-slate-800 px-4 py-2 text-sm text-white">Tìm kiếm</button>
           </form>
@@ -75,7 +76,7 @@ export default async function CongViecPage({ searchParams }: {
             <tbody className="divide-y divide-slate-100">
               {list.items.map(item => <tr key={item.id} className="hover:bg-slate-50">
                 <td className="px-4 py-3 font-medium"><Link className="text-emerald-800 hover:underline" href={`/cong-viec/${item.id}`}>{item.title}</Link></td>
-                <td className="px-4 py-3">{item.status}</td><td className="px-4 py-3">{item.priority}</td>
+                <td className="px-4 py-3">{workStatusLabel(item.status)}</td><td className="px-4 py-3">{workPriorityLabel(item.priority)}</td>
                 <td className="px-4 py-3">{item.dueDate ? new Date(item.dueDate).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }) : "—"}</td>
               </tr>)}
               {list.items.length === 0 && <tr><td colSpan={4} className="p-8 text-center text-slate-500">Không có công việc phù hợp bộ lọc</td></tr>}

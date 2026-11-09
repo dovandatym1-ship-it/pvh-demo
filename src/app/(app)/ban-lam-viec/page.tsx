@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getRequestContext } from "@/lib/auth/request-context";
 import { getDashboardStats, getWorkItemsPage, getWorkInbox } from "@/features/m01-core-work/server/queries";
 import { MarkInboxReadButton } from "@/features/m01-core-work/components/mark-inbox-read-button";
+import { workInboxLabel, workStatusLabel } from "@/features/m01-core-work/types/presentation";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +36,7 @@ export default async function WorkbenchPage() {
       {page.items.length === 0 ? <p className="text-sm text-slate-500">Chưa có việc được giao</p> :
         <ul className="divide-y text-sm">{page.items.map(item => <li key={item.id} className="py-3 flex flex-wrap justify-between gap-2">
           <Link className="text-emerald-800 font-medium hover:underline" href={`/cong-viec/${item.id}`}>{item.title}</Link>
-          <span className="text-slate-500">{item.status}</span>
+          <span className="text-slate-500">{workStatusLabel(item.status)}</span>
         </li>)}</ul>}
     </section>
     <section className="rounded-xl border bg-white p-5 space-y-3">
@@ -43,7 +44,7 @@ export default async function WorkbenchPage() {
       {inbox.length === 0 ? <p className="text-sm text-slate-500">Chưa có thông báo</p> :
         <ul className="divide-y text-sm">{inbox.map(n => <li key={n.id} className="py-2 flex flex-wrap justify-between items-center gap-3">
           <div className="space-y-1">
-            <Link href={`/cong-viec/${n.workItemId}`} className="text-emerald-800 hover:underline">{n.kind}</Link>
+            <Link href={`/cong-viec/${n.workItemId}`} className="text-emerald-800 hover:underline">{workInboxLabel(n.kind)}</Link>
             <p className="text-xs text-slate-500">{new Date(n.createdAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}</p>
           </div>
           {n.readAt ? <span className="text-xs text-slate-500">Đã đọc</span> : <MarkInboxReadButton id={n.id} />}

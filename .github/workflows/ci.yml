@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, master, 'feat/pvh-ph02-core-workflow']
+    branches: [main, master, 'feat/pvh-ph02-core-workflow', 'fix/pvh-ph02-*']
   pull_request:
-    branches: [main, master, 'feat/pvh-ph01-platform-auth']
+    branches: [main, master, 'feat/pvh-ph01-platform-auth', 'feat/pvh-ph02-core-workflow']
 
 jobs:
   validate:
