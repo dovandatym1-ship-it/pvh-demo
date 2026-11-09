@@ -32,3 +32,9 @@ Code PH01 `src/features/m00-platform/server/accounts.ts` gọi `supabase.schema(
 | Owner acceptance G1 | NOT_ACCEPTED | Awaiting gates |
 
 **Kết luận:** Phase 1 chưa hoàn thành. Tuyệt đối không merge main hoặc báo 100% trước khi giải quyết schema contract và test thật.
+
+## 5. Bổ sung kiểm tra pg_proc (09/11/2026)
+- Schema `app` **có tồn tại các hàm** `get_account_context()` (SECURITY DEFINER) và `has_permission(uuid,text)` (SECURITY INVOKER), dù không có bảng thuộc `app`.
+- **Không tìm thấy** `app.provision_membership`, `app.set_membership_role`, `app.revoke_membership` hoặc hàm trùng tên trong `public` theo truy vấn pg_proc. Vì vậy ba server action M00 hiện có hợp đồng RPC chưa tồn tại trên cloud.
+- Đây là sự khác biệt giữa **schema không có bảng** và **schema hoàn toàn không tồn tại**: kết luận trước đó chỉ nói 0 bảng `app`, không được suy ra schema không tồn tại.
+- Gate P0: áp dụng và kiểm chứng migration tương thích trên staging trước khi thử gửi lời mời thực; hành động gửi invite hiện có thể tạo Auth user nhưng thất bại khi cấp membership.
