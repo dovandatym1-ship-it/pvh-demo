@@ -32,11 +32,11 @@ export default async function GiaoDucAppPage() {
           <div className="flex items-center gap-2">
             <GraduationCap className="w-6 h-6 text-[#1F633E]" />
             <h1 className="text-xl font-bold text-slate-900">
-              Giáo dục & Đào tạo
+              Giáo dục và đào tạo
             </h1>
           </div>
           <p className="mt-1 text-xs text-slate-600">
-            Theo dõi phổ cập giáo dục, mạng lưới trường mầm non - tiểu học - THCS và chính sách miễn giảm học phí.
+            Theo dõi phổ cập giáo dục, mạng lưới trường mầm non, tiểu học và trung học cơ sở và chính sách miễn giảm học phí.
           </p>
         </div>
       </div>
