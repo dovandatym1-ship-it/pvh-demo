@@ -7,7 +7,7 @@ import { logoutAction } from "@/lib/auth/actions";
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   let filteredGroups: ReturnType<typeof filterNavigation> = [];
   let userLabel = "Chủ tịch UBND xã";
-  const tenantLabel = "UBND Xã Định Hóa";
+  const tenantLabel = "Ủy ban nhân dân cấp xã";
 
   try {
     const ctx = await getRequestContext();
@@ -15,11 +15,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     if (ctx.roles.includes("SYSTEM_ADMIN") || ctx.roles.includes("admin")) {
       userLabel = "Quản trị viên hệ thống";
     } else if (ctx.roles.includes("CONG_CHUC_VHXH") || ctx.roles.includes("CAN_BO_KIEM_NHIEM") || ctx.roles.includes("WORK_OFFICER")) {
-      userLabel = "Công chức VH-XH";
+      userLabel = "Công chức văn hóa – xã hội";
     } else if (ctx.roles.includes("CAN_BO_MOT_CUA")) {
-      userLabel = "Cán bộ Một cửa";
+      userLabel = "Cán bộ bộ phận một cửa";
     } else if (ctx.roles.includes("CAN_BO_THANH_TRA") || ctx.roles.includes("AUDITOR")) {
-      userLabel = "Cán bộ Kiểm tra";
+      userLabel = "Cán bộ kiểm tra";
     } else {
       userLabel = "Chủ tịch UBND xã";
     }
