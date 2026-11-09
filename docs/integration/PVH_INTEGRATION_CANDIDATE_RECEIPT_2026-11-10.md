@@ -99,3 +99,11 @@ Khôi phục từ `fix/pvh-ph02-completion-20261109` các màn tạo việc, l�
 - Các phiên bản PDF/XLSX của M09 dùng nhãn trạng thái, nguồn và chất lượng số liệu tiếng Việt, giữ watermark `BẢN THỬ NGHIỆM`, dữ liệu nguồn và mã kiểm chứng; không biến thao tác chốt nội bộ thành văn bản phát hành.
 - Sửa bộ quét UI để không báo nhầm tên enum `LEGACY_MOCK`, biểu thức `snapshot.status` hay type TSX. Có unit tests chống báo nhầm và bỏ lọt nội dung kỹ thuật thực sự hiển thị.
 - Chưa kiểm thử trực tiếp RLS của bảng M06 hay mở/đối soát file PDF/XLSX trên staging; G-SEC và G-UX vẫn BLOCKED.
+
+## Gate CI `e90e7929` / `223411b4` — bằng chứng đóng kiểm thử tĩnh
+- `e90e7929`: [CI 42675803694](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42675803694), [integration 42675805528](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42675805528), [PH05 42675803518](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42675803518) đều **PASS**.
+- `223411b4`: [CI 42676418268](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42676418268), [integration 42676418336](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42676418336), [PH05 42676418360](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42676418360) đều **PASS**, gồm test M01 scoped-hamlet mới.
+- M01 `getActiveHamlets` trước đây đọc sai `org_unit_ids` từ `ctx.scopes`; nay dùng `hamletIds` và khóa kết quả khi danh sách rỗng; lọc trang không chấp nhận địa bàn ngoài phạm vi.
+- Tìm được nguyên nhân sâu trong contract SQL: membership `scopes.org_unit_ids` nhưng UI mới dùng `ctx.scopes.hamletIds`. `78c1750b` thêm `normalizeMembershipScopes()` sau Auth, không tăng quyền khi gặp hai key xung đột. Bộ test pure đã vào CI; vẫn cần RLS staging.
+- Đã lập [branch ledger](PVH_BRANCH_DISPOSITION_LEDGER_2026-11-10.md) (snapshot 20 nhánh/main) và [W0–W5 readiness](PVH_RELEASE_READINESS_2026-11-10.md) (36 task gắn trạng thái chứng cứ); **không** được tính kế hoạch thành code hoàn thiện.
+- **NO-GO**: hoàn thành CI không đóng G-DB/G-SEC/G-FLOW/G-UX/G-PERF/G-OWNER. PR #12 giữ draft, main/cloud không đổi.
