@@ -130,7 +130,7 @@ function makeWeeklyTrend(items, completionEvents, today) {
     if (!day) continue;
     const row = byMonday.get(mondayOf(day));
     // One completed work item per week, even when the event ledger repeats a transition.
-    const key = event.workItemId;
+    const key = event.workItemId + "|" + (row?.start ?? "outside");
     if (row && !seen.has(key)) {
       row.completed++;
       seen.add(key);
