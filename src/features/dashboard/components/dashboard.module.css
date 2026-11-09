@@ -266,7 +266,7 @@
   align-items: start;
 }
 .roleMainGrid > .queueCard { grid-area: auto; min-height: 520px; }
-.roleMainGrid > .column { min-width: 0; }
+.roleMainGrid > .column { min-width: 0; grid-area: auto; }
 .roleInsightsGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
