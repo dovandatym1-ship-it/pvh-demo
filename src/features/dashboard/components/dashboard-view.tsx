@@ -85,6 +85,13 @@ export function DashboardView({
             <p><strong>Thống kê theo vai trò:</strong> {model.role === "officer" ? "Chỉ việc assigned_to = người đang đăng nhập." : model.scopeLabel + "."}</p>
             <p><strong>Thời hạn:</strong> Ngày đến hạn theo lịch Việt Nam, chưa phải SLA theo từng quy định chuyên ngành.</p>
             <p><strong>Xu hướng hoàn thành:</strong> {model.eventsAvailable ? "Dựa vào work_item_events, tối đa một lần hoàn thành mỗi việc trong một tuần." : "Lịch sử chưa đủ tin cậy nên không vẽ giả số hoàn thành."}</p>
+            <p><strong>Giới hạn tích hợp:</strong> Các KPI hiện tại chỉ phản ánh công việc M01. Số lượng hồ sơ chuyên ngành M02–M08, báo cáo M09 và dữ liệu nhập M10 KHÔNG được cộng tự động vào các KPI này.</p>
+            <p><strong>M05 – Chuyển đổi số:</strong> <code>linkDigitalPlanWorkAction</code> liên kết kế hoạch với <code>work_item_id</code> (nhánh <code>fix/pvh-ph03-crud-ux-20261109</code>). Chỉ công việc M01 đã liên kết và nằm trong phạm vi phân quyền mới xuất hiện trong số liệu M01.</p>
+            <p><strong>M08 – Kiểm tra:</strong> <code>createInspectionRecommendationAction</code> trả về <code>work_item_id</code> (cùng nhánh Phase 3). Chưa có KPI độc lập cho số cuộc kiểm tra hoặc kiến nghị.</p>
+            <p><strong>M04 – Văn hóa:</strong> <code>submitCultureDossierAction</code> và <code>reviewCultureDossierAction</code> ghi hồ sơ qua RPC riêng. Chưa có truy vấn tổng hợp hồ sơ M04 vào Dashboard.</p>
+            <p><strong>M02/M03/M06:</strong> Các thao tác nghiệp vụ ghi bảng chuyên ngành (ví dụ <code>labor_disputes</code>, <code>tuition_exemptions</code>, <code>social_protection_beneficiaries</code>); chưa có bộ tổng hợp KPI chuyên ngành.</p>
+            <p><strong>M09/M10:</strong> Có <code>report_snapshots</code>, nguồn truy xuất <code>report_snapshot_lineage</code> và nhập chỉ tiêu qua <code>commit_indicator_import</code> trên nhánh Phase 4; chưa kết nối vào biểu đồ Dashboard.</p>
+            <p><strong>Điều kiện sau merge:</strong> Merge nhánh code không tự triển khai migration, không tự tạo bản ghi và không tự kết nối KPI. Cần áp dụng migration, xác nhận RPC/RLS, bổ sung truy vấn tổng hợp và kiểm thử dữ liệu đầu-cuối trước khi bật các KPI chuyên ngành.</p>
           </div>
           <p className={styles.sourceFoot}>Cập nhật bản ghi gần nhất: {formatMoment(model.lastUpdated)} · {model.demo ? "Chế độ minh họa." : "Dữ liệu truy vấn tại thời điểm tải trang."}</p>
         </aside>
