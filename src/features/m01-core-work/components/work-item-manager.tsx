@@ -15,6 +15,7 @@ interface WorkItemManagerProps {
   readonly userPermissions: readonly string[];
   readonly userRoles: readonly string[];
   readonly focusItemId?: string;
+  readonly initialDashboardFilter?: string;
 }
 
 export function WorkItemManager({
@@ -22,12 +23,15 @@ export function WorkItemManager({
   userPermissions = [],
   userRoles = [],
   focusItemId,
+  initialDashboardFilter,
 }: WorkItemManagerProps) {
   const [items, setItems] = React.useState<WorkItemDTO[]>(initialItems);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<string>("ALL");
   const [priorityFilter, setPriorityFilter] = React.useState<string>("ALL");
   const [categoryFilter, setCategoryFilter] = React.useState<string>("ALL");
+  const allowedDashboardFilters = ["all", "overdue", "soon", "returned", "review", "unassigned", "progress"];
+  const [dashboardFilter, setDashboardFilter] = React.useState(() => allowedDashboardFilters.includes(initialDashboardFilter ?? "") ? initialDashboardFilter! : "all");
 
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
   // Deep links from Dashboard open only items already authorized by the server query.
@@ -46,6 +50,18 @@ export function WorkItemManager({
 
   const filteredItems = React.useMemo(() => {
     return items.filter((item) => {
+      if (dashboardFilter !== "all") {
+        const closed = item.status === "COMPLETED" || item.status === "CANCELLED";
+        const now = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+        const due = item.dueDate?.slice(0, 10);
+        if (dashboardFilter === "overdue" && (closed || !due || due >= now)) return false;
+        if (dashboardFilter === "soon" && (closed || !due || due < now || (Date.parse(due + "T00:00:00Z") - Date.parse(now + "T00:00:00Z")) / 86400000 > 7)) return false;
+        if (dashboardFilter === "returned" && item.status !== "RETURNED") return false;
+        if (dashboardFilter === "review" && item.status !== "UNDER_REVIEW") return false;
+        if (dashboardFilter === "unassigned" && (closed || item.assignedTo)) return false;
+        if (dashboardFilter === "progress" && item.status !== "IN_PROGRESS") return false;
+        if (dashboardFilter === "all" && closed) return false;
+      }
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
         if (!item.title.toLowerCase().includes(query) && !item.description?.toLowerCase().includes(query)) return false;
@@ -55,7 +71,7 @@ export function WorkItemManager({
       if (categoryFilter !== "ALL" && item.category !== categoryFilter) return false;
       return true;
     });
-  }, [items, searchQuery, statusFilter, priorityFilter, categoryFilter]);
+  }, [items, searchQuery, statusFilter, priorityFilter, categoryFilter, dashboardFilter]);
 
   const showToast = (msg: string) => {
     setSuccessToast(msg);
@@ -155,6 +171,7 @@ export function WorkItemManager({
         )}
       </div>
 
+      {dashboardFilter !== "all" && <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-900 flex items-center justify-between gap-3"><span>Danh sách được lọc từ chỉ số Dashboard · {filteredItems.length} công việc phù hợp</span><button type="button" className="font-semibold underline" onClick={() => setDashboardFilter("all")}>Xóa lọc Dashboard</button></div>}
       <div className="bg-white p-4 rounded-lg border border-slate-200 space-y-3">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
