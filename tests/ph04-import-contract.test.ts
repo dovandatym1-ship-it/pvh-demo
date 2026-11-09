@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
-import { parseIndicatorCsv, SAMPLE_TEMPLATE, MAX_ROWS } from "../src/features/m10-integrations/import-contract.ts";
+import { parseIndicatorCsv, SAMPLE_TEMPLATE, MAX_ROWS, isUnsafeCsvCell } from "../src/features/m10-integrations/import-contract.ts";
 
 const sha=(s:string)=>crypto.createHash("sha256").update(s).digest("hex");
 test("INT-001: three valid and two invalid rows preserve row errors",()=>{
@@ -28,6 +28,17 @@ test("INT-CSV: formula injection is not accepted",()=>{
  assert.equal(parsed.invalid,1);
  assert.match(parsed.errors[0].reason,/công thức/);
 });
+test("INT-CSV: negative decimal remains a number while spreadsheet formulas are rejected",()=>{
+ assert.equal(isUnsafeCsvCell("-12.5"),false);
+ assert.equal(isUnsafeCsvCell("-1+2"),true);
+ assert.equal(isUnsafeCsvCell("=1+1"),true);
+ assert.equal(isUnsafeCsvCell("@SUM(1)"),true);
+ const data=SAMPLE_TEMPLATE+"DEMO-NEG,1,TEST_NEG,Q4/2026,CONFIRMED,-12.5,hoso,SIM-DEMO/005\r\n";
+ const parsed=parseIndicatorCsv(data,sha(data));
+ assert.equal(parsed.valid,4);
+ assert.equal(parsed.invalid,0);
+});
+
 test("INT-CSV: duplicate source id and version in same batch is rejected",()=>{
  const data=SAMPLE_TEMPLATE+
   "DEMO-001,1,CDS_TASKS,Q4/2026,CONFIRMED,12,hoso,SIM-DEMO/001\r\n";
