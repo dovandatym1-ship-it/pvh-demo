@@ -50,3 +50,10 @@ export interface EpidemicLogDTO {
   readonly logYear: number;
   readonly reportedDate: string;
 }
+
+/** Safe browser DTO; raw medical, identity and financial values stay on server. */
+export type SocialBeneficiaryDisplayDTO = Omit<SocialBeneficiaryDTO, "cccd" | "phone" | "diagnosis" | "monthlyAmount"> & {
+  readonly cccdDisplay: string;
+  readonly diagnosisDisplay: string;
+  readonly amountDisplay: string;
+};

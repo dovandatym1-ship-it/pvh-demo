@@ -18,58 +18,10 @@ export async function getSocialBeneficiaries(ctx: RequestContext): Promise<Socia
     .eq("tenant_id", ctx.tenantId)
     .order("created_at", { ascending: true });
 
-  if (error || !data || data.length === 0) {
-    return [
-      {
-        id: "e0000000-0000-0000-0000-000000000001",
-        code: "BT-TN-01",
-        fullName: "Nguyễn Thị Mùi",
-        cccd: "019156001234",
-        phone: "0912345678",
-        hamletId: "A1",
-        aidCategory: "Người cao tuổi đơn thân",
-        monthlyAmount: 540000,
-        diagnosis: "Suy tim độ 2, cao huyết áp",
-        paymentStatus: "PAID",
-        healthInsuranceProvided: true,
-        version: 1,
-        createdAt: "2026-10-01T08:00:00Z",
-        updatedAt: "2026-10-01T08:00:00Z",
-      },
-      {
-        id: "e0000000-0000-0000-0000-000000000002",
-        code: "BT-TN-02",
-        fullName: "Trần Văn Hùng",
-        cccd: "019082005678",
-        phone: "0987654321",
-        hamletId: "A2",
-        aidCategory: "Khuyết tật vận động nặng",
-        monthlyAmount: 720000,
-        diagnosis: "Liệt nửa người sau tai biến",
-        paymentStatus: "PENDING",
-        healthInsuranceProvided: true,
-        version: 1,
-        createdAt: "2026-10-05T09:30:00Z",
-        updatedAt: "2026-10-05T09:30:00Z",
-      },
-      {
-        id: "e0000000-0000-0000-0000-000000000003",
-        code: "BT-TN-03",
-        fullName: "Lê Thị Sen",
-        cccd: "019163009876",
-        phone: "0934567890",
-        hamletId: "A3",
-        aidCategory: "Hộ nghèo có người bệnh nặng",
-        monthlyAmount: 540000,
-        diagnosis: "Thận mạn giai đoạn 3",
-        paymentStatus: "PENDING",
-        healthInsuranceProvided: true,
-        version: 1,
-        createdAt: "2026-10-10T14:15:00Z",
-        updatedAt: "2026-10-10T14:15:00Z",
-      },
-    ];
+  if (error) {
+    throw new Error("Không thể tải dữ liệu chuyên ngành; vui lòng thử lại.");
   }
+  if (!data) return [];
 
   return data.map((row) => ({
     id: String(row.id),
@@ -98,28 +50,10 @@ export async function getFoodSafetyInspections(ctx: RequestContext): Promise<Foo
     .eq("tenant_id", ctx.tenantId)
     .order("inspection_date", { ascending: false });
 
-  if (error || !data || data.length === 0) {
-    return [
-      {
-        id: "e1000000-0000-0000-0000-000000000001",
-        facilityName: "Bếp ăn Trường Mầm non Xã A",
-        inspectionType: "SCHOOL_CANTEEN",
-        inspectionDate: "2026-10-15",
-        totalScore: 96,
-        sampleRetention24hPassed: true,
-        conclusion: "PASSED",
-      },
-      {
-        id: "e1000000-0000-0000-0000-000000000002",
-        facilityName: "Cơ sở bánh mỳ Anh Tuấn - Xóm A1",
-        inspectionType: "STREET_FOOD",
-        inspectionDate: "2026-10-20",
-        totalScore: 78,
-        sampleRetention24hPassed: false,
-        conclusion: "WARNING_REMEDIAL",
-      },
-    ];
+  if (error) {
+    throw new Error("Không thể tải dữ liệu chuyên ngành; vui lòng thử lại.");
   }
+  if (!data) return [];
 
   return data.map((row) => ({
     id: String(row.id),
@@ -141,32 +75,10 @@ export async function getMedicalFacilities(ctx: RequestContext): Promise<Medical
     .eq("tenant_id", ctx.tenantId)
     .order("facility_name", { ascending: true });
 
-  if (error || !data || data.length === 0) {
-    return [
-      {
-        id: "e2000000-0000-0000-0000-000000000001",
-        facilityName: "Nhà thuốc số 1 Xóm A1",
-        facilitySubType: "DRUG_STORE",
-        practitionerName: "Dược sĩ Nguyễn Thị Thoa",
-        licenseNumber: "GPP-2023-889",
-        licenseIssueDate: "2023-05-10",
-        gppCertified: true,
-        controlledDrugsLedger: true,
-        inspectionStatus: "NORMAL",
-      },
-      {
-        id: "e2000000-0000-0000-0000-000000000002",
-        facilityName: "Phòng chẩn trị YHCT Lương y Đức",
-        facilitySubType: "TRADITIONAL_CLINIC",
-        practitionerName: "Lương y Vũ Văn Đức",
-        licenseNumber: "YHCT-2022-104",
-        licenseIssueDate: "2022-08-15",
-        gppCertified: false,
-        controlledDrugsLedger: false,
-        inspectionStatus: "WARNING",
-      },
-    ];
+  if (error) {
+    throw new Error("Không thể tải dữ liệu chuyên ngành; vui lòng thử lại.");
   }
+  if (!data) return [];
 
   return data.map((row) => ({
     id: String(row.id),
@@ -190,36 +102,10 @@ export async function getEpidemicLogs(ctx: RequestContext): Promise<EpidemicLogD
     .eq("tenant_id", ctx.tenantId)
     .order("reported_date", { ascending: false });
 
-  if (error || !data || data.length === 0) {
-    return [
-      {
-        id: "e3000000-0000-0000-0000-000000000001",
-        hamletId: "A1",
-        diseaseGroup: "GROUP_B",
-        diseaseName: "Sốt xuất huyết Dengue",
-        casesCount: 3,
-        hospitalizedCount: 1,
-        deathsCount: 0,
-        outbreakAlertFlag: false,
-        logWeek: 44,
-        logYear: 2026,
-        reportedDate: "2026-11-02",
-      },
-      {
-        id: "e3000000-0000-0000-0000-000000000002",
-        hamletId: "A2",
-        diseaseGroup: "GROUP_B",
-        diseaseName: "Cúm mùa",
-        casesCount: 12,
-        hospitalizedCount: 0,
-        deathsCount: 0,
-        outbreakAlertFlag: false,
-        logWeek: 44,
-        logYear: 2026,
-        reportedDate: "2026-11-03",
-      },
-    ];
+  if (error) {
+    throw new Error("Không thể tải dữ liệu chuyên ngành; vui lòng thử lại.");
   }
+  if (!data) return [];
 
   return data.map((row) => ({
     id: String(row.id),

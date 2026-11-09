@@ -1,5 +1,6 @@
 import React from "react";
 import { getRequestContext } from "@/lib/auth/request-context";
+import { assertCanViewFaith } from "@/features/m07-ethnicity-faith/server/policy";
 import { getReligiousEstablishments, getReputablePersons } from "@/features/m07-ethnicity-faith/server/queries";
 import { EstablishmentTable } from "@/features/m07-ethnicity-faith/components/establishment-table";
 import { ReputablePersonTable } from "@/features/m07-ethnicity-faith/components/reputable-person-table";
@@ -10,6 +11,7 @@ export const dynamic = "force-dynamic";
 
 export default async function DanTocTonGiaoPage() {
   const ctx = await getRequestContext();
+  assertCanViewFaith(ctx);
   const establishments = await getReligiousEstablishments(ctx);
   const reputablePersons = await getReputablePersons(ctx);
 
