@@ -1,7 +1,7 @@
 name: PH05 Release Candidate Gate
 on:
   push:
-    branches: ['feat/pvh-ph05-release-clone']
+    branches: ['feat/pvh-ph05-release-clone', 'fix/pvh-ph05-*']
   pull_request:
 permissions:
   contents: read
@@ -20,6 +20,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: cp .env.example .env.local
+      - run: node --experimental-strip-types --test tests/ph05-clone-brand.test.mjs
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run fitness

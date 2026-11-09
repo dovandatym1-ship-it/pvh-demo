@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { loginWithCredentialsAction } from "@/lib/auth/actions";
+import { deploymentBrand } from "@/config/deployment-brand";
 
 function LoginForm() {
   const [email, setEmail] = React.useState("");
@@ -78,7 +79,7 @@ export default function LoginPage() {
             PVH
           </div>
           <h1 className="text-lg font-bold text-slate-900 uppercase tracking-tight">Hệ thống Quản lý Văn hóa - Xã hội</h1>
-          <p className="text-xs text-slate-500 font-medium">Ủy ban nhân dân cấp Xã — Tỉnh Thái Nguyên</p>
+          <p className="text-xs text-slate-500 font-medium">{deploymentBrand.organizationName} — {deploymentBrand.regionLabel}</p>
         </div>
         <React.Suspense fallback={<div className="text-xs text-center py-4 text-slate-400">Đang tải...</div>}>
           <LoginForm />

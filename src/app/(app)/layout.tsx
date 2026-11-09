@@ -3,11 +3,12 @@ import { getRequestContext } from "@/lib/auth/request-context";
 import { filterNavigation } from "@/config/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { logoutAction } from "@/lib/auth/actions";
+import { deploymentBrand } from "@/config/deployment-brand";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   let filteredGroups: ReturnType<typeof filterNavigation> = [];
   let userLabel = "Chủ tịch UBND xã";
-  const tenantLabel = "UBND Xã Định Hóa";
+  const tenantLabel = deploymentBrand.organizationName;
 
   try {
     const ctx = await getRequestContext();
