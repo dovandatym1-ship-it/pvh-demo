@@ -1,10 +1,9 @@
 import * as React from "react";
 import { getRequestContext } from "@/lib/auth/request-context";
 import { filterNavigation } from "@/config/navigation";
-import { Sidebar } from "@/components/layout/sidebar";
+import { AppShell } from "@/components/layout/app-shell";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getPersonalNotifications, type NotificationsView } from "@/features/notifications/server/queries";
-import { TopbarActions } from "@/features/notifications/components/topbar-actions";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   let filteredGroups: ReturnType<typeof filterNavigation> = [];
@@ -46,20 +45,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     filteredGroups = [];
   }
 
-  return <div className="flex min-h-screen bg-slate-50">
-    <Sidebar groups={filteredGroups} tenantLabel={tenantLabel}/>
-    <div className="flex min-w-0 flex-1 flex-col">
-      <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-slate-200 bg-white/95 px-3 backdrop-blur-sm sm:px-6">
-        <div className="min-w-0">
-          <span className="inline-block max-w-[45vw] truncate rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 sm:max-w-md">
-            {tenantLabel}
-          </span>
-        </div>
-        <div className="flex items-center gap-2 sm:gap-3">
-          <TopbarActions view={notifications} roleLabel={userLabel} avatarVersion={avatarVersion}/>
-        </div>
-      </header>
-      <main className="min-w-0 flex-1 overflow-x-hidden p-4 sm:p-6">{children}</main>
-    </div>
-  </div>;
+  return <AppShell groups={filteredGroups} tenantLabel={tenantLabel} roleLabel={userLabel}
+    notifications={notifications} avatarVersion={avatarVersion}>{children}</AppShell>;
 }
