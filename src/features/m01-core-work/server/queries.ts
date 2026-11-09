@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { RequestContext } from "@/lib/auth/request-context";
 import type { WorkItemDTO, WorkItemEventDTO } from "../types";
 import { resolveWorkScope } from "./work-scope";
+import { isHamletWithinScope } from "../types/hamlet-scope";
 
 type RawWork = Record<string, unknown>;
 
@@ -51,7 +52,8 @@ export async function getWorkItemsPage(ctx: RequestContext, opts: {
   }
   if (filter === "created") query = query.eq("created_by", ctx.userId);
   if (filter === "hamlet") {
-    if (!opts.hamletId || !/^[0-9a-f-]{36}$/i.test(opts.hamletId)) {
+    if (!opts.hamletId || !/^[0-9a-f-]{36}$/i.test(opts.hamletId) ||
+        !isHamletWithinScope(opts.hamletId, ctx.scopes.hamletIds)) {
       return { items: [], total: 0, page, pageSize };
     }
     query = query.eq("hamlet_id", opts.hamletId);
@@ -173,13 +175,17 @@ export async function getAssignees(ctx: RequestContext, workItemId?: string): Pr
 export async function getActiveHamlets(ctx: RequestContext): Promise<{ id: string; name: string }[]> {
   requireRead(ctx);
   const db = await createServerSupabaseClient();
-  const { data, error } = await db.from("org_units")
+  // Scope contract is hamletIds, not the deprecated org_unit_ids field.
+  // An explicitly empty list means no permitted hamlets, unlike undefined.
+  const allowedHamlets = ctx.scopes.hamletIds;
+  if (allowedHamlets && allowedHamlets.length === 0) return [];
+  let query = db.from("org_units")
     .select("id,name").eq("tenant_id", ctx.tenantId).eq("kind", "HAMLET")
-    .eq("is_active", true).order("name");
+    .eq("is_active", true);
+  if (allowedHamlets) query = query.in("id", [...new Set(allowedHamlets)]);
+  const { data, error } = await query.order("name");
   if (error) throw new Error(`DB_ERROR: Không tải được địa bàn công tác (${error.code})`);
-  const scopedIds = (ctx.scopes as { org_unit_ids?: readonly string[] }).org_unit_ids;
-  return (data || []).filter(row => !scopedIds || scopedIds.includes(row.id))
-    .map(row => ({ id: row.id, name: row.name }));
+  return (data || []).map(row => ({ id: row.id, name: row.name }));
 }
 
 export async function getDashboardStats(ctx: RequestContext) {
