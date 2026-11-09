@@ -23,7 +23,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "PVH — Hệ thống thông tin Phòng Văn hóa – Xã hội cấp xã",
-  description: "Phần mềm tác nghiệp, quản lý dữ liệu, kiểm tra và báo cáo số cho Phòng Văn hóa – Xã hội cấp xã tại Thái Nguyên",
+  description: "Phần mềm tác nghiệp, quản lý dữ liệu, kiểm tra và báo cáo dành cho Phòng Văn hóa – Xã hội cấp xã",
 };
 
 export default function RootLayout({
