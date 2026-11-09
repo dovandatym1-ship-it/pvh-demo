@@ -34,7 +34,7 @@ function LoginForm() {
           </div>
         )}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">Email công vụ</label>
+          <label className="block text-xs font-semibold text-slate-700 mb-1">Địa chỉ email công vụ</label>
           <input
             type="email"
             name="email"
@@ -62,7 +62,7 @@ function LoginForm() {
           disabled={loading}
           className="w-full py-2.5 px-4 text-sm font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm disabled:opacity-50 transition-colors"
         >
-          {loading ? "Đang xác thực thông tin..." : "Đăng nhập hệ thống"}
+          {loading ? "Đang đăng nhập..." : "Đăng nhập"}
         </button>
       </form>
     </div>
@@ -77,10 +77,10 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-700 text-white font-bold text-lg mb-2 shadow-sm">
             PVH
           </div>
-          <h1 className="text-lg font-bold text-slate-900 uppercase tracking-tight">Hệ thống Quản lý Văn hóa - Xã hội</h1>
-          <p className="text-xs text-slate-500 font-medium">Ủy ban nhân dân cấp Xã — Tỉnh Thái Nguyên</p>
+          <h1 className="text-lg font-bold text-slate-900 uppercase tracking-tight">Hệ thống quản lý văn hóa – xã hội</h1>
+          <p className="text-xs text-slate-500 font-medium">Nền tảng dùng chung cho Phòng Văn hóa – Xã hội cấp xã</p>
         </div>
-        <React.Suspense fallback={<div className="text-xs text-center py-4 text-slate-400">Đang tải...</div>}>
+        <React.Suspense fallback={<div className="text-xs text-center py-4 text-slate-400">Đang tải biểu mẫu đăng nhập...</div>}>
           <LoginForm />
         </React.Suspense>
       </div>
