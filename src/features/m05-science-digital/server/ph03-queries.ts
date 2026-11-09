@@ -7,7 +7,7 @@ import type { RequestContext } from "@/lib/auth/request-context";
 export type DigitalPlan={id:string;title:string;period:string;status:string;sourceRef:string;taskCount:number};
 export type DigitalIndicator={
  id:string;planId:string|null;code:string;name:string;unit:string;period:string;
- numericValue:number|null;status:string;sourceRef:string|null;naReason:string|null;version:number;
+ numericValue:number|null;status:string;sourceRef:string|null;naReason:string|null;meaning:string;version:number;
 };
 export async function getDigitalWorkspace(ctx:RequestContext){
  assertPermission(ctx,"m05:digital:read");
@@ -16,7 +16,7 @@ export async function getDigitalWorkspace(ctx:RequestContext){
   db.from("digital_plans").select("id,title,period,status,source_ref")
     .eq("tenant_id",ctx.tenantId).order("created_at",{ascending:false}),
   db.from("digital_plan_tasks").select("plan_id,work_item_id").eq("tenant_id",ctx.tenantId),
-  db.from("digital_indicators").select("id,plan_id,code,name,unit,evaluation_period,numeric_value,status,source_ref,na_reason,version")
+  db.from("digital_indicators").select("id,plan_id,code,name,unit,evaluation_period,numeric_value,status,source_ref,na_reason,meaning,version")
     .eq("tenant_id",ctx.tenantId).order("code"),
  ]);
  for(const x of [plans,links,indicators])if(x.error)
@@ -30,7 +30,7 @@ export async function getDigitalWorkspace(ctx:RequestContext){
  const indicatorRows:DigitalIndicator[]=(indicators.data??[]).map(i=>({
   id:i.id,planId:i.plan_id,code:i.code,name:i.name,unit:i.unit,period:i.evaluation_period,
   numericValue:i.numeric_value===null?null:Number(i.numeric_value),status:i.status,
-  sourceRef:i.source_ref,naReason:i.na_reason,version:i.version,
+  sourceRef:i.source_ref,naReason:i.na_reason,meaning:i.meaning,version:i.version,
  }));
  return {plans:planRows,indicators:indicatorRows};
 }
