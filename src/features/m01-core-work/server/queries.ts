@@ -3,6 +3,7 @@ import "server-only";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { RequestContext } from "@/lib/auth/request-context";
 import type { WorkItemDTO, WorkItemEventDTO } from "../types";
+import { resolveWorkScope } from "./work-scope";
 
 type RawWork = Record<string, unknown>;
 
@@ -26,12 +27,14 @@ function requireRead(ctx: RequestContext) {
   if (!ctx.permissions.includes("m01:work:read")) throw new Error("FORBIDDEN: Thiếu quyền xem công việc");
 }
 
-export type WorkFilter = "mine" | "created" | "review" | "hamlet" | "all";
+export type WorkFilter = "mine" | "created" | "review" | "hamlet" | "all" | "scope";
+export type WorkQuick = "overdue" | "soon" | "returned" | "review" | "unassigned" | "progress" | "open" | "urgent";
+const OPEN_STATUSES = ["NEW", "ASSIGNED", "IN_PROGRESS", "UNDER_REVIEW", "RETURNED"];
 export type WorkSort = "newest" | "oldest" | "due_soon";
 
 export async function getWorkItemsPage(ctx: RequestContext, opts: {
   filter?: WorkFilter; page?: number; pageSize?: number; search?: string;
-  hamletId?: string; sort?: WorkSort;
+  hamletId?: string; sort?: WorkSort; quick?: WorkQuick; category?: string;
 } = {}): Promise<{ items: WorkItemDTO[]; total: number; page: number; pageSize: number }> {
   requireRead(ctx);
   const db = await createServerSupabaseClient();
@@ -41,12 +44,14 @@ export async function getWorkItemsPage(ctx: RequestContext, opts: {
   // RLS remains the final record-level boundary for all filters.
   let query = db.from("work_items").select("*", { count: "exact" }).eq("tenant_id", ctx.tenantId);
   if (filter === "mine") query = query.eq("assigned_to", ctx.userId);
+  if (filter === "scope") {
+    const scope = resolveWorkScope(ctx);
+    if (scope.kind === "hamlet") query = scope.hamlets.length ? query.in("hamlet_id", [...scope.hamlets]) : query.eq("id", "00000000-0000-0000-0000-000000000000");
+    else if (scope.kind === "officer") query = query.eq("assigned_to", ctx.userId);
+  }
   if (filter === "created") query = query.eq("created_by", ctx.userId);
   if (filter === "hamlet") {
     if (!opts.hamletId || !/^[0-9a-f-]{36}$/i.test(opts.hamletId)) {
-      return { items: [], total: 0, page, pageSize };
-    }
-    if (ctx.scopes.hamletIds && !ctx.scopes.hamletIds.includes(opts.hamletId)) {
       return { items: [], total: 0, page, pageSize };
     }
     query = query.eq("hamlet_id", opts.hamletId);
@@ -61,6 +66,25 @@ export async function getWorkItemsPage(ctx: RequestContext, opts: {
   }
   if (filter === "all" && !ctx.permissions.includes("m01:work:read_all")) {
     throw new Error("FORBIDDEN: Thiếu quyền xem toàn đơn vị");
+  }
+  if (opts.category && /^[A-Z_]{2,100}$/.test(opts.category)) query = query.eq("category", opts.category);
+  if (opts.quick) {
+    const local = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Ho_Chi_Minh", year: "numeric", month: "2-digit", day: "2-digit",
+    }).formatToParts(new Date());
+    const part = (type: string) => local.find(p => p.type === type)?.value || "";
+    const today = part("year") + "-" + part("month") + "-" + part("day");
+    const baseUtc = Date.parse(today + "T00:00:00Z") - 7 * 3600000;
+    const start = new Date(baseUtc).toISOString();
+    const end = new Date(baseUtc + 8 * 86400000).toISOString();
+    if (["open", "overdue", "soon", "unassigned", "urgent"].includes(opts.quick)) query = query.in("status", OPEN_STATUSES);
+    if (opts.quick === "overdue") query = query.lt("due_date", start);
+    if (opts.quick === "soon") query = query.gte("due_date", start).lt("due_date", end);
+    if (opts.quick === "returned") query = query.eq("status", "RETURNED");
+    if (opts.quick === "review") query = query.eq("status", "UNDER_REVIEW");
+    if (opts.quick === "unassigned") query = query.is("assigned_to", null);
+    if (opts.quick === "progress") query = query.eq("status", "IN_PROGRESS");
+    if (opts.quick === "urgent") query = query.or("due_date.lt." + start + ",status.eq.RETURNED,status.eq.UNDER_REVIEW");
   }
   const search = opts.search?.trim().slice(0, 100);
   if (search) query = query.ilike("title", `%${search.replace(/[%_,]/g, "\\$&")}%`);
@@ -153,7 +177,7 @@ export async function getActiveHamlets(ctx: RequestContext): Promise<{ id: strin
     .select("id,name").eq("tenant_id", ctx.tenantId).eq("kind", "HAMLET")
     .eq("is_active", true).order("name");
   if (error) throw new Error(`DB_ERROR: Không tải được địa bàn công tác (${error.code})`);
-  const scopedIds = ctx.scopes.hamletIds ?? (ctx.scopes as { org_unit_ids?: readonly string[] }).org_unit_ids;
+  const scopedIds = (ctx.scopes as { org_unit_ids?: readonly string[] }).org_unit_ids;
   return (data || []).filter(row => !scopedIds || scopedIds.includes(row.id))
     .map(row => ({ id: row.id, name: row.name }));
 }

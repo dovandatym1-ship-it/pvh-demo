@@ -117,6 +117,8 @@ export function Sidebar({
       )}
 
       <aside
+        id="pvh-primary-nav"
+        aria-label="Điều hướng chính"
         className={cn(
           "w-64 border-r border-slate-200 bg-white flex flex-col min-h-screen shrink-0 transition-transform duration-200 ease-in-out z-50",
           "fixed lg:static inset-y-0 left-0",
@@ -124,6 +126,8 @@ export function Sidebar({
         )}
       >
         <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+          {onClose && <button type="button" aria-label="Đóng điều hướng" onClick={onClose}
+            className="absolute right-3 top-3 rounded border border-slate-200 px-2 py-1 text-xs text-slate-700 lg:hidden">Đóng</button>}
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-gov-600 flex items-center justify-center text-white font-bold text-sm shadow-xs">
               PVH

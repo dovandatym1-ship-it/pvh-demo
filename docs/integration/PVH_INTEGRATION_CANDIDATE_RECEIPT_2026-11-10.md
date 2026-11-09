@@ -58,3 +58,11 @@ Khôi phục từ `fix/pvh-ph02-completion-20261109` các màn tạo việc, l�
 - Thu thập tài liệu master plan **37 tệp** và full module spec **22 tệp** ở đúng đường dẫn từ các nhánh kế hoạch/tài liệu, không đánh đồng tài liệu với mã nguồn đã hoạt động. Crosswalk OP → màn → DB → kiểm thử còn `DRAFT` cho tới khi có evidence thực tế.
 - Mock Storage PGlite của smoke test bổ sung `metadata` để thử backfill tệp minh chứng, không hạ tiêu chuẩn migration.
 - **G-MERGE/G-DB/G-SEC/G-UX/G-PERF/G-OWNER chưa được ký duyệt**; chỉ owner duyệt merge. 
+
+
+## Dashboard/Responsive Shell — candidate (PERF-301/302/303, UI-201)
+- Tích hợp giao diện và semantics từ `feat/pvh-dashboard` theo **nguồn mới** `getM01DashboardSnapshot`: `count: exact, head: true` trên từng nhóm, áp tenant/RLS và làm hẹp theo quyền; không dùng `getWorkItems(limit 100)` cho KPI. Chỉ tối đa 30 đầu việc chưa đóng được truyền xuống client làm danh sách ưu tiên, link chi tiết trực tiếp `/cong-viec/[id]`.
+- Các KPI điều hướng đến `/cong-viec?view=scope&quick=...`; query danh sách thật có lọc phân quyền, trạng thái, hạn xử lý, không lọc giả ở UI. Bổ sung test kiểm đếm mô hình 125 bản ghi với danh sách preview 1 bản ghi.
+- Nguồn hoàn thành `work_item_events` chưa có RPC aggregate chống trùng theo RLS nên **không bật** cột hoàn thành. Phân bổ cán bộ/địa bàn cũng chưa thống kê tổng hợp. Không trình bày 0 giả như đã có dữ liệu.
+- Responsive shell có nút điều hướng/đóng/Escape trên điện thoại, nav fail-closed; tên vai trò thiếu xác nhận không giả thành “Chủ tịch xã”.
+- **Chưa xác nhận G-PERF, G-UX/G-FLOW:** cần seed 101+, PostgREST EXPLAIN/trace, ảnh 375/768/1024/1440, keyboard/focus, RLS 3 vai trò sau migration replay.
