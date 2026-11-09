@@ -8,12 +8,12 @@ export const dynamic = "force-dynamic";
 export default async function CongViecPage({
   searchParams,
 }: {
-  readonly searchParams: Promise<{ focus?: string }>;
+  readonly searchParams: Promise<{ focus?: string; dashboardFilter?: string }>;
 }) {
   const ctx = await getRequestContext();
   assertRoutePermission("/cong-viec", ctx.permissions, ctx.roles);
 
-  const [workItems, { focus }] = await Promise.all([getWorkItems(ctx), searchParams]);
+  const [workItems, { focus, dashboardFilter }] = await Promise.all([getWorkItems(ctx), searchParams]);
 
   return (
     <WorkItemManager
@@ -21,6 +21,7 @@ export default async function CongViecPage({
       userPermissions={ctx.permissions}
       userRoles={ctx.roles}
       focusItemId={focus}
+      initialDashboardFilter={dashboardFilter}
     />
   );
 }
