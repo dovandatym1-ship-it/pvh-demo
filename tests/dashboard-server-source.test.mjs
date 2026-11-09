@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { resolveWorkScope } from "../src/features/m01-core-work/server/work-scope.ts";
+import { resolveWorkScope } from "../src/features/m01-core-work/types/work-scope.ts";
 import { buildRolePresentation } from "../src/features/dashboard/role-semantics.mjs";
 import { buildDashboardModel } from "../src/features/dashboard/metrics.mjs";
 

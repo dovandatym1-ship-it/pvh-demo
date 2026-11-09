@@ -25,7 +25,7 @@ export function NCCTable({ items, canUnmaskPII }: NCCTableProps) {
         <div className="flex items-center gap-2">
           <Award className="w-5 h-5 text-emerald-700" />
           <h3 className="font-semibold text-slate-800">
-            Hồ sơ Người có công & Thi đua khen thưởng
+            Hồ sơ người có công và thi đua, khen thưởng
           </h3>
           <Badge variant="neutral">{filtered.length} hồ sơ</Badge>
         </div>
