@@ -1,0 +1,26 @@
+name: PVH personal account and notifications
+on:
+  push:
+    branches:
+      - 'feat/pvh-personal-profile-notifications-20261109'
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  contract-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: cp .env.example .env.local
+      - run: node --experimental-strip-types --test tests/self-service-notifications.test.mjs
+      - run: npm run typecheck
+      - run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
