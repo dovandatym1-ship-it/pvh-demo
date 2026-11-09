@@ -19,6 +19,7 @@ import {
   BarChart3,
   RefreshCw,
   BookOpen,
+  X,
   LucideIcon,
 } from "lucide-react";
 import { Persona } from "@/lib/auth/session";
@@ -126,6 +127,10 @@ export function Sidebar({
         )}
       >
         <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+          {onClose && <button type="button" onClick={onClose} aria-label="Đóng menu điều hướng"
+            className="order-last ml-auto inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 lg:hidden">
+            <X size={18} aria-hidden="true"/>
+          </button>}
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-gov-600 flex items-center justify-center text-white font-bold text-sm shadow-xs">
               PVH
