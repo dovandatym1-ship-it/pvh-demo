@@ -1,33 +1,25 @@
 import Link from "next/link";
 import { getRequestContext } from "@/lib/auth/request-context";
 import { assertRoutePermission } from "@/config/navigation";
-import { getActiveHamlets, getAssignees, getWorkItemsPage, type WorkFilter, type WorkSort, type WorkQuick } from "@/features/m01-core-work/server/queries";
+import { getActiveHamlets, getAssignees, getWorkItemsPage, type WorkSort } from "@/features/m01-core-work/server/queries";
 import { CreateWorkItemForm } from "@/features/m01-core-work/components/create-work-item-form";
+import { workViewFilters, workQuickFilters } from "@/features/m01-core-work/server/work-list-options";
 import { workStatusLabel, workPriorityLabel } from "@/features/m01-core-work/types/presentation";
-
 export const dynamic = "force-dynamic";
-
-const filters: { id: WorkFilter; label: string }[] = [
-  { id: "scope", label: "Phạm vi của tôi" }, { id: "mine", label: "Việc được giao" }, { id: "created", label: "Do tôi tạo" },
-  { id: "review", label: "Chờ rà soát" }, { id: "hamlet", label: "Theo thôn/xóm" },
-  { id: "all", label: "Toàn đơn vị" },
-];
-
 export default async function CongViecPage({ searchParams }: {
   searchParams: Promise<{ view?: string; page?: string; q?: string; hamlet?: string; sort?: string; quick?: string; category?: string }>;
 }) {
   const ctx = await getRequestContext();
   assertRoutePermission("/cong-viec", ctx.permissions, ctx.roles);
   const params = await searchParams;
-  const view = filters.find(f => f.id === params.view)?.id || "scope";
+  const view = workViewFilters.find(f => f.id === params.view)?.id || "scope";
   const showAll = ctx.permissions.includes("m01:work:read_all");
   const selectedView = view === "all" && !showAll ? "mine" : view;
   const pageNum = Math.max(1, Number.parseInt(params.page || "1", 10) || 1);
   const search = (params.q || "").slice(0, 100);
   const sort: WorkSort = (["newest", "oldest", "due_soon"] as const).find(s => s === params.sort) || "newest";
   const hamletId = params.hamlet || "";
-  const quicks: WorkQuick[] = ["overdue", "soon", "returned", "review", "unassigned", "progress", "open", "urgent"];
-  const quick = quicks.find(item => item === params.quick);
+  const quick = workQuickFilters.find(item => item === params.quick);
   const category = /^[A-Z_]{2,100}$/.test(params.category || "") ? params.category : undefined;
   const [list, assignees, hamlets] = await Promise.all([
     getWorkItemsPage(ctx, { filter: selectedView, page: pageNum, search, hamletId, sort, quick, category }),
@@ -36,7 +28,6 @@ export default async function CongViecPage({ searchParams }: {
   ]);
   const filterParams = `view=${selectedView}&q=${encodeURIComponent(search)}&hamlet=${encodeURIComponent(hamletId)}&sort=${sort}&quick=${quick || ""}&category=${category || ""}`;
   const linkTo = (nextPage: number) => `/cong-viec?${filterParams}&page=${nextPage}`;
-
   return (
     <div className="space-y-6">
       <header><h1 className="text-xl font-bold text-slate-900">Quản lý công việc</h1>
@@ -45,7 +36,7 @@ export default async function CongViecPage({ searchParams }: {
       <section className="rounded-xl border border-slate-200 bg-white overflow-hidden">
         <div className="p-4 border-b space-y-3">
           <nav aria-label="Bộ lọc công việc" className="flex gap-2 flex-wrap text-sm">
-            {filters.filter(f => f.id !== "all" || showAll).map(f =>
+            {workViewFilters.filter(f => f.id !== "all" || showAll).map(f =>
               <Link key={f.id} href={`/cong-viec?view=${f.id}&q=${encodeURIComponent(search)}&hamlet=${encodeURIComponent(hamletId)}&sort=${sort}&quick=${quick || ""}&category=${category || ""}`}
                 aria-current={selectedView === f.id ? "page" : undefined}
                 className={`rounded-full px-3 py-1.5 ${selectedView === f.id ? "bg-emerald-800 text-white" : "bg-slate-100 text-slate-700"}`}>{f.label}</Link>)}

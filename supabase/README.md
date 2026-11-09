@@ -39,3 +39,7 @@ This is a **source reconciliation**, not a new migration and not a cloud migrati
 14 application tables, 1 commune (`TN-DEMO-A`, placeholder name), 5 configurable roles, 10 permissions, 1 private bucket. Live record counts and Auth account provisioning can change; verify afresh before release. No default passwords. Actual commune name and admin email await user input.
 
 See `DB_DEPLOYMENT_RECEIPT.md` at repo root and project Working/DB_PVH_SINGLE_COMMUNE for evidence and operator provisioning SQL.
+
+
+## Integration candidate archive decision (10/11/2026)
+Only in `integrate/pvh-backbone-review-20261110`: the nine superseded two-commune migrations `20261108000001..00009` were removed from the executable `migrations/` path after exact blob-SHA comparison to `_legacy/superseded_20261108/`. Source history and immutable archive remain available; no remote DB changes. CI `node scripts/check-migration-ledger.mjs` validates the expected nine canonical migration files and archived SHA identities. **Do not run `supabase db push` or report clean replay until a disposable local stack and cloud history comparison pass.**

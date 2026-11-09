@@ -32,7 +32,7 @@
 - `src/features/m07-ethnicity-faith/components/establishment-table.tsx`
 
 ## 9 migration bản cũ phải đối soát
-Các file `20261108000001`–`20261108000009` trong main được **giữ lại tạm** và không xóa bằng merge máy móc. Phase 6 bổ sung migration mới, dẫn đến rủi ro trùng định nghĩa/schema nếu replay toàn bộ; **DB replay GATE BLOCKED** đến khi đối chiếu checksum, applied history cloud, dependency và quyết định chính thức archiving/forward migration. Supabase cloud chưa đổi.
+Đã xác nhận **9/9 bản sao lưu SHA-identical** dưới `supabase/_legacy/superseded_20261108/`. Trên nhánh candidate, 9 bản nguyên mẫu đã được cách ly khỏi thư mục `supabase/migrations/` để tránh replay trước baseline PH01; các bản cũ vẫn còn trong lịch sử Git và thư mục lưu trữ. Bộ kiểm tĩnh trong CI chặn bản cũ tái xuất hiện. **G-DB vẫn BLOCKED** cho đến khi chạy một lần replay sạch trong Supabase cục bộ/staging biệt lập, đối chiếu applied history/checksum và thử RLS/Storage. Không đổi cloud.
 
 ## Cổng nghiệm thu còn thiếu
 - PH01/02 unique-tip audit và backport chính xác.
@@ -79,3 +79,9 @@ Khôi phục từ `fix/pvh-ph02-completion-20261109` các màn tạo việc, l�
 - Đưa `docs/ux/PVH_VIETNAMESE_LANGUAGE_STANDARD.md` và bộ quét tĩnh vào CI; các thay đổi chưa qua review ngữ cảnh nghiệp vụ/truy xuất bản xuất phải kiểm chứng tiếp.
 - Chọn màn đăng nhập Split Screen từ `feat/pvh-government-login-split-screen`, giữ `deploymentBrand` và luồng xác thực Supabase. Có xử lý loading/lỗi, hiện/ẩn mật khẩu, tương thích mobile; chưa có ảnh browser đa kích thước, nên G-UX vẫn BLOCKED.
 - PH05/sidebar và profile đều cam kết **nhóm menu được cấp quyền rỗng không fallback mặc định**. Điều chỉnh test PH05 chấp nhận hai cách viết tương đương, không hạ điều kiện chặn. Chưa áp migration cloud.
+
+
+## Migration active-path de-duplication / Fitness
+- Cặp `supabase/migrations/20261108000001..00009` và `supabase/_legacy/superseded_20261108/20261108000001..00009` đã đối chiếu chính xác **9/9 blob SHA**; chỉ loại khỏi thư mục *được thực thi* trên candidate. Không drop bảng, không xóa bản lưu; `main` không đổi.
+- Thêm `scripts/check-migration-ledger.mjs` vào CI: 9 migration chuẩn duy nhất, 9 bản lưu bất biến, không trùng timestamp. Gate tĩnh không thay cho DB replay, tuyệt đối không `db push` lên cloud.
+- Sửa `npm run fitness`: tách bộ lọc M01 vào mô-đun server-only, giữ page trong giới hạn dòng và bổ sung guard `server-only` cho scope resolver. Phải chạy lại cả CI.
