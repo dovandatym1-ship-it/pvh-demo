@@ -6,21 +6,25 @@ import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { recordSocialAidPaymentAction } from "../server/actions";
 import type { SocialBeneficiaryDisplayDTO } from "../types";
+import { buildSocialHamletOptions, type HamletOption } from "../types/hamlet-options";
 import { CheckCircle2, Clock, ShieldAlert, HeartHandshake } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface BeneficiaryTableProps {
   readonly items: SocialBeneficiaryDisplayDTO[];
+  readonly hamlets: readonly HamletOption[];
   readonly canUnmaskPII: boolean;
   readonly canManage: boolean;
 }
 
-export function BeneficiaryTable({ items, canUnmaskPII, canManage }: BeneficiaryTableProps) {
+export function BeneficiaryTable({ items, hamlets, canUnmaskPII, canManage }: BeneficiaryTableProps) {
   const [selectedHamlet, setSelectedHamlet] = React.useState<string>("ALL");
   const [selectedStatus, setSelectedStatus] = React.useState<string>("ALL");
   const [pendingId, setPendingId] = React.useState<string | null>(null);
   const [feedback, setFeedback] = React.useState<string | null>(null);
   const router = useRouter();
+  const hamletOptions = React.useMemo(() => buildSocialHamletOptions(items, hamlets), [items, hamlets]);
+  const hamletNames = React.useMemo(() => new Map(hamletOptions.map(({ id, name }) => [id, name])), [hamletOptions]);
 
   const filtered = items.filter((item) => {
     if (selectedHamlet !== "ALL" && item.hamletId !== selectedHamlet) return false;
@@ -62,9 +66,7 @@ export function BeneficiaryTable({ items, canUnmaskPII, canManage }: Beneficiary
             className="text-xs border border-slate-300 rounded px-2.5 py-1.5 bg-white text-slate-700"
           >
             <option value="ALL">Tất cả thôn, xóm</option>
-            <option value="A1">Xóm A1</option>
-            <option value="A2">Xóm A2</option>
-            <option value="A3">Xóm A3</option>
+            {hamletOptions.map(unit => <option key={unit.id} value={unit.id}>{unit.name}</option>)}
           </select>
 
           <select
@@ -75,6 +77,7 @@ export function BeneficiaryTable({ items, canUnmaskPII, canManage }: Beneficiary
             <option value="ALL">Tất cả trạng thái</option>
             <option value="PENDING">Chưa chi trả</option>
             <option value="PAID">Đã chi trả</option>
+            <option value="SUSPENDED">Tạm dừng chi trả</option>
           </select>
         </div>
       </div>
@@ -117,7 +120,7 @@ export function BeneficiaryTable({ items, canUnmaskPII, canManage }: Beneficiary
                     </span>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="neutral">Xóm {item.hamletId}</Badge>
+                    <Badge variant="neutral">{hamletNames.get(item.hamletId) ?? "Địa bàn chưa xác định"}</Badge>
                   </TableCell>
                   <TableCell className="text-xs text-slate-700">
                     {item.aidCategory}
@@ -133,6 +136,8 @@ export function BeneficiaryTable({ items, canUnmaskPII, canManage }: Beneficiary
                       <Badge variant="success">
                         <CheckCircle2 className="w-3 h-3 mr-1 inline" /> Đã chi trả
                       </Badge>
+                    ) : item.paymentStatus === "SUSPENDED" ? (
+                      <Badge variant="neutral"><ShieldAlert className="w-3 h-3 mr-1 inline" /> Tạm dừng chi trả</Badge>
                     ) : (
                       <Badge variant="warning">
                         <Clock className="w-3 h-3 mr-1 inline" /> Chưa chi trả
@@ -164,7 +169,7 @@ export function BeneficiaryTable({ items, canUnmaskPII, canManage }: Beneficiary
         <div className="flex items-center gap-2 p-3 bg-amber-50 rounded border border-amber-200 text-xs text-amber-800">
           <ShieldAlert className="w-4 h-4 shrink-0 text-amber-700" />
           <span>
-            Chính sách bảo mật PII (ADR-002 / D03): Các trường căn cước, y tế và khoản hỗ trợ đã được xử lý theo quyền truy cập trước khi gửi đến trình duyệt.
+            Thông tin căn cước, y tế và khoản hỗ trợ đã được ẩn theo quyền truy cập của tài khoản.
           </span>
         </div>
       )}

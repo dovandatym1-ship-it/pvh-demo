@@ -4,9 +4,10 @@ import PDFDocument from "pdfkit";
 import path from "node:path";
 import type { ReportSnapshotDTO } from "../types";
 import { verifySnapshotHash } from "./service";
+import { reportStatusLabel, qualityStatusLabel, reportSourceLabel } from "../types/presentation";
 
-export const DEMO_WATERMARK_DISCLAIMER = "MÔ PHỎNG DEMO — KHÔNG CÓ GIÁ TRỊ PHÁP LÝ";
-export const DRAFT_WATERMARK = "DRAFT — BẢN NHÁP";
+export const DEMO_WATERMARK_DISCLAIMER = "BẢN THỬ NGHIỆM — KHÔNG CÓ GIÁ TRỊ PHÁP LÝ";
+export const DRAFT_WATERMARK = "BẢN NHÁP — CHƯA ĐƯỢC PHÊ DUYỆT";
 // Traced as a static public asset in the deployed Next.js artifact.
 const vietnameseFont = path.join(process.cwd(), "public", "fonts", "DejaVuSans-PVH.ttf");
 export interface ExportResult {
@@ -17,11 +18,11 @@ export interface ExportResult {
 const METRIC_NAMES: Record<string,string> = {
   tasksTotal:"Tổng số công việc",tasksCompleted:"Công việc hoàn thành",
   tasksOverdue:"Công việc quá hạn",cultureSubmissions:"Hồ sơ văn hóa",
-  cultureEligible:"Hồ sơ đạt theo rule minh họa",plansTotal:"Kế hoạch chuyển đổi số",
+  cultureEligible:"Hồ sơ đạt theo quy tắc thử nghiệm",plansTotal:"Kế hoạch chuyển đổi số",
   indicatorsConfirmed:"Chỉ tiêu đã xác nhận",indicatorsConfirmedZero:"Chỉ tiêu xác nhận bằng 0",
   indicatorsNotReported:"Chỉ tiêu chưa báo cáo",indicatorsNotApplicable:"Chỉ tiêu không áp dụng",
   inspectionsTotal:"Cuộc kiểm tra",recommendationsTotal:"Kiến nghị kiểm tra",
-  recommendationsClosed:"Kiến nghị đã khắc phục",importedValues:"Bản ghi chỉ tiêu từ file mô phỏng",
+  recommendationsClosed:"Kiến nghị đã khắc phục",importedValues:"Bản ghi chỉ tiêu từ tệp thử nghiệm",
 };
 const METRIC_UNITS: Record<string,string> = {
   tasksTotal:"Công việc",tasksCompleted:"Công việc",tasksOverdue:"Công việc",
@@ -40,7 +41,7 @@ function numericMetrics(snapshot: ReportSnapshotDTO): Array<{code:string;label:s
   if (!values || typeof values !== "object" || Array.isArray(values)) return [];
   return Object.entries(values as Record<string,unknown>)
     .filter(([,v]) => typeof v === "number" && Number.isFinite(v))
-    .map(([code,value])=>({code,label:METRIC_NAMES[code] ?? code,value:value as number}));
+    .map(([code,value])=>({code,label:METRIC_NAMES[code] ?? "Chỉ tiêu chưa có tên hiển thị",value:value as number}));
 }
 function fileBase(snapshot: ReportSnapshotDTO): string {
   return [snapshot.reportCode,snapshot.period,snapshot.year,"v"+snapshot.revision]
@@ -48,7 +49,7 @@ function fileBase(snapshot: ReportSnapshotDTO): string {
 }
 async function exportXlsx(snapshot: ReportSnapshotDTO): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = "PVH Workbench"; workbook.created = new Date();
+  workbook.creator = "Nền tảng PVH"; workbook.created = new Date();
   const sheet = workbook.addWorksheet("Bao cao",{views:[{state:"frozen",ySplit:7}]});
   sheet.columns = [
     {key:"code",width:25},{key:"label",width:48},{key:"value",width:20},{key:"note",width:45},
@@ -57,9 +58,9 @@ async function exportXlsx(snapshot: ReportSnapshotDTO): Promise<Buffer> {
   sheet.getCell("A1").font={bold:true,color:{argb:"FFAA1A1A"},size:14};
   sheet.mergeCells("A2:D2"); sheet.getCell("A2").value = safeCell(snapshot.title);
   sheet.getCell("A2").font={bold:true,size:13};
-  sheet.mergeCells("A3:D3"); sheet.getCell("A3").value = "Trạng thái: "+snapshot.status+
-    " | Kỳ: "+snapshot.period+" | Năm: "+snapshot.year+" | Revision: "+snapshot.revision;
-  sheet.mergeCells("A4:D4"); sheet.getCell("A4").value = "Nguồn: DATABASE | SHA-256 ("+snapshot.hashAlgorithm+"): "+snapshot.sha256;
+  sheet.mergeCells("A3:D3"); sheet.getCell("A3").value = "Trạng thái: "+reportStatusLabel(snapshot.status)+
+    " | Kỳ: "+snapshot.period+" | Năm: "+snapshot.year+" | Phiên bản: "+snapshot.revision;
+  sheet.mergeCells("A4:D4"); sheet.getCell("A4").value = "Nguồn: "+reportSourceLabel(snapshot.payload.sourceType)+" | Mã kiểm chứng SHA-256: "+snapshot.sha256;
   sheet.mergeCells("A5:D5"); sheet.getCell("A5").value = snapshot.status==="FINALIZED"
     ? "Chốt nội bộ, KHÔNG phải chữ ký số hay văn bản phát hành."
     : DRAFT_WATERMARK;
@@ -69,13 +70,13 @@ async function exportXlsx(snapshot: ReportSnapshotDTO): Promise<Buffer> {
   header.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FF203A64"}};
   for(const metric of numericMetrics(snapshot)) {
     sheet.addRow([safeCell(metric.code),safeCell(metric.label),metric.value,
-      safeCell(METRIC_UNITS[metric.code]??"") + " · Bản chụp nguồn, không live"]);
+      safeCell(METRIC_UNITS[metric.code]??"") + " · Số liệu tại thời điểm tạo báo cáo"]);
   }
   const quality = snapshot.payload.quality as Record<string,unknown> | undefined;
   for(const [code,detail] of Object.entries(quality ?? {})){
     const d=detail as {value?:unknown;status?:unknown};
-    sheet.addRow([safeCell(code),safeCell(METRIC_NAMES[code] ?? code),
-      typeof d?.value==="number" ? d.value : null,safeCell(d?.status ?? "NOT_REPORTED")]);
+    sheet.addRow([safeCell(code),safeCell(METRIC_NAMES[code] ?? "Chỉ tiêu chưa có tên hiển thị"),
+      typeof d?.value==="number" ? d.value : null,qualityStatusLabel(String(d?.status ?? "NOT_REPORTED"))]);
   }
   sheet.autoFilter={from:{row:7,column:1},to:{row:7,column:4}};
   sheet.eachRow(row=>{row.alignment={vertical:"middle",wrapText:true};});
@@ -84,7 +85,7 @@ async function exportXlsx(snapshot: ReportSnapshotDTO): Promise<Buffer> {
 }
 async function exportPdf(snapshot: ReportSnapshotDTO): Promise<Buffer> {
   const doc=new PDFDocument({size:"A4",margin:48,bufferPages:true,
-    info:{Title:safeCell(snapshot.title),Author:"PVH Workbench"}});
+    info:{Title:safeCell(snapshot.title),Author:"Nền tảng PVH"}});
   const chunks:Buffer[]=[];
   doc.on("data",(chunk:Buffer)=>chunks.push(Buffer.from(chunk)));
   const ended=new Promise<Buffer>((resolve,reject)=>{
@@ -96,8 +97,8 @@ async function exportPdf(snapshot: ReportSnapshotDTO): Promise<Buffer> {
   doc.moveDown(1).fontSize(16).fillColor("#17253C").text(safeCell(snapshot.title),{align:"center"});
   doc.moveDown(0.5).fontSize(10).fillColor("#4A5568")
     .text("Mã: "+snapshot.reportCode+" | Kỳ: "+snapshot.period+" | Năm: "+snapshot.year+
-      " | Bản: "+snapshot.revision+" | Trạng thái: "+snapshot.status,{align:"center"});
-  doc.moveDown(0.5).fontSize(9).text("SHA-256 ("+snapshot.hashAlgorithm+"): "+snapshot.sha256);
+      " | Bản: "+snapshot.revision+" | Trạng thái: "+reportStatusLabel(snapshot.status),{align:"center"});
+  doc.moveDown(0.5).fontSize(9).text("Mã kiểm chứng SHA-256: "+snapshot.sha256);
   doc.moveDown().fontSize(11).fillColor("#17253C").text("Bảng số liệu báo cáo",{underline:true});
   const tableX=48,tableWidth=doc.page.width-96,rowHeight=28;
   let tableY=doc.y+10,renderedRows=0;
@@ -125,13 +126,13 @@ async function exportPdf(snapshot: ReportSnapshotDTO): Promise<Buffer> {
   const quality=snapshot.payload.quality as Record<string,unknown>|undefined;
   for(const [code,detail] of Object.entries(quality ?? {})) {
     const q=detail as {value?:unknown;status?:unknown};
-    tableRow(METRIC_NAMES[code]??code,String(q.value??"—"),String(q.status??"NOT_REPORTED"));
+    tableRow(METRIC_NAMES[code]??"Chỉ tiêu chưa có tên hiển thị",String(q.value??"—"),qualityStatusLabel(String(q.status??"NOT_REPORTED")));
   }
   doc.y=tableY+16;
   if(doc.y>doc.page.height-145)doc.addPage();
   doc.moveDown().fontSize(9).fillColor("#5B6472")
-    .text("Nguồn dữ liệu: "+safeCell(snapshot.payload.sourceType)+
-      " | Số bản ghi đóng góp: "+String(snapshot.payload.sourceRecords ?? 0));
+    .text("Nguồn dữ liệu: "+reportSourceLabel(snapshot.payload.sourceType)+
+      " | Số bản ghi đóng góp: "+String(snapshot.payload.sourceRecords ?? "Chưa xác định"));
   doc.moveDown().text(snapshot.status==="FINALIZED"
     ? "Đây là số liệu chốt nội bộ. Không có chữ ký số hoặc quyết định hành chính."
     : DRAFT_WATERMARK);

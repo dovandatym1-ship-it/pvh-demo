@@ -11,7 +11,7 @@ const rules = [
   {
     // Ternary and presentational attribute string literals may render directly.
     id: "UI_TECHNICAL",
-    re: /(?:\?\s*|:\s*|(?:placeholder|aria-label|title|label|description)\s*[:=]\s*)["'`][^"'`]*(?:assigned_to\s*=|\bsnapshot\b|LEGACY_MOCK\b)[^"'`]*["'`]/gi,
+    re: /(?:\?\s*|(?:placeholder|aria-label|title|label|description|name|desc|text|message|help)\s*[:=]\s*)["'`][^"'`]*(?:assigned_to\s*=|\bsnapshot\b|LEGACY_MOCK\b)[^"'`]*["'`]/gi,
   },
   {
     id: "UI_AMPERSAND",

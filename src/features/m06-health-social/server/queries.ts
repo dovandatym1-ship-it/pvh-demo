@@ -1,4 +1,5 @@
 import "server-only";
+import { assertCanReadHealthSocial } from "./policy";
 
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { RequestContext } from "@/lib/auth/request-context";
@@ -130,4 +131,18 @@ export async function getEpidemicLogs(ctx: RequestContext): Promise<EpidemicLogD
     logYear: Number(row.log_year) || 2026,
     reportedDate: String(row.reported_date),
   }));
+}
+
+
+/** M06 địa bàn choices come from tenant-scoped, active org units and live RLS. */
+export async function getSocialHamlets(ctx: RequestContext): Promise<{ id: string; name: string }[]> {
+  assertCanReadHealthSocial(ctx);
+  if (ctx.scopes.hamletIds && ctx.scopes.hamletIds.length === 0) return [];
+  const db = await createServerSupabaseClient();
+  const { data, error } = await db.from("org_units").select("id,name")
+    .eq("tenant_id", ctx.tenantId).eq("kind", "HAMLET")
+    .eq("is_active", true).order("name");
+  if (error) throw new Error("Không thể tải danh mục thôn, xóm; vui lòng thử lại.");
+  return (data || []).filter(row => !ctx.scopes.hamletIds || ctx.scopes.hamletIds.includes(row.id))
+    .map(row => ({ id: row.id, name: row.name }));
 }

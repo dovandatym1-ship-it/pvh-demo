@@ -17,6 +17,7 @@ test("Scanner does not mistake TSX type syntax or dynamic data keys for UI copy"
     'const metrics = (snapshot.payload.metrics ?? {}) as Record<string,unknown>;\n' +
     '<p>{snapshot.title}</p>';
   assert.deepEqual(scan(code), []);
+  assert.deepEqual(scan('const entity = { status: "LEGACY_MOCK" }; const label = "Trạng thái: " + snapshot.status;'), []);
 });
 
 test("Standardized Vietnamese UI labels stay clean", () => {

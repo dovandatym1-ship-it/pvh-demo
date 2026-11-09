@@ -5,6 +5,7 @@ import {
   getFoodSafetyInspections,
   getMedicalFacilities,
   getEpidemicLogs,
+  getSocialHamlets,
 } from "@/features/m06-health-social/server/queries";
 import { BeneficiaryTable } from "@/features/m06-health-social/components/beneficiary-table";
 import { HealthInspectionPanels } from "@/features/m06-health-social/components/health-inspection-panels";
@@ -19,11 +20,12 @@ export default async function YTeAnSinhAppPage() {
   const canManage =
     ctx.permissions.includes("m06:social:write");
 
-  const [beneficiaries, foodSafeties, medicalFacilities, epidemicLogs] = await Promise.all([
+  const [beneficiaries, foodSafeties, medicalFacilities, epidemicLogs, hamlets] = await Promise.all([
     getSocialBeneficiaries(ctx),
     getFoodSafetyInspections(ctx),
     getMedicalFacilities(ctx),
     getEpidemicLogs(ctx),
+    getSocialHamlets(ctx),
   ]);
 
   return (
@@ -44,6 +46,7 @@ export default async function YTeAnSinhAppPage() {
 
       <BeneficiaryTable
         items={toSocialDisplayRows(beneficiaries, canUnmask)}
+        hamlets={hamlets}
         canUnmaskPII={canUnmask}
         canManage={canManage}
       />

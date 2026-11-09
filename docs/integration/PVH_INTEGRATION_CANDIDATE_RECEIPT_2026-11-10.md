@@ -92,3 +92,10 @@ Khôi phục từ `fix/pvh-ph02-completion-20261109` các màn tạo việc, l�
 - Sửa các nhãn thực tại màn công việc, báo cáo, bảng chỉ tiêu, điều hướng legacy. Đổi `LEGACY_MOCK` hiển thị thành `BẢN MÔ PHỎNG`; không đổi enum nội bộ, tên hàm hoặc các bản ghi người dùng.
 - M09 báo cáo hiển thị nhãn trạng thái tiếng Việt, không đưa mã `snapshot` hoặc nội dung nguồn chưa xác minh lên UI. PH04 vẫn cần nghiệm thu bản xuất và thẩm quyền chốt báo cáo.
 - Những module legacy và nội dung báo cáo vẫn chưa đạt kiểm thử browser/UAT; bộ quét tĩnh không chứng minh mọi câu chữ ngữ nghĩa đã đạt 100%.
+
+
+## M06 dữ liệu địa bàn & bản xuất M09 (candidate)
+- M06 đã bỏ `A1/A2/A3` giả trong bộ lọc địa bàn, dùng `org_units` thuộc tenant và phạm vi được phép. Không đưa UUID lên nhãn hiển thị, thêm trạng thái **tạm dừng chi trả** thay cho việc gộp nhầm vào chưa chi trả. Các trường nhạy cảm vẫn dùng DTO hiển thị của PH06.
+- Các phiên bản PDF/XLSX của M09 dùng nhãn trạng thái, nguồn và chất lượng số liệu tiếng Việt, giữ watermark `BẢN THỬ NGHIỆM`, dữ liệu nguồn và mã kiểm chứng; không biến thao tác chốt nội bộ thành văn bản phát hành.
+- Sửa bộ quét UI để không báo nhầm tên enum `LEGACY_MOCK`, biểu thức `snapshot.status` hay type TSX. Có unit tests chống báo nhầm và bỏ lọt nội dung kỹ thuật thực sự hiển thị.
+- Chưa kiểm thử trực tiếp RLS của bảng M06 hay mở/đối soát file PDF/XLSX trên staging; G-SEC và G-UX vẫn BLOCKED.
