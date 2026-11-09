@@ -21,7 +21,7 @@ export interface NavigationGroup {
 
 export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
   {
-    title: "Điều hành & Tác nghiệp",
+    title: "Điều hành và tác nghiệp",
     items: [
       {
         title: "Bàn làm việc",
@@ -40,7 +40,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
     ],
   },
   {
-    title: "Văn hóa - Thông tin & Giáo dục",
+    title: "Văn hóa, thông tin và giáo dục",
     items: [
       {
         title: "Gia đình văn hóa",
@@ -51,7 +51,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
-        title: "Thôn / Xóm văn hóa",
+        title: "Thôn, xóm văn hóa",
         route: "/van-hoa/thon-van-hoa",
         iconName: "Landmark",
         moduleKey: "m04",
@@ -59,7 +59,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
-        title: "Giáo dục & Đào tạo",
+        title: "Giáo dục và đào tạo",
         route: "/giao-duc",
         iconName: "GraduationCap",
         moduleKey: "m03",
@@ -67,7 +67,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
-        title: "Khoa học & Chuyển đổi số",
+        title: "Khoa học và chuyển đổi số",
         route: "/khcn-chuyen-doi-so",
         iconName: "Cpu",
         moduleKey: "m05-science-digital",
@@ -77,10 +77,10 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
     ],
   },
   {
-    title: "Lao động, Y tế & Chính sách xã hội",
+    title: "Lao động, y tế và chính sách xã hội",
     items: [
       {
-        title: "Y tế & An sinh xã hội",
+        title: "Y tế và an sinh xã hội",
         route: "/y-te-an-sinh",
         iconName: "HeartHandshake",
         moduleKey: "m06",
@@ -88,7 +88,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
-        title: "Nội vụ & Lao động",
+        title: "Nội vụ và lao động",
         route: "/noi-vu",
         iconName: "Building",
         moduleKey: "m02",
@@ -96,7 +96,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
-        title: "Dân tộc & Tôn giáo",
+        title: "Dân tộc và tôn giáo",
         route: "/dan-toc-ton-giao",
         iconName: "Compass",
         moduleKey: "m07",
@@ -106,10 +106,10 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
     ],
   },
   {
-    title: "Kiểm tra, Báo cáo & Nền tảng",
+    title: "Kiểm tra, báo cáo và quản trị",
     items: [
       {
-        title: "Kiểm tra & Kiến nghị",
+        title: "Kiểm tra và kiến nghị",
         route: "/kiem-tra",
         iconName: "ClipboardList",
         moduleKey: "m08-inspections",
@@ -141,7 +141,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "LEGACY_MOCK",
       },
       {
-        title: "Quản trị hệ thống & Cán bộ",
+        title: "Quản trị hệ thống và cán bộ",
         route: "/quan-tri",
         iconName: "ShieldCheck",
         moduleKey: "m00",
