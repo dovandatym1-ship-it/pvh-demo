@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createDigitalPlanAction,createDigitalIndicatorAction,
  linkDigitalPlanWorkAction,updateDigitalIndicatorStatusAction } from "../server/ph03-actions";
 import type { DigitalPlan,DigitalIndicator } from "../server/ph03-queries";
+import { indicatorStatusLabel, planStatusLabel } from "@/lib/presentation/ph03-labels";
 
 type Props={plans:DigitalPlan[];indicators:DigitalIndicator[];canWrite:boolean;canReview:boolean};
 const field="rounded border border-slate-300 px-3 py-2 text-sm w-full";
@@ -17,6 +18,7 @@ export function DigitalWorkspace({plans,indicators,canWrite,canReview}:Props){
  const [linkPlanId,setLinkPlanId]=useState("");
  const [indicatorSource,setIndicatorSource]=useState("");
  const [code,setCode]=useState("");const [name,setName]=useState("");
+ const [indicatorPeriod,setIndicatorPeriod]=useState("");const [meaning,setMeaning]=useState("");
  const [unit,setUnit]=useState("");const [workId,setWorkId]=useState("");
  const [indicatorId,setIndicatorId]=useState("");
  const [value,setValue]=useState("");const [status,setStatus]=useState("UNVERIFIED");
@@ -54,7 +56,7 @@ export function DigitalWorkspace({plans,indicators,canWrite,canReview}:Props){
    </form>
    <form className="rounded border bg-white p-4 space-y-3" onSubmit={e=>{
     e.preventDefault();void invoke(()=>createDigitalIndicatorAction({
-      planId:planId||null,code,name,unit,period,meaning:"",
+      planId:planId||null,code,name,unit,period:indicatorPeriod,meaning,
     }),"Đã thêm định nghĩa chỉ tiêu; số liệu đang chưa nộp.");
    }}>
     <h2 className="font-semibold">Định nghĩa chỉ tiêu</h2>
@@ -66,8 +68,12 @@ export function DigitalWorkspace({plans,indicators,canWrite,canReview}:Props){
      <input className={field} required placeholder="Mã chỉ tiêu" value={code} onChange={e=>setCode(e.target.value)}/>
      <input className={field} required placeholder="Đơn vị (%, hồ sơ...)" value={unit} onChange={e=>setUnit(e.target.value)}/>
     </div>
-    <input className={field} required placeholder="Tên chỉ tiêu" value={name} onChange={e=>setName(e.target.value)}/>
-    <button className={button} disabled={busy||!period}>Thêm chỉ tiêu</button>
+    <input className={field} required placeholder="Tên chỉ tiêu" aria-label="Tên chỉ tiêu" value={name} onChange={e=>setName(e.target.value)}/>
+    <input className={field} required placeholder="Kỳ ghi nhận chỉ tiêu (VD: 2026-Q4)" aria-label="Kỳ ghi nhận chỉ tiêu" value={indicatorPeriod}
+      onChange={e=>setIndicatorPeriod(e.target.value)}/>
+    <textarea className={field} maxLength={500} placeholder="Ý nghĩa / cách hiểu chỉ tiêu" aria-label="Ý nghĩa chỉ tiêu"
+      value={meaning} onChange={e=>setMeaning(e.target.value)}/>
+    <button className={button} disabled={busy||!indicatorPeriod.trim()}>Thêm chỉ tiêu</button>
    </form>
   </div>}
   {canWrite&&<form className="rounded border bg-white p-4 space-y-3" onSubmit={e=>{
@@ -87,14 +93,15 @@ export function DigitalWorkspace({plans,indicators,canWrite,canReview}:Props){
   <div className="rounded border bg-white overflow-x-auto">
    <table className="min-w-full text-sm text-left">
     <thead className="bg-slate-100"><tr>
-     {["Mã","Chỉ tiêu","Kỳ","Số liệu","Trạng thái","Nguồn","Phiên bản"].map(x=>
+     {["Mã","Chỉ tiêu","Kỳ","Ý nghĩa","Số liệu","Trạng thái","Nguồn","Phiên bản"].map(x=>
       <th className="p-3" key={x}>{x}</th>)}
     </tr></thead>
     <tbody>{indicators.map(i=><tr className="border-t" key={i.id}>
      <td className="p-3">{i.code}</td><td className="p-3">{i.name}</td>
      <td className="p-3">{i.period}</td>
+     <td className="p-3 max-w-xs whitespace-normal">{i.meaning||"Chưa mô tả"}</td>
      <td className="p-3">{i.numericValue===null?"Chưa có số liệu":String(i.numericValue)+" "+i.unit}</td>
-     <td className="p-3">{i.status}</td><td className="p-3">{i.sourceRef??"—"}</td>
+     <td className="p-3">{indicatorStatusLabel(i.status)}</td><td className="p-3">{i.sourceRef??"—"}</td>
      <td className="p-3">v{i.version}</td>
     </tr>)}</tbody>
    </table>
@@ -109,7 +116,9 @@ export function DigitalWorkspace({plans,indicators,canWrite,canReview}:Props){
    }),"CSDL đã ghi nhận giá trị và lịch sử phiên bản chỉ tiêu.");
   }}>
    <h2 className="font-semibold">Ghi nhận / đối soát chỉ tiêu</h2>
-   <select className={field} value={indicatorId} required onChange={e=>setIndicatorId(e.target.value)}>
+   <select className={field} value={indicatorId} required aria-label="Chọn chỉ tiêu cần cập nhật" onChange={e=>{
+    setIndicatorId(e.target.value);setStatus("UNVERIFIED");setValue("");setIndicatorSource("");setNaReason("");
+   }}>
     <option value="">Chọn chỉ tiêu</option>
     {indicators.map(i=><option value={i.id} key={i.id}>{i.code} – {i.name}</option>)}
    </select>
@@ -138,8 +147,15 @@ export function DigitalWorkspace({plans,indicators,canWrite,canReview}:Props){
     onChange={e=>setNaReason(e.target.value)}/>
    <button className={button} disabled={busy||!chosen}>Ghi nhận vào CSDL</button>
   </form>}
-  <p className="text-sm text-slate-600">Kế hoạch có trong CSDL: {plans.length}. {" "}
-    {plans.map(p=>p.title+" ("+p.taskCount+" công việc M01)").join("; ")||"Chưa có kế hoạch."}</p>
+  <section className="rounded border bg-white p-4 space-y-3">
+   <h2 className="font-semibold">Danh sách kế hoạch ({plans.length})</h2>
+   {!plans.length ? <p className="text-sm text-slate-500">Chưa có kế hoạch trong CSDL.</p> :
+    <ul className="divide-y text-sm">{plans.map(p=><li key={p.id} className="py-3 space-y-1">
+     <p className="font-medium">{p.title} · {p.period}</p>
+     <p className="text-slate-600">{planStatusLabel(p.status)} · {p.taskCount} công việc liên kết</p>
+     <p className="text-xs text-slate-500 break-words">Nguồn: {p.sourceRef}</p>
+    </li>)}</ul>}
+  </section>
   {message&&<p className="rounded border bg-white p-3 text-sm" role="status">{message}</p>}
  </div>;
 }

@@ -2,6 +2,8 @@
 
 import { useRef,useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { recommendationStatusLabel, vietnameseToday } from "@/lib/presentation/ph03-labels";
 import { createInspectionRecordAction,createInspectionRecommendationAction,
  resolveInspectionRecommendationAction } from "../server/ph03-actions";
 import type { InspectionRecord,InspectionRecommendation } from "../server/ph03-queries";
@@ -14,12 +16,9 @@ const button="rounded bg-emerald-700 px-4 py-2 text-sm text-white disabled:opaci
 export function InspectionWorkspace({records,recommendations,hamlets,assignees,canWrite,canReview}:Props){
  const router=useRouter();const [busy,setBusy]=useState(false);const [message,setMessage]=useState("");
  const [code,setCode]=useState("");const [target,setTarget]=useState("");
- const [category,setCategory]=useState("VAN_HOA");const [hamlet,setHamlet]=useState(hamlets[0]?.id??"");
+ const [category,setCategory]=useState("Văn hóa");const [hamlet,setHamlet]=useState(hamlets[0]?.id??"");
  const [inspector,setInspector]=useState("");const [checklist,setChecklist]=useState("ILLUSTRATIVE-v1");
- const [inspectionDate,setInspectionDate]=useState(()=>{
-  const now=new Date();
-  return new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,10);
- });
+ const [inspectionDate,setInspectionDate]=useState(()=>vietnameseToday());
  const [authority,setAuthority]=useState("");const [notes,setNotes]=useState("");
  const [inspectionId,setInspectionId]=useState("");
  const [recCode,setRecCode]=useState("");const [recTitle,setRecTitle]=useState("");
@@ -50,7 +49,9 @@ export function InspectionWorkspace({records,recommendations,hamlets,assignees,c
     e.preventDefault();void invoke(()=>createInspectionRecordAction({
      code,targetName:target,category,hamletId:hamlet,inspectorName:inspector,
      checklistVersion:checklist,inspectionDate,authorityRef:authority||null,notes:notes||null,
-    }),"Đã lưu biên bản ghi nhận nội bộ.");
+    }),"Đã lưu biên bản ghi nhận nội bộ.").then(ok=>{
+     if(ok){setCode("");setTarget("");setAuthority("");setNotes("");setInspector("");}
+    });
    }}>
     <h2 className="font-semibold">Ghi nhận cuộc kiểm tra</h2>
     <div className="grid gap-2 sm:grid-cols-2">
@@ -64,7 +65,7 @@ export function InspectionWorkspace({records,recommendations,hamlets,assignees,c
     <input className={field} required placeholder="Đoàn/đầu mối thực hiện" value={inspector}
      onChange={e=>setInspector(e.target.value)}/>
     <div className="grid gap-2 sm:grid-cols-2">
-     <input className={field} required placeholder="Phiên bản checklist" value={checklist}
+     <input className={field} required placeholder="Phiên bản bảng kiểm" aria-label="Phiên bản bảng kiểm" value={checklist}
       onChange={e=>setChecklist(e.target.value)}/>
      <input className={field} type="date" required value={inspectionDate}
       onChange={e=>setInspectionDate(e.target.value)}/>
@@ -106,7 +107,7 @@ export function InspectionWorkspace({records,recommendations,hamlets,assignees,c
    <h2 className="font-semibold p-4">Hồ sơ kiểm tra có nguồn</h2>
    <table className="min-w-full text-sm text-left">
     <thead className="bg-slate-100"><tr>
-     {["Mã","Đối tượng","Lĩnh vực","Ngày","Checklist","Kiến nghị"].map(x=><th className="p-3" key={x}>{x}</th>)}
+     {["Mã","Đối tượng","Lĩnh vực","Ngày","Bảng kiểm","Kiến nghị"].map(x=><th className="p-3" key={x}>{x}</th>)}
     </tr></thead>
     <tbody>{records.map(r=><tr key={r.id} className="border-t">
      <td className="p-3">{r.code}</td><td className="p-3">{r.targetName}</td>
@@ -124,9 +125,9 @@ export function InspectionWorkspace({records,recommendations,hamlets,assignees,c
      <th className="p-3" key={x}>{x}</th>)}</tr></thead>
     <tbody>{recommendations.map(r=><tr className="border-t" key={r.id}>
      <td className="p-3">{r.code}</td><td className="p-3">{r.title}</td>
-     <td className="p-3">{r.dueDate}</td><td className="p-3">{r.status} · v{r.version}</td>
-     <td className="p-3"><a className="text-emerald-800 underline"
-      href={"/cong-viec/"+r.workItemId}>Mở công việc</a></td>
+     <td className="p-3">{r.dueDate}</td><td className="p-3">{recommendationStatusLabel(r.status)} · Lần cập nhật {r.version}</td>
+     <td className="p-3"><Link className="text-emerald-800 underline"
+      href={"/cong-viec/"+r.workItemId}>Mở công việc</Link></td>
      <td className="p-3">{canReview&&r.status!=="RESOLVED_CLOSED"&&
       <button type="button" className="text-emerald-800 underline" onClick={()=>setReviewId(r.id)}>Đối soát</button>}</td>
     </tr>)}</tbody>
