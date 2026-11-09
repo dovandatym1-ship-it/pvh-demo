@@ -33,13 +33,13 @@ export function CultureStatsCards({ submissions }: CultureStatsCardsProps) {
       <Card className="border-emerald-200/60 shadow-sm bg-emerald-50/20">
         <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-xs font-medium text-emerald-700 uppercase tracking-wider">
-            Đủ điều kiện (Đạt)
+            Đạt theo quy tắc thử nghiệm
           </CardTitle>
           <CheckCircle2 className="w-4 h-4 text-emerald-600" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-emerald-700">{passed}</div>
-          <p className="text-xs text-emerald-600 mt-1">Điểm &ge; 85 & đủ minh chứng</p>
+          <p className="text-xs text-emerald-600 mt-1">Phân loại theo quy tắc và minh chứng thử nghiệm</p>
         </CardContent>
       </Card>
 
@@ -59,13 +59,13 @@ export function CultureStatsCards({ submissions }: CultureStatsCardsProps) {
       <Card className="border-rose-200/60 shadow-sm bg-rose-50/20">
         <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-xs font-medium text-rose-700 uppercase tracking-wider">
-            Không đạt
+            Chưa đạt theo quy tắc thử nghiệm
           </CardTitle>
           <XCircle className="w-4 h-4 text-rose-600" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-rose-700">{failed}</div>
-          <p className="text-xs text-rose-600 mt-1">Chưa đạt ngưỡng điểm</p>
+          <p className="text-xs text-rose-600 mt-1">Chưa đạt ngưỡng đánh giá thử nghiệm</p>
         </CardContent>
       </Card>
     </div>

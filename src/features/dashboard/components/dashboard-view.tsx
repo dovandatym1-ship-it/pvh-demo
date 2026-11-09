@@ -82,7 +82,7 @@ export function DashboardView({
           </div>
           <div className={styles.sourceGrid}>
             <p><strong>Đầu việc:</strong> <code>work_items</code>, giới hạn theo tenant, vai trò và địa bàn trước khi hiển thị.</p>
-            <p><strong>Thống kê theo vai trò:</strong> {model.role === "officer" ? "Chỉ việc assigned_to = người đang đăng nhập." : model.scopeLabel + "."}</p>
+            <p><strong>Thống kê theo vai trò:</strong> {model.role === "officer" ? "Chỉ công việc được giao cho người đang đăng nhập." : model.scopeLabel + "."}</p>
             <p><strong>Thời hạn:</strong> Ngày đến hạn theo lịch Việt Nam, chưa phải SLA theo từng quy định chuyên ngành.</p>
             <p><strong>Xu hướng hoàn thành:</strong> {model.eventsAvailable ? "Dựa vào work_item_events, tối đa một lần hoàn thành mỗi việc trong một tuần." : "Lịch sử chưa đủ tin cậy nên không vẽ giả số hoàn thành."}</p>
             <p><strong>Giới hạn tích hợp:</strong> Các KPI hiện tại chỉ phản ánh công việc M01. Số lượng hồ sơ chuyên ngành M02–M08, báo cáo M09 và dữ liệu nhập M10 KHÔNG được cộng tự động vào các KPI này.</p>

@@ -30,7 +30,7 @@ export function FinalizeSnapshotModal({isOpen,onClose,onSnapshotCreated,catalog,
   finally{setBusy(false);}
  }
  return <Modal isOpen={isOpen} onClose={onClose} title="Tạo bản nháp báo cáo từ CSDL"
-  description="Tính KPI và lưu toàn bộ vết nguồn ngay trong một giao dịch. Chốt báo cáo là bước riêng sau khi rà soát.">
+  description="Tổng hợp chỉ tiêu và lưu vết nguồn trong một giao dịch. Chốt báo cáo là bước riêng sau khi rà soát.">
   <div className="space-y-3 text-sm">
    <label className="block">Loại báo cáo
     <select value={code} onChange={e=>{setCode(e.target.value);setPrevious("");}}
@@ -50,10 +50,10 @@ export function FinalizeSnapshotModal({isOpen,onClose,onSnapshotCreated,catalog,
    {matching.length>0&&<label className="block">Điều chỉnh bản đã chốt
     <select value={previous} onChange={e=>setPrevious(e.target.value)}
       className="block w-full border rounded p-2 mt-1">
-      <option value="">Chọn bản trước để tạo revision</option>
+      <option value="">Chọn bản báo cáo trước để điều chỉnh</option>
       {matching.map(s=><option key={s.id} value={s.id}>Bản {s.revision} — {s.title}</option>)}
     </select></label>}
-   <p className="text-xs text-rose-700">MÔ PHỎNG DEMO — KHÔNG CÓ GIÁ TRỊ PHÁP LÝ.
+   <p className="text-xs text-rose-700">BẢN THỬ NGHIỆM — CHƯA CÓ GIÁ TRỊ PHÁP LÝ.
     Chưa có thao tác ký số hoặc phát hành văn bản.</p>
    {error&&<p role="alert" className="text-rose-700">{error}</p>}
    <div className="flex justify-end gap-2"><Button variant="ghost" onClick={onClose} disabled={busy}>Hủy</Button>

@@ -35,7 +35,7 @@ export async function advanceSnapshotAction(input: unknown): Promise<Result<Repo
   } catch(err) { return actionError(err); }
 }
 export async function getSnapshotLineageAction(snapshotId: string): Promise<Result<SnapshotLineageDTO[]>> {
-  if (!/^[0-9a-f-]{36}$/i.test(snapshotId)) return fail("VALIDATION","Mã snapshot không hợp lệ");
+  if (!/^[0-9a-f-]{36}$/i.test(snapshotId)) return fail("VALIDATION","Mã phiên bản báo cáo không hợp lệ");
   try {
     const ctx = await getRequestContext();
     assertCanReadReports(ctx);

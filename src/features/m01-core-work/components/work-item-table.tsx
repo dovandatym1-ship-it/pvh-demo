@@ -71,7 +71,7 @@ export function WorkItemTable({
         <thead className="bg-gray-50 text-gray-600 font-medium border-b">
           <tr>
             <th className="py-3 px-4">Mã việc</th>
-            <th className="py-3 px-4">Tiêu đề & Nội dung</th>
+            <th className="py-3 px-4">Tiêu đề và nội dung</th>
             <th className="py-3 px-4">Độ ưu tiên</th>
             <th className="py-3 px-4">Trạng thái</th>
             <th className="py-3 px-4">Phiên bản</th>

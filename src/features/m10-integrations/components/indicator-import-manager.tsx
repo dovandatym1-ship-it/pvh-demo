@@ -50,7 +50,7 @@ export function IndicatorImportManager(){
      </select></label>
    </div>
    <button className="rounded bg-indigo-700 px-4 py-2 text-sm text-white disabled:opacity-50"
-    disabled={busy||!file||owner.trim().length<3} onClick={()=>invoke("preview")}>{busy?"Đang xử lý...":"Kiểm tra & xem trước"}</button>
+    disabled={busy||!file||owner.trim().length<3} onClick={()=>invoke("preview")}>{busy?"Đang xử lý...":"Kiểm tra và xem trước"}</button>
   </div>
   {error&&<p role="alert" className="rounded border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
   {preview&&<div className="rounded-lg border bg-white p-5 space-y-3">

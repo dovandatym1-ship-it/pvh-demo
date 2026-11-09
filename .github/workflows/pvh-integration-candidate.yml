@@ -33,6 +33,7 @@ jobs:
       - run: node --experimental-strip-types --test tests/ph04-presentation.test.mjs
       - run: node --experimental-strip-types --test tests/ph05-clone-brand.test.mjs
       - run: node scripts/check-migration-ledger.mjs
+      - run: node --test tests/vietnamese-ui-scanner.test.mjs
       - run: node scripts/check-vietnamese-ui.mjs
       - run: node --test tests/locale-and-login.test.mjs
       - run: npm run typecheck

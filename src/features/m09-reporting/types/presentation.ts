@@ -26,13 +26,18 @@ export function metricDelta(current: unknown, previous: unknown): number | null 
 
 const metricLabels:Record<string,string>={
  tasksTotal:"Tổng công việc",tasksCompleted:"Công việc hoàn thành",tasksOverdue:"Công việc quá hạn",
- cultureSubmissions:"Hồ sơ văn hóa",cultureEligible:"Hồ sơ đạt theo rule demo",
- plansTotal:"Kế hoạch CĐS",indicatorsConfirmed:"Chỉ tiêu đã xác nhận",
- indicatorsConfirmedZero:"Chỉ tiêu xác nhận = 0",indicatorsNotReported:"Chỉ tiêu chưa báo cáo",
+ cultureSubmissions:"Hồ sơ văn hóa",cultureEligible:"Hồ sơ đạt theo quy tắc thử nghiệm",
+ plansTotal:"Kế hoạch chuyển đổi số",indicatorsConfirmed:"Chỉ tiêu đã xác nhận",
+ indicatorsConfirmedZero:"Chỉ tiêu được xác nhận bằng 0",indicatorsNotReported:"Chỉ tiêu chưa báo cáo",
  indicatorsNotApplicable:"Chỉ tiêu không áp dụng",inspectionsTotal:"Cuộc kiểm tra",
  recommendationsTotal:"Kiến nghị",recommendationsClosed:"Kiến nghị khép lại",
- importedValues:"Bản ghi chỉ tiêu nhập từ file",
+ importedValues:"Bản ghi chỉ tiêu nhập từ tệp",
 };
 export function metricNameLabel(code: string): string {
   return metricLabels[code] ?? "Chỉ tiêu chưa có nhãn tiếng Việt";
+}
+
+/** Domain source identifiers remain internal: never show raw codes as UI text. */
+export function reportSourceLabel(sourceType: unknown): string {
+  return sourceType === "DATABASE" ? "Cơ sở dữ liệu hệ thống" : "Chưa xác định nguồn";
 }

@@ -26,7 +26,7 @@ function LegacyDashboardShell({ children }: { children: React.ReactNode }) {
         >
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-bold bg-amber-900 text-amber-50 tracking-wider font-mono">
-              LEGACY_MOCK
+              BẢN MÔ PHỎNG
             </span>
             <AlertTriangle className="w-4 h-4 text-amber-950 shrink-0 hidden sm:inline" />
             <span className="font-semibold">

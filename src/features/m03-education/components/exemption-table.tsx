@@ -31,7 +31,7 @@ export function ExemptionTable({ items, canManage }: ExemptionTableProps) {
         <div className="flex items-center gap-2">
           <BookOpen className="w-5 h-5 text-emerald-700" />
           <h3 className="font-semibold text-slate-800">
-            Chính sách miễn giảm học phí & Hỗ trợ chi phí học tập
+            Chính sách miễn, giảm học phí và hỗ trợ chi phí học tập
           </h3>
           <Badge variant="neutral">{items.length} học sinh</Badge>
         </div>
@@ -42,7 +42,7 @@ export function ExemptionTable({ items, canManage }: ExemptionTableProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Học sinh</TableHead>
-              <TableHead>Trường học & Lớp</TableHead>
+              <TableHead>Trường học và lớp</TableHead>
               <TableHead>Đối tượng miễn giảm</TableHead>
               <TableHead className="text-center">Tỷ lệ miễn giảm</TableHead>
               <TableHead className="text-right">Mức hỗ trợ/tháng</TableHead>

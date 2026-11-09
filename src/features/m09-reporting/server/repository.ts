@@ -66,8 +66,8 @@ export const reportingRepository = {
       const {data,error} = await db.from("report_snapshots").select("*")
         .eq("tenant_id", ctx.tenantId).eq("id",id).maybeSingle();
       if (error) return mapError<ReportSnapshotDTO>(error);
-      return data ? ok(mapSnapshot(data)) : fail("NOT_FOUND", "Không tìm thấy snapshot được phép đọc");
-    } catch { return fail("INTERNAL", "Lỗi truy vấn snapshot"); }
+      return data ? ok(mapSnapshot(data)) : fail("NOT_FOUND", "Không tìm thấy phiên bản báo cáo được phép xem");
+    } catch { return fail("INTERNAL", "Không thể tra cứu phiên bản báo cáo"); }
   },
   async listSnapshots(ctx: RequestContext): Promise<Result<ReportSnapshotDTO[]>> {
     try {

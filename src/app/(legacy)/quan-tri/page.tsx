@@ -253,10 +253,10 @@ export default function QuanTriPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-xl border border-slate-200">
         <div>
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1F633E]">
-            Phân hệ M00 • Quản trị nền tảng & Tổ chức
+            Phân hệ M00 • Quản trị nền tảng và tổ chức
           </div>
           <h1 className="text-xl font-bold text-slate-900 mt-1">
-            Quản trị Người dùng, Phân công Cán bộ & Tham số Đa xã
+            Quản trị người dùng, phân công cán bộ và tham số mô phỏng
           </h1>
           <p className="text-xs text-slate-500 mt-1">
             Quản lý tài khoản công chức, gán vai trò theo nhân vật (P1–P6), phân bổ địa bàn và bảo vệ dữ liệu cá nhân theo nguyên tắc D03.
@@ -305,7 +305,7 @@ export default function QuanTriPage() {
       <Tabs defaultValue="users">
         <TabList className="bg-slate-200/70 p-1">
           <TabTrigger value="users">
-            <Users className="w-3.5 h-3.5 mr-1.5" /> Quản lý Người dùng & Cán bộ ({users.length})
+            <Users className="w-3.5 h-3.5 mr-1.5" /> Quản lý người dùng và cán bộ ({users.length})
           </TabTrigger>
           <TabTrigger value="tenants">
             <Settings className="w-3.5 h-3.5 mr-1.5" /> Cấu hình Tham số Đa xã
@@ -368,7 +368,7 @@ export default function QuanTriPage() {
           <Card>
             <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div>
-                <CardTitle>Danh sách Cán bộ, Công chức & Tài khoản Cơ sở</CardTitle>
+                <CardTitle>Danh sách cán bộ, công chức và tài khoản</CardTitle>
                 <CardDescription>
                   Phân công nhiệm vụ theo chức danh, địa bàn phụ trách và cấp quyền truy cập các phân hệ
                 </CardDescription>
@@ -579,11 +579,11 @@ export default function QuanTriPage() {
                 >
                   <option value="ALL">Tất cả phân hệ ({auditLogs.length})</option>
                   <option value="SYSTEM">Hệ thống nền tảng</option>
-                  <option value="REPORT">Báo cáo & Ký số Oracle</option>
+                  <option value="REPORT">Báo cáo và ký số thử nghiệm</option>
                   <option value="DELEGATION_AUTHORITY">Ủy quyền ký số (AC-09)</option>
                   <option value="SHARED_DATA">Dữ liệu dùng chung / Ghép định danh</option>
                   <option value="TASK">Nhiệm vụ liên ngành</option>
-                  <option value="CULTURAL_TITLE">Văn hóa & Gia đình</option>
+                  <option value="CULTURAL_TITLE">Văn hóa và gia đình</option>
                   <option value="INSPECTION">Kiểm tra liên ngành</option>
                   <option value="TENANT">Phân định Đa xã / Reset</option>
                 </select>

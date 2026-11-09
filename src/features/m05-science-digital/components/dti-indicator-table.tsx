@@ -114,7 +114,7 @@ export function DTIIndicatorTable({ items, canManage }: DTIIndicatorTableProps) 
       <div className="flex items-center gap-2 p-3 bg-emerald-50 rounded border border-emerald-200 text-xs text-emerald-800">
         <HelpCircle className="w-4 h-4 shrink-0 text-emerald-700" />
         <span>
-          Quy tắc kiểm soát dữ liệu RULE-14 & AC-17: Chỉ tiêu CDS-03 (0 sự cố an toàn thông tin) được gắn nhãn CONFIRMED_ZERO, khẳng định giá trị số 0 là kết quả đạt chuẩn của cơ sở, không bị nhầm lẫn với trạng thái thiếu dữ liệu (Missing).
+          Chỉ tiêu không phát sinh sự cố phải được xác nhận rõ là bằng 0; không được nhầm với trường hợp chưa báo cáo hoặc không áp dụng.
         </span>
       </div>
     </div>

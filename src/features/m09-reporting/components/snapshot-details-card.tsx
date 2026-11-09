@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import type { ReportSnapshotDTO } from "../types";
-import { metricNameLabel, metricValueLabel, qualityStatusLabel, reportStatusLabel } from "../types/presentation";
+import { metricNameLabel, metricValueLabel, qualityStatusLabel, reportStatusLabel, reportSourceLabel } from "../types/presentation";
 import { AsyncExportButton } from "./async-export-button";
 export function SnapshotDetailsCard({snapshot,canExport=false}:{readonly snapshot:ReportSnapshotDTO|null;readonly isLiveView?:boolean;readonly canExport?:boolean}){
  const [copied,setCopied]=useState(false);
@@ -45,8 +45,8 @@ export function SnapshotDetailsCard({snapshot,canExport=false}:{readonly snapsho
     <div className="text-xs text-amber-800">{qualityStatusLabel(detail?.status??"NOT_REPORTED")}</div>
    </div>)}
   </div>
-  <p className="text-xs text-slate-500">Nguồn: {String(snapshot.payload.sourceType??"Không rõ")} •
-   Số contributor tại thời điểm chụp: {String(snapshot.payload.sourceRecords??"Không rõ")} •
-   Phạm vi kỳ: {snapshot.period}. Sửa dữ liệu nguồn không làm thay đổi snapshot đã tạo.</p>
+  <p className="text-xs text-slate-500">Nguồn: {reportSourceLabel(snapshot.payload.sourceType)} •
+   Số bản ghi nguồn tại thời điểm tạo báo cáo: {String(snapshot.payload.sourceRecords??"Không rõ")} •
+   Phạm vi kỳ: {snapshot.period}. Sửa dữ liệu nguồn không làm thay đổi phiên bản báo cáo đã tạo.</p>
  </section>;
 }

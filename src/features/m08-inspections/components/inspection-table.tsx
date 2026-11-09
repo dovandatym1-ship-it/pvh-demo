@@ -37,8 +37,8 @@ export function InspectionTable({ items }: InspectionTableProps) {
           <option value="ALL">Tất cả lĩnh vực</option>
           <option value="ATTP">An toàn thực phẩm</option>
           <option value="PCCC">Phòng cháy chữa cháy</option>
-          <option value="Y_TE">Y tế & Dược</option>
-          <option value="VAN_HOA">Văn hóa & Lễ hội</option>
+          <option value="Y_TE">Y tế và dược</option>
+          <option value="VAN_HOA">Văn hóa và lễ hội</option>
         </select>
       </div>
 

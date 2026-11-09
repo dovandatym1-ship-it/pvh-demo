@@ -62,7 +62,7 @@ export default function TichHopPage() {
       unmatchedRecords: 3,
     },
     {
-      name: "Hệ thống Thông tin Bảo trợ Xã hội & Giảm nghèo",
+      name: "Hệ thống Thông tin bảo trợ xã hội và giảm nghèo",
       source: "Bộ Lao động - TB&XH",
       lastSync: "06/11/2026 18:30",
       status: "ONLINE",
@@ -70,7 +70,7 @@ export default function TichHopPage() {
       unmatchedRecords: 0,
     },
     {
-      name: "Cổng Dịch vụ công & Một cửa điện tử Tỉnh",
+      name: "Cổng Dịch vụ công và bộ phận một cửa điện tử Tỉnh",
       source: "Cổng DVC Thái Nguyên",
       lastSync: "07/11/2026 08:00",
       status: "STANDBY",
@@ -167,10 +167,10 @@ export default function TichHopPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gov-600">
-            Phân hệ M10 • Tích hợp & Nhập dữ liệu
+            Phân hệ M10 • Tích hợp và nhập dữ liệu
           </div>
           <h1 className="text-xl font-bold text-slate-900 mt-1 font-display">
-            Kết nối Tích hợp Ngành & Nạp Dữ liệu Ngoại vi
+            Kết nối chuyên ngành và tiếp nhận dữ liệu bên ngoài
           </h1>
           <p className="text-xs text-slate-500 mt-1">
             Giao diện đối soát dữ liệu dân cư, BHYT và nhập danh mục từ bảng tính Excel phục vụ mô phỏng {tenant.name}.
@@ -303,7 +303,7 @@ export default function TichHopPage() {
               <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] ${importStep === 2 ? "bg-gov-600 text-white" : "bg-slate-200 text-slate-700"}`}>
                 2
               </div>
-              <span>Tiền kiểm & Phân loại</span>
+              <span>Kiểm tra sơ bộ và phân loại</span>
             </div>
             <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
             <div className={`flex items-center gap-1.5 font-bold ${importStep === 3 ? "text-gov-600" : "text-slate-500"}`}>
@@ -340,7 +340,7 @@ export default function TichHopPage() {
                   Hủy
                 </Button>
                 <Button variant="primary" onClick={handleSimulateUpload} disabled={isProcessingFile}>
-                  {isProcessingFile ? "Đang phân tích tệp..." : "Tải lên & Chạy tiền kiểm"}
+                  {isProcessingFile ? "Đang phân tích tệp..." : "Tải lên và kiểm tra dữ liệu"}
                 </Button>
               </div>
             </div>
@@ -401,7 +401,7 @@ export default function TichHopPage() {
                   Quay lại chọn tệp khác
                 </Button>
                 <Button variant="primary" onClick={handleExecuteImport} disabled={isProcessingFile}>
-                  {isProcessingFile ? "Đang ghi CSDL..." : "Chấp thuận & Nạp 4 bản ghi hợp lệ"}
+                  {isProcessingFile ? "Đang ghi CSDL..." : "Chấp thuận và nhập bốn bản ghi hợp lệ"}
                 </Button>
               </div>
             </div>
@@ -429,7 +429,7 @@ export default function TichHopPage() {
 
               <div className="pt-2">
                 <Button variant="primary" onClick={handleCloseImport}>
-                  Hoàn tất & Đóng cửa sổ
+                  Hoàn tất và đóng cửa sổ
                 </Button>
               </div>
             </div>

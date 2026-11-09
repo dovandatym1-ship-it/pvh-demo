@@ -26,7 +26,7 @@ export function LaborPanels({ contracts, disputes }: LaborPanelsProps) {
           }`}
         >
           <Briefcase className="w-4 h-4" />
-          Tiền lương & BHXH cơ sở ({contracts.length})
+          Tiền lương và bảo hiểm xã hội tại cơ sở ({contracts.length})
         </button>
         <button
           onClick={() => setTab("disputes")}

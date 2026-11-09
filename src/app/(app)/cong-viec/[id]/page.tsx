@@ -69,7 +69,7 @@ export default async function WorkItemDetailPage({ params }: { params: Promise<{
         {timeline.length === 0 && <p className="text-sm text-slate-500">Chưa có sự kiện</p>}
       </section>
       <section className="rounded-xl border bg-white p-5 space-y-3">
-        <h2 className="font-semibold">Phân công & minh chứng</h2>
+        <h2 className="font-semibold">Phân công và minh chứng</h2>
         <p className="text-xs text-slate-600">Người phụ trách hiện tại: {item.assignedTo ? "Mã cán bộ " + item.assignedTo.slice(0, 8) : "Chưa giao"}</p>
         <ul className="text-sm space-y-1">{assignments.map(a => <li key={a.id} className="border-b py-1">
           Lần thay đổi {a.work_item_version} · Mã cán bộ {a.assignee.slice(0,8)} · {date(a.created_at)}

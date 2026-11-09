@@ -85,3 +85,10 @@ Khôi phục từ `fix/pvh-ph02-completion-20261109` các màn tạo việc, l�
 - Cặp `supabase/migrations/20261108000001..00009` và `supabase/_legacy/superseded_20261108/20261108000001..00009` đã đối chiếu chính xác **9/9 blob SHA**; chỉ loại khỏi thư mục *được thực thi* trên candidate. Không drop bảng, không xóa bản lưu; `main` không đổi.
 - Thêm `scripts/check-migration-ledger.mjs` vào CI: 9 migration chuẩn duy nhất, 9 bản lưu bất biến, không trùng timestamp. Gate tĩnh không thay cho DB replay, tuyệt đối không `db push` lên cloud.
 - Sửa `npm run fitness`: tách bộ lọc M01 vào mô-đun server-only, giữ page trong giới hạn dòng và bổ sung guard `server-only` cho scope resolver. Phải chạy lại cả CI.
+
+
+## Language CI cleanup (candidate)
+- Bộ quét tiếng Việt ban đầu báo 75 dấu hiệu nhưng có báo sai do nhầm biểu thức TypeScript/JSX với text hiển thị. Chuyển sang scanner có test dương/âm, vẫn chặn nhãn tiếng Anh kỹ thuật và dấu `&` trong văn bản JSX tĩnh.
+- Sửa các nhãn thực tại màn công việc, báo cáo, bảng chỉ tiêu, điều hướng legacy. Đổi `LEGACY_MOCK` hiển thị thành `BẢN MÔ PHỎNG`; không đổi enum nội bộ, tên hàm hoặc các bản ghi người dùng.
+- M09 báo cáo hiển thị nhãn trạng thái tiếng Việt, không đưa mã `snapshot` hoặc nội dung nguồn chưa xác minh lên UI. PH04 vẫn cần nghiệm thu bản xuất và thẩm quyền chốt báo cáo.
+- Những module legacy và nội dung báo cáo vẫn chưa đạt kiểm thử browser/UAT; bộ quét tĩnh không chứng minh mọi câu chữ ngữ nghĩa đã đạt 100%.
