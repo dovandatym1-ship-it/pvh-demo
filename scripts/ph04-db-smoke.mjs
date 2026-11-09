@@ -24,7 +24,7 @@ try{
   "create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;",
   "create schema storage;",
   "create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);",
-  "create table storage.objects(bucket_id text,name text,owner_id text);",
+  "create table storage.objects(bucket_id text,name text,owner_id text,metadata jsonb);",
   "alter table storage.objects enable row level security;",
  ].join("\n"));
  for(const file of files){
