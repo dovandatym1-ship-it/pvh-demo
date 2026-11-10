@@ -65,9 +65,9 @@ export async function getReputablePersons(ctx: RequestContext): Promise<Reputabl
     fullName: String(row.full_name),
     ethnicGroup: String(row.ethnic_group),
     hamletId: String(row.hamlet_id),
-    yearRecognized: Number(row.year_recognized) || 2024,
-    policyStatus: (row.policy_status as ReputablePersonDTO["policyStatus"]) || "DANG_HUONG",
-    monthlyAllowance: Number(row.monthly_allowance) || 800000,
+    yearRecognized: Number(row.year_recognized),
+    policyStatus: (row.policy_status as ReputablePersonDTO["policyStatus"]) || "DANG_XAC_MINH",
+    monthlyAllowance: Number(row.monthly_allowance),
     version: Number(row.version) || 1,
     createdAt: String(row.created_at),
   }));
@@ -87,4 +87,21 @@ export async function getReligiousHamlets(ctx:RequestContext):Promise<FaithHamle
   const {data,error}=await query;
   if(error)throw new Error("Không thể tải danh mục địa bàn thuộc quyền quản lý.");
   return (data||[]).map(row=>({id:String(row.id),name:String(row.name)}));
+}
+
+export async function getReligiousEvents(ctx:RequestContext):Promise<ReligiousEventDTO[]>{
+  const {assertCanViewFaith}=await import("./policy");
+  assertCanViewFaith(ctx);
+  const db=await createServerSupabaseClient();
+  const {data,error}=await db.from("religious_events").select("*")
+    .eq("tenant_id",ctx.tenantId).order("event_date",{ascending:false}).limit(500);
+  if(error)throw new Error("Không thể tải hoạt động tín ngưỡng đã ghi nhận.");
+  return (data||[]).map(row=>({
+    id:String(row.id),tenantId:String(row.tenant_id),
+    establishmentId:String(row.establishment_id),title:String(row.title),
+    eventDate:String(row.event_date),expectedAttendees:Number(row.expected_attendees),
+    status:row.status as ReligiousEventDTO["status"],
+    rejectionReason:row.rejection_reason?String(row.rejection_reason):null,
+    version:Number(row.version),createdAt:String(row.created_at),
+  }));
 }
