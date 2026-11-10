@@ -9,9 +9,11 @@ import { Award, ShieldAlert } from "lucide-react";
 interface NCCTableProps {
   readonly items: NCCBeneficiaryDisplayDTO[];
   readonly canUnmaskPII: boolean;
+  readonly hamlets: readonly {id:string;name:string}[];
 }
 
-export function NCCTable({ items, canUnmaskPII }: NCCTableProps) {
+export function NCCTable({ items, hamlets, canUnmaskPII }: NCCTableProps) {
+  const hamletNames = React.useMemo(()=>new Map(hamlets.map(unit=>[unit.id,unit.name])),[hamlets]);
   const [selectedCategory, setSelectedCategory] = React.useState<string>("ALL");
 
   const filtered = items.filter((item) => {
@@ -50,7 +52,7 @@ export function NCCTable({ items, canUnmaskPII }: NCCTableProps) {
             <TableRow>
               <TableHead className="w-28">Mã hồ sơ</TableHead>
               <TableHead>Họ và tên</TableHead>
-              <TableHead>CCCD (PII)</TableHead>
+              <TableHead>Số định danh</TableHead>
               <TableHead>Địa bàn</TableHead>
               <TableHead>Diện chính sách</TableHead>
               <TableHead>Danh hiệu, huân chương</TableHead>
@@ -73,7 +75,7 @@ export function NCCTable({ items, canUnmaskPII }: NCCTableProps) {
                   </span>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="neutral">Xóm {item.hamletId}</Badge>
+                  <Badge variant="neutral">{hamletNames.get(item.hamletId) ?? "Địa bàn chưa xác định"}</Badge>
                 </TableCell>
                 <TableCell className="text-xs text-slate-700 font-medium">
                   {item.category === "BA_ME_VNAH"
@@ -82,7 +84,7 @@ export function NCCTable({ items, canUnmaskPII }: NCCTableProps) {
                     ? "Thương binh"
                     : item.category === "BENH_BINH"
                     ? "Bệnh binh"
-                    : "Chất độc hóa học"}
+                    : item.category === "LIET_SI" ? "Liệt sĩ" : "Chất độc hóa học"}
                 </TableCell>
                 <TableCell className="text-xs text-slate-600">
                   {item.medalTitle}
@@ -91,7 +93,8 @@ export function NCCTable({ items, canUnmaskPII }: NCCTableProps) {
                   {item.allowanceDisplay}
                 </TableCell>
                 <TableCell className="text-center">
-                  <Badge variant="success">Đang hưởng</Badge>
+                  {item.status === "ACTIVE" ? <Badge variant="success">Đang hiệu lực</Badge>
+                    : <Badge variant="warning">Đang rà soát</Badge>}
                 </TableCell>
               </TableRow>
             ))}
