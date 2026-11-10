@@ -258,3 +258,20 @@ export function assertRoutePermission(
     throw new Error("FORBIDDEN: Không có quyền truy cập trang này");
   }
 }
+
+/**
+ * Post-login landing route is selected exclusively from live membership
+ * permissions, never a client cookie, a role label or a local demo persona.
+ * Users with no business permissions retain safe self-service access.
+ */
+export function preferredLandingRoute(
+  userPermissions: readonly string[] = [],
+  userRoles: readonly string[] = [],
+): string {
+  if (canAccessRoute("/dashboard", userPermissions, userRoles)) return "/dashboard";
+  if (canAccessRoute("/quan-tri/tai-khoan", userPermissions, userRoles)) {
+    return "/quan-tri/tai-khoan";
+  }
+  if (canAccessRoute("/cong-viec", userPermissions, userRoles)) return "/cong-viec";
+  return "/thong-tin-ca-nhan";
+}
