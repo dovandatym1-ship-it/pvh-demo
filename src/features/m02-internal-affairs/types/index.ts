@@ -36,6 +36,8 @@ export interface LaborDisputeDTO {
   readonly receivedDate: string;
   readonly status: "RECEIVED" | "SCHEDULED" | "RESOLVED_SUCCESS" | "RESOLVED_FAILED" | "ESCALATED_DISTRICT";
   readonly outcomeSummary?: string;
+  readonly version: number;
+  readonly decisionReference?: string | null;
 }
 
 /** Safe browser DTO; sensitive source fields are never serialized. */
