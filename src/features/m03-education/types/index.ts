@@ -33,4 +33,6 @@ export interface TuitionExemptionDTO {
   readonly supportAmount: number;
   readonly status: "APPROVED" | "PENDING" | "REJECTED";
   readonly semester: string;
+  readonly version: number;
+  readonly decisionReference?: string | null;
 }
