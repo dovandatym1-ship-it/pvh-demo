@@ -1,4 +1,5 @@
 import * as React from "react";
+import { redirect } from "next/navigation";
 import { getRequestContext } from "@/lib/auth/request-context";
 import { filterNavigation } from "@/config/navigation";
 import { AppShell } from "@/components/layout/app-shell";
@@ -17,16 +18,25 @@ function roleLabel(roles: readonly string[]): string {
 }
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  let groups: ReturnType<typeof filterNavigation> = [];
-  let userLabel = "Chưa xác nhận vai trò";
+  // App-wide auth is mandatory: an empty sidebar is not an access-control gate.
+  // Fail closed before rendering descendants; individual pages/actions still check
+  // their domain permission and database RLS independently.
+  let ctx: Awaited<ReturnType<typeof getRequestContext>>;
+  try {
+    ctx = await getRequestContext();
+  } catch {
+    redirect("/login");
+  }
+
+  const groups = filterNavigation(ctx.permissions, ctx.roles);
+  const userLabel = roleLabel(ctx.roles);
   let tenantLabel = deploymentBrand.organizationName;
   let notifications: NotificationsView | null = null;
   let avatarVersion = 0;
 
+  // Optional header data may fail without replacing a verified user's access
+  // context with a fabricated guest; the backend/page still fails closed.
   try {
-    const ctx = await getRequestContext();
-    groups = filterNavigation(ctx.permissions, ctx.roles);
-    userLabel = roleLabel(ctx.roles);
     const db = await createServerSupabaseClient();
     const [tenant, inbox, auth] = await Promise.all([
       db.from("tenants").select("name").eq("id", ctx.tenantId).maybeSingle(),
@@ -40,9 +50,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     }
     notifications = inbox;
   } catch {
-    // No entitled routes or guessed personal data on failed authentication.
-    groups = filterNavigation([]);
+    // Display optional header information as unavailable; never fabricate data
+    // or suppress domain-level authorization errors in child pages.
   }
+
   return <AppShell groups={groups} tenantLabel={tenantLabel} roleLabel={userLabel}
     notifications={notifications} avatarVersion={avatarVersion}>{children}</AppShell>;
 }
