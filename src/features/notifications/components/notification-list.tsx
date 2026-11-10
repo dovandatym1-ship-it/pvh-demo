@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Bell, Check, Clock3, ListFilter } from "lucide-react";
-import { markOwnNotificationReadAction } from "../server/actions";
+import { markOwnNotificationReadAction, markAllOwnNotificationsReadAction } from "../server/actions";
 import { notificationLabel } from "../presentation";
 import { notificationPageUrl, type NotificationFilters } from "../filters";
 import type { PersonalNotification, NotificationsView } from "../server/queries";
@@ -58,8 +58,28 @@ const statusOptions: Array<{ id: NotificationFilters["status"]; label: string }>
 ];
 
 export function NotificationList({ view }: { view: NotificationsView }) {
+  const router = useRouter();
+  const [markingAll, setMarkingAll] = useState(false);
+  const [bulkFeedback, setBulkFeedback] = useState<{ ok: boolean; message: string } | null>(null);
   const filters = view.filters;
   const filtered = filters.status !== "all" || filters.group !== "all" || filters.period !== "all";
+  async function markAllRead() {
+    if (markingAll || view.status !== "ready" || view.unread === 0) return;
+    setMarkingAll(true);
+    setBulkFeedback(null);
+    try {
+      const result = await markAllOwnNotificationsReadAction();
+      setBulkFeedback(result.ok
+        ? { ok: true, message: "Đã đánh dấu tất cả thông báo của bạn là đã đọc." }
+        : { ok: false, message: result.error.message });
+      if (result.ok) router.refresh();
+    } catch {
+      setBulkFeedback({ ok: false, message: "Không thể cập nhật thông báo. Vui lòng thử lại." });
+    } finally {
+      setMarkingAll(false);
+    }
+  }
+
   return <div className="space-y-4">
     <section aria-label="Bộ lọc thông báo" className="rounded-xl border border-slate-200 bg-white p-3 sm:p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -71,9 +91,15 @@ export function NotificationList({ view }: { view: NotificationsView }) {
             {option.label}
           </Link>)}
         </div>
-        {view.status === "ready" && <p className="text-xs text-slate-500">
-          {view.total} kết quả · {view.unread} thông báo chưa đọc
-        </p>}
+        {view.status === "ready" && <div className="flex flex-wrap items-center gap-3">
+          <p className="text-xs text-slate-500">{view.total} kết quả · {view.unread} thông báo chưa đọc</p>
+          {view.unread > 0 && <button type="button" disabled={markingAll}
+            onClick={markAllRead} aria-label="Đánh dấu tất cả thông báo chưa đọc là đã đọc"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 disabled:opacity-60">
+            <Check size={15} aria-hidden="true"/>
+            {markingAll ? "Đang cập nhật..." : "Đánh dấu tất cả đã đọc"}
+          </button>}
+        </div>}
       </div>
       <form method="get" action="/thong-bao"
         className="mt-3 flex flex-wrap items-end gap-3 border-t border-slate-100 pt-3">
@@ -107,6 +133,12 @@ export function NotificationList({ view }: { view: NotificationsView }) {
         </Link>}
       </form>
     </section>
+    {bulkFeedback && <p role={bulkFeedback.ok ? "status" : "alert"}
+      className={bulkFeedback.ok
+        ? "rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800"
+        : "rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800"}>
+      {bulkFeedback.message}
+    </p>}
 
     {view.status === "demo" ? <div role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
       Phiên demo không có thông báo xác thực. Đăng nhập bằng tài khoản thật để sử dụng trung tâm thông báo.
