@@ -19,3 +19,14 @@ test("server page and account actions independently check membership management"
   assert.match(actions, /assertPermission\(ctx,\s*"m00:membership:manage"\)/);
   assert.doesNotMatch(actions, /NEXT_PUBLIC_.*SERVICE_ROLE/);
 });
+
+test("M00 account console offers Vietnamese search and role/status filters", () => {
+  const console = read("src/features/m00-platform/components/accounts-console.tsx");
+  assert.match(console, /Tìm theo họ và tên/);
+  assert.match(console, /Tất cả vai trò/);
+  assert.match(console, /Đã thu hồi/);
+  assert.match(console, /filteredStaff\.map/);
+  assert.match(console, /person\.roles\.includes\(roleFilter\)/);
+  assert.match(console, /person\.isActive/);
+  assert.match(console, /Không có cán bộ phù hợp/);
+});
