@@ -72,3 +72,19 @@ export async function getReputablePersons(ctx: RequestContext): Promise<Reputabl
     createdAt: String(row.created_at),
   }));
 }
+
+export type FaithHamletOption = {id:string;name:string};
+
+/** Authoritative active hamlets for the current commune; never hardcoded in client forms. */
+export async function getReligiousHamlets(ctx:RequestContext):Promise<FaithHamletOption[]>{
+  const {assertCanViewFaith}=await import("./policy");
+  assertCanViewFaith(ctx);
+  if(ctx.scopes.hamletIds&&ctx.scopes.hamletIds.length===0)return [];
+  const db=await createServerSupabaseClient();
+  let query=db.from("org_units").select("id,name").eq("tenant_id",ctx.tenantId)
+    .eq("kind","HAMLET").eq("is_active",true).order("name");
+  if(ctx.scopes.hamletIds)query=query.in("id",[...ctx.scopes.hamletIds]);
+  const {data,error}=await query;
+  if(error)throw new Error("Không thể tải danh mục địa bàn thuộc quyền quản lý.");
+  return (data||[]).map(row=>({id:String(row.id),name:String(row.name)}));
+}
