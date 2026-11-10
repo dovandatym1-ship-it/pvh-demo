@@ -34,7 +34,7 @@ jobs:
           supabase --version
           supabase db start --help
           supabase test db --help
-      - name: Fresh local replay of all 12 active migrations
+      - name: Fresh local replay of all 13 active migrations
         run: supabase db start
       - name: M01 transactional and authorization contracts
         run: supabase test db supabase/tests/02_ph02_m01_contract.sql
@@ -50,6 +50,8 @@ jobs:
         run: supabase test db supabase/tests/09_m07_faith_security_contract.sql
       - name: M06 sensitive social-benefit intake and reconciliation
         run: supabase test db supabase/tests/10_m06_sensitive_social_contract.sql
+      - name: M03 education decision RLS and authority
+        run: supabase test db supabase/tests/11_m03_education_authority.sql
 
 # This job never authenticates to or writes Demo-pvh cloud. A green run proves
 # local migrations + selected pgTAP checks, not hosted RLS or browser E2E.
