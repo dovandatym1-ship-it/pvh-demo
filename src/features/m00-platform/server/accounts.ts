@@ -25,6 +25,21 @@ export async function inviteStaffAction(raw: unknown): Promise<Result<{ userId: 
   try {
     const ctx = await getRequestContext();
     assertPermission(ctx, "m00:membership:manage");
+    const supabase = await createServerSupabaseClient();
+    // Validate the selected unit against live, active units in this commune.
+    // The client never supplies authorization scopes; a hamlet assignment
+    // creates its server-derived, least-privilege membership scope.
+    let assignedScopes: { org_unit_ids?: string[] } = {};
+    if (parsed.data.orgUnitId) {
+      const { data: unit, error: unitError } = await supabase.from("org_units")
+        .select("id,kind")
+        .eq("tenant_id", ctx.tenantId).eq("id", parsed.data.orgUnitId)
+        .eq("is_active", true).maybeSingle();
+      if (unitError || !unit) {
+        return fail("VALIDATION", "Đơn vị công tác đã chọn không còn hiệu lực hoặc không thuộc xã này.");
+      }
+      if (unit.kind === "HAMLET") assignedScopes = { org_unit_ids: [unit.id] };
+    }
     const admin = createSupabaseAdminClient();
 
     // This sends an actual email ONLY when an authorized admin calls the action.
@@ -34,13 +49,12 @@ export async function inviteStaffAction(raw: unknown): Promise<Result<{ userId: 
     }
 
     // Membership and its audit are committed in one controlled database RPC.
-    const supabase = await createServerSupabaseClient();
     const { data: receipt, error: provisionError } = await supabase.schema("app").rpc("provision_membership", {
       p_user_id: data.user.id,
       p_full_name: parsed.data.fullName,
       p_role_code: parsed.data.roleCode,
       p_org_unit_id: parsed.data.orgUnitId ?? null,
-      p_scopes: {},
+      p_scopes: assignedScopes,
     });
     if (provisionError || !receipt?.membershipId) {
       // Do not silently delete the Auth account: it remains safely unassigned.
