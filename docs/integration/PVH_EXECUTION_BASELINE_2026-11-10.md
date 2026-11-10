@@ -96,3 +96,12 @@ These figures prove source-tree overlap only. They do not prove that an entire P
 
 
 The M01 staging checklist was added on the candidate after this source-tree comparison. It preserves test procedures and does not claim G2 execution or PASS.
+
+### PR #1 database replay fixture disposition
+
+The blob comparison found the PR #1 CI fixture absent from the candidate. The active foundation migration explicitly detects and revokes REST execution of `public.rls_auto_enable()`, while the PR #1 fixture documents the existing cloud `ensure_rls` event trigger. The current full-replay workflow did not reproduce that precondition.
+
+Ported `supabase/_ci_fixtures/rls_event_trigger.sql` and updated `pvh-db-replay.yml` to copy it temporarily to `20261108000000_ci_only_cloud_prerequisite.sql` only after the canonical migration ledger check, before local replay. The workflow removes that exact path with an `always()` cleanup step. The fixture remains outside the canonical and archived migration directories. The source fixture explicitly models an existing trigger and is not a deployment migration.
+
+**Static checks:** migration ledger passes with 14 canonical migrations and 9 archived immutable migrations; temporary path absent after local checks; `git diff --check` passes.  
+**Runtime status:** Docker is unavailable in this checkout, so event-trigger replay and pgTAP have not run. Treat PR #1 replay work as ported, pending hosted CI evidence on the pushed candidate SHA.

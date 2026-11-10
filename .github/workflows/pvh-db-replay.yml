@@ -34,6 +34,13 @@ jobs:
           supabase --version
           supabase db start --help
           supabase test db --help
+      - name: Add cloud RLS event-trigger fixture to isolated replay only
+        run: |
+          fixture="supabase/_ci_fixtures/rls_event_trigger.sql"
+          temporary_migration="supabase/migrations/20261108000000_ci_only_cloud_prerequisite.sql"
+          test -f "$fixture"
+          test ! -e "$temporary_migration"
+          cp -- "$fixture" "$temporary_migration"
       - name: Fresh local replay of all 14 active migrations
         run: supabase db start
       - name: M01 transactional and authorization contracts
@@ -54,6 +61,9 @@ jobs:
         run: supabase test db supabase/tests/11_m03_education_authority.sql
       - name: M02 source-backed labor and masked NCC
         run: supabase test db supabase/tests/12_m02_labor_ncc_security.sql
+      - name: Remove the exact temporary replay fixture
+        if: always()
+        run: rm -f -- supabase/migrations/20261108000000_ci_only_cloud_prerequisite.sql
 
 # This job never authenticates to or writes Demo-pvh cloud. A green run proves
 # local migrations + selected pgTAP checks, not hosted RLS or browser E2E.
