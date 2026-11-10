@@ -5,36 +5,21 @@ import type { RequestContext } from "@/lib/auth/request-context";
 import type { NCCBeneficiaryDTO, LaborContractDTO, LaborDisputeDTO } from "../types";
 
 export async function getNCCBeneficiaries(ctx: RequestContext): Promise<NCCBeneficiaryDTO[]> {
-  const supabase = await createServerSupabaseClient();
-
-  let query = supabase
-    .from("ncc_beneficiaries")
-    .select("*")
-    .eq("tenant_id", ctx.tenantId)
-    .order("code", { ascending: true });
-  if (ctx.scopes.hamletIds) {
-    if (ctx.scopes.hamletIds.length === 0) return [];
-    query = query.in("hamlet_id", [...ctx.scopes.hamletIds]);
-  }
-  const { data, error } = await query;
-
-  if (error) {
-    throw new Error("Không thể tải dữ liệu chuyên ngành; vui lòng thử lại.");
-  }
-  if (!data) return [];
-
-  return data.map((row) => ({
-    id: String(row.id),
-    code: String(row.code),
-    fullName: String(row.full_name),
-    cccd: row.cccd ? String(row.cccd) : undefined,
-    hamletId: String(row.hamlet_id),
-    category: (row.category as NCCBeneficiaryDTO["category"]) || "THUONG_BINH",
-    medalTitle: String(row.medal_title),
-    monthlyAllowance: Number(row.monthly_allowance) || 0,
-    hasDeduplicationFlag: Boolean(row.has_deduplication_flag),
-    deduplicationWarning: row.deduplication_warning ? String(row.deduplication_warning) : undefined,
-    status: (row.status as NCCBeneficiaryDTO["status"]) || "ACTIVE",
+  // Sensitive identity and allowance fields are not SELECT-granted on the
+  // underlying table. The RPC enforces live role, hamlet scope and field mask.
+  const db=await createServerSupabaseClient();
+  const {data,error}=await db.schema("app").rpc("list_ncc_beneficiaries",{p_limit:1000});
+  if(error||!Array.isArray(data))throw new Error("Không thể tải hồ sơ người có công theo phân quyền.");
+  return data.map(row=>({
+    id:String(row.id),code:String(row.code),fullName:String(row.full_name),
+    cccd:typeof row.cccd==="string"?row.cccd:undefined,
+    hamletId:String(row.hamlet_id),
+    category:row.category as NCCBeneficiaryDTO["category"],
+    medalTitle:String(row.medal_title),
+    monthlyAllowance:row.monthly_allowance===null?0:Number(row.monthly_allowance),
+    hasDeduplicationFlag:Boolean(row.has_deduplication_flag),
+    deduplicationWarning:typeof row.deduplication_warning==="string"?row.deduplication_warning:undefined,
+    status:row.status as NCCBeneficiaryDTO["status"],
   }));
 }
 
@@ -58,7 +43,7 @@ export async function getLaborContracts(ctx: RequestContext): Promise<LaborContr
     taxCode: String(row.tax_code),
     totalWorkers: Number(row.total_workers) || 0,
     minWagePaid: Number(row.min_wage_paid) || 0,
-    regionalMinWage: Number(row.regional_min_wage) || 3450000,
+    regionalMinWage: Number(row.regional_min_wage),
     isUnderMinWage: Boolean(row.is_under_min_wage),
     seasonalWorkersCount: Number(row.seasonal_workers_count) || 0,
     bhxhRegisteredCount: Number(row.bhxh_registered_count) || 0,
@@ -91,5 +76,7 @@ export async function getLaborDisputes(ctx: RequestContext): Promise<LaborDisput
     receivedDate: String(row.received_date),
     status: (row.status as LaborDisputeDTO["status"]) || "RECEIVED",
     outcomeSummary: row.outcome_summary ? String(row.outcome_summary) : undefined,
+    version: Number(row.version),
+    decisionReference: row.decision_reference ? String(row.decision_reference) : null,
   }));
 }
