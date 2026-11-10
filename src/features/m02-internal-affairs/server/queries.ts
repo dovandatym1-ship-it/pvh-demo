@@ -80,3 +80,15 @@ export async function getLaborDisputes(ctx: RequestContext): Promise<LaborDisput
     decisionReference: row.decision_reference ? String(row.decision_reference) : null,
   }));
 }
+
+export async function getNccHamlets(ctx:RequestContext):Promise<{id:string;name:string}[]>{
+  if(!ctx.permissions.includes("m02:internal:read"))throw new Error("FORBIDDEN");
+  if(ctx.scopes.hamletIds&&ctx.scopes.hamletIds.length===0)return [];
+  const db=await createServerSupabaseClient();
+  let q=db.from("org_units").select("id,name").eq("tenant_id",ctx.tenantId)
+    .eq("kind","HAMLET").eq("is_active",true).order("name");
+  if(ctx.scopes.hamletIds)q=q.in("id",[...ctx.scopes.hamletIds]);
+  const {data,error}=await q;
+  if(error)throw new Error("Không thể tải địa bàn người có công được phân công.");
+  return (data||[]).map(row=>({id:String(row.id),name:String(row.name)}));
+}
