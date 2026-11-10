@@ -43,6 +43,8 @@ jobs:
           cp -- "$fixture" "$temporary_migration"
       - name: Fresh local replay of all 14 active migrations
         run: supabase db start
+      - name: PH01 account, RLS and audited RPC contracts
+        run: supabase test db supabase/tests/01_ph01_single_commune_rls.sql
       - name: M01 transactional and authorization contracts
         run: supabase test db supabase/tests/02_ph02_m01_contract.sql
       - name: M04/M05/M08 RLS and workflow tests
