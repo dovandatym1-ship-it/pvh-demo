@@ -47,9 +47,6 @@ jobs:
         run: supabase test db supabase/tests/04_ph03_domain_contracts.sql supabase/tests/05_ph03_actor_workflows.sql
       - name: Notifications and avatar hardening contract
         run: supabase test db supabase/tests/06_pvh_notifications_storage_contract.sql
-      - name: Print local DB status (no credentials)
-        if: always()
-        run: supabase status --output json 2>/dev/null | sed -E 's/("([^"]*(key|token|secret|password)[^"]*)":)[^,}]*/\1"[REDACTED]"/g' || true
 
 # This job never authenticates to or writes Demo-pvh cloud. A green run proves
 # local migrations + selected pgTAP checks, not hosted RLS or browser E2E.
