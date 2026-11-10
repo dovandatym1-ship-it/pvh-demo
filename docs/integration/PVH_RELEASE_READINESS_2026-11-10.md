@@ -25,7 +25,7 @@
 | INT-102 | BLOCKED_ENV | M00 console, action/RPC, SQL PH01 đã tích hợp | Auth/RLS âm và DB readback trên staging |
 | INT-103 | BLOCKED_ENV | M01 create/assign/transition, OCC/guardrail và trang phân trang | Giao/sửa/minh chứng/hộp thư bằng 3 tài khoản thật |
 | INT-104 | CODE_CHECKED | Nav fail-closed, route match cụ thể, test PH05 | Browser keyboard và direct-route denial |
-| INT-105 | BLOCKED_ENV | 9 migration canonical, 9 legacy archived SHA trùng, ledger CI | **Clean replay**, applied history/checksum, negative RLS/Storage |
+| INT-105 | BLOCKED_ENV | 14 migration canonical, 9 legacy archived SHA trùng, ledger CI | **Clean replay**, applied history/checksum, negative RLS/Storage |
 | INT-106 | PARTIAL | M04 workflow safe-disable; M01/M06/M09 fail-safe paths | RPC lỗi thực, audit và transaction readback |
 | UI-201 | BLOCKED_ENV | Responsive AppShell, Escape/focus mobile | 4 kích thước, zoom và keyboard/focus |
 | UI-202 | PARTIAL | Một số style/tokens được dùng chung | Kiểm kê 100% màn ưu tiên, contrast WCAG |
@@ -70,7 +70,7 @@ Mốc `223411b4` sửa `getActiveHamlets` dùng `ctx.scopes.hamletIds` (không p
 ## 4. W6 / 128 OP — không giấu nghiệp vụ còn thiếu
 
 - 128 OP trong `OP_FUNCTION_SCREEN_CODE_DB_CROSSWALK.csv` là danh mục **đã kiểm kê**, không phải 128 chức năng hoạt động. M11 có 5 feature draft không cộng lẫn số OP gốc.
-- M02/M03/M05/M06/M07/M08/M11 và các nhánh chi tiết của M04 vẫn nhiều field, rule, workflow, CRUD, nguồn pháp lý chưa được xác nhận. Không bật action ra quyết định hành chính khi thiếu thẩm quyền.
+- M02/M03/M05/M06/M07/M08/M11 dù đã có các migration/route mới vẫn còn các biến thể của M04 vẫn nhiều field, rule, workflow, CRUD, nguồn pháp lý chưa được xác nhận. Không bật action ra quyết định hành chính khi thiếu thẩm quyền.
 - M01 cần thống nhất danh mục lĩnh vực qua owner M11; biểu mẫu hiện nhận mã lĩnh vực tự do. Giữ contract để không tự áp đặt taxonomy.
 - `work-item-manager.tsx` là code **legacy chưa gắn vào trang M01**: lọc cục bộ có nguy cơ chặn 100 bản ghi, quyền dựa role strings và transition thiếu idempotency key. **Không phục hồi component này** khi merge; nếu cần modal từ main, rewrite trên dữ liệu phân trang/action rõ quyền và test lại.
 - M06 đối tượng hưởng trợ cấp, M07 tôn giáo và file evidence là nhóm kiểm thử âm quyền/bảo mật bắt buộc, kể cả khi đã che dữ liệu ở DTO.
@@ -78,7 +78,7 @@ Mốc `223411b4` sửa `getActiveHamlets` dùng `ctx.scopes.hamletIds` (không p
 ## 5. Runbook để đóng G-DB/G-SEC/G-UX/G-PERF/G-FLOW
 
 1. **Cho phép một môi trường staging tách biệt** với `Demo-pvh`, không dùng dữ liệu thật. Lưu applied migration ledger hiện tại chỉ để đối chiếu, tuyệt đối không `db push` vào cloud production.
-2. Tạo Postgres/Supabase staging sạch; chạy **9 migration canonical** từ `supabase/migrations/` đúng thứ tự và kiểm extension/RLS/RPC/Storage. Kiểm checksum/tương thích trước khi lập phương án update cloud.
+2. Tạo Postgres/Supabase staging sạch; chạy **14 migration canonical** từ `supabase/migrations/` đúng thứ tự và kiểm extension/RLS/RPC/Storage. Kiểm checksum/tương thích trước khi lập phương án update cloud.
 3. Seed dữ liệu giả: tối thiểu **101 công việc** (để bắt KPI cap), nhiều trạng thái/hạn, hai tenant giả định hoặc dữ liệu phân biệt để test cross-scope; ít nhất 3 tài khoản đã phân quyền (lãnh đạo, công chức, trưởng thôn); bản ghi y tế nhạy cảm và file. Không đặt thông tin cá nhân thật.
 4. Với từng role: login→dashboard→lọc công việc→chi tiết→tạo/giao/chuyển→readback; test forbidden direct route/API/RPC, tenant/hamlet khác, tệp riêng tư, retry trùng khóa, OCC 409, snapshot báo cáo, CSV invalid, audit.
 5. Kiểm tra UX trên 375/768/1024/1440 và keyboard/zoom; đo Web Vitals, query count và bundle, đối chiếu KPI với SQL `count` cùng phạm vi.
@@ -98,11 +98,23 @@ Mốc `223411b4` sửa `getActiveHamlets` dùng `ctx.scopes.hamletIds` (không p
 
 | Mã | Kết quả mới | Bằng chứng / giới hạn |
 |---|---|---|
-| DB-LOCAL-01 | **PASS** | [Workflow local replay + pgTAP](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42741880487): 9 active migration sạch, M01, M04/M05/M08, thông báo và avatar. Không sử dụng Supabase cloud. |
+| DB-LOCAL-01 | **PASS** | [Local replay 14 migrations](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42750990737): 14 migration sạch, M01–M08/M11 + thông báo/avatar. Không sử dụng Supabase cloud. |
 | SEC-LOCAL-02 | **PASS** | [RLS negative hai người nhận](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42742938865): Auth A/B giả lập, chỉ được đọc/cập nhật thông báo của chính mình; anon bị từ chối. Không thay thế E2E Auth ngoài cloud. |
 | APP-AUTH-03 | **CODE_CHECKED** | Layout `src/app/(app)/layout.tsx` chặn toàn bộ children khi `getRequestContext` thất bại; `tests/app-layout-auth-guard.test.mjs` vào CI. Các trang con/action vẫn phải kiểm quyền độc lập. |
-| M06-ATOMIC-04 | **BLOCKED_BY_DESIGN** | `createBeneficiaryAction` được fail-closed thay cho insert trực tiếp + audit request rời rạc; mở lại sau khi có approved atomic RPC, RLS, schema và pháp lý. Không tuyên bố M06 CRUD hoàn thành. |
+| M06-ATOMIC-04 | **CODE_CHECKED / STAGING_BLOCKED** | `createBeneficiaryAction` nay gọi atomic RPC và M06 có migration source; cần xác nhận quyền, workflow, pháp lý, staging và API readback trước khi nghiệm thu. Không tuyên bố M06 CRUD hoàn thành. |
 | CLOUD-READ-05 | **READ-ONLY** | `Demo-pvh`: đúng 2 applied migrations, 14 bảng nền tảng có RLS, không có bảng M02/M03/M06/M07. [Receipt chi tiết](PVH_CLOUD_SCHEMA_READBACK_2026-11-10.md). Supabase advisor cảnh báo leaked-password protection đang tắt. |
 | DEPLOY-06 | **NOT_READY** | Trên tài khoản Vercel kết nối chưa tìm thấy dự án PVH; chưa có preview URL, environment hoặc staging độc lập để nghiệm thu browser. |
 
 **Hành động còn bắt buộc:** môi trường Supabase staging riêng và Vercel preview; kiểm tra quyền và Storage qua API/Browser thực, source→KPI readback, kiểm thử hai xã độc lập, khắc phục thiếu schema/CRUD/field/rule của 128 OP, UAT, backup/restore, chốt chi phí và owner quyết định merge. Mọi tính năng hành chính chưa có thẩm quyền đã kiểm chứng tiếp tục ở chế độ minh họa/chưa mở tác vụ chính thức.
+
+## 8. Mốc bổ sung mã nguồn — 10/11/2026 (sau local 14-migration replay)
+
+- `14 migration`: [GitHub Actions 42750990737](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42750990737) PASS trên Supabase local; 2 migration cloud baseline chưa thay đổi.
+- Dashboard gắn dữ liệu nguồn M02–M11 và hiển thị riêng cho người không có quyền M01; điều hướng từ KPI chỉ đến route được phép.
+- Notification bulk mark-read theo Auth user và tenant; kiểm thử negative recipient. PKCE khôi phục mật khẩu có form Việt hóa; cần cấu hình Auth redirect SMTP trên staging.
+- Phân quyền vào trang chủ và sau login dựa vào membership đang hiệu lực; không mặc định chuyển vào M01. Người không có quyền chuyên ngành có self-service.
+- M00 form chọn đơn vị lấy từ `org_units` thật; server tự suy ra `org_unit_ids` cho thôn/xóm sau khi kiểm tra đơn vị đúng tenant và đang hoạt động. Không nhận scopes tùy ý từ client.
+- `(legacy)` bị chặn server `notFound()` ngoài local demo và ẩn khỏi sidebar; không cho người dùng production thấy xác nhận đồng bộ/CRUD `localStorage` giả.
+- [Kế hoạch cloud riêng](PVH_ENVIRONMENT_AND_ACCEPTANCE_PLAN_2026-11-10.md) — chỉ ghi kế hoạch, không tạo resource, không push migration.
+
+**Đánh giá còn hiệu lực:** Có thực thi mã nguồn và test theo lát cắt M00–M11, nhưng chưa đủ evidence cho toàn bộ 128 OP gốc/5 M11 draft; không đổi NO-GO merge/deploy.
