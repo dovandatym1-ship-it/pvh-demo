@@ -40,3 +40,27 @@ test("Authenticated but unassigned users can open login instead of redirect-loop
   assert.match(auth, /await supabase\.auth\.signOut\(\)/);
   assert.match(layout, /redirect\("\/login"\)/);
 });
+
+test("Recovery screens are public, but cannot change password from login session alone", () => {
+  const middleware = read("src/lib/supabase/middleware.ts");
+  const login = read("src/app/(auth)/login/page.tsx");
+  const request = read("src/app/(auth)/quen-mat-khau/page.tsx");
+  const resetPage = read("src/app/(auth)/dat-lai-mat-khau/page.tsx");
+  const resetForm = read("src/features/auth/components/password-recovery-form.tsx");
+  const actions = read("src/lib/auth/actions.ts");
+  assert.match(middleware, /pathname === "\/quen-mat-khau"/);
+  assert.match(middleware, /pathname === "\/dat-lai-mat-khau"/);
+  assert.match(login, /href="\/quen-mat-khau"/);
+  assert.match(request, /requestPasswordResetAction/);
+  assert.match(resetPage, /<PasswordRecoveryForm code=\{token\}/);
+  assert.match(resetForm, /completePasswordRecoveryAction/);
+  assert.match(actions, /auth\.resetPasswordForEmail/);
+  assert.match(actions, /auth\.exchangeCodeForSession\(parsed\.data\.code\)/);
+  const recovery = actions.split("export async function completePasswordRecoveryAction")[1];
+  assert.ok(recovery);
+  assert.ok(recovery.indexOf("exchangeCodeForSession") < recovery.indexOf("auth.updateUser"));
+  assert.match(recovery, /auth\.signOut\(\)/);
+  assert.doesNotMatch(recovery, /getRequestContext\(/);
+  assert.doesNotMatch(recovery, /createSupabaseAdminClient|service_role/);
+  assert.match(actions, /url\.protocol !== "https:"/);
+});
