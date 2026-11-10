@@ -118,3 +118,27 @@ Mốc `223411b4` sửa `getActiveHamlets` dùng `ctx.scopes.hamletIds` (không p
 - [Kế hoạch cloud riêng](PVH_ENVIRONMENT_AND_ACCEPTANCE_PLAN_2026-11-10.md) — chỉ ghi kế hoạch, không tạo resource, không push migration.
 
 **Đánh giá còn hiệu lực:** Có thực thi mã nguồn và test theo lát cắt M00–M11, nhưng chưa đủ evidence cho toàn bộ 128 OP gốc/5 M11 draft; không đổi NO-GO merge/deploy.
+
+## 9. Audit trường và luồng nghiệp vụ — 10/11/2026
+
+Đã lập [audit độ đầy đủ trường dữ liệu và nghiệp vụ](PVH_FIELD_WORKFLOW_COMPLETENESS_AUDIT_2026-11-10.md) từ crosswalk và schema/code candidate. Kết quả crosswalk được đếm trực tiếp:
+
+- 128 OP M00–M10 + 5 feature draft M11 = 133 dòng.
+- `runtime_verified=UNVERIFIED` ở cả 133 dòng.
+- Các cột `runtime_route`, `api_or_rpc`, `db_entity`, `permission`, `message_code`, `test_id`, `evidence_url` đều trống ở 133/133 dòng.
+- Vì vậy coverage kiểm kê là 128/128, còn field-spec, implementation traceability, runtime và thẩm quyền nghiệp vụ chưa có tỷ lệ xác minh. Không coi chỗ trống trong crosswalk là bằng chứng không có code.
+
+Audit xác định các khoảng kiến trúc trọng yếu cần đóng: dữ liệu chủ M01; căn cứ, tiêu chí từng phần và quyết định chính thức M04; công thức/phương pháp từng chỉ tiêu M05; finding-level M08; cùng quyền trường nhạy cảm M02/M03/M06/M07. Các phần thiếu nguồn hoặc thẩm quyền tiếp tục bị khóa.
+
+## 10. Candidate code update — `fe753fd`
+
+- P0-3: menu demo lọc theo quyền đúng persona, không suy quyền admin/wildcard.
+- P0-8/P0-12: gỡ các UI/query M04 legacy dùng nhận diện thôn và điểm số mặc định; luồng PH03 hiện hành vẫn minh họa/rà soát nội bộ.
+- P0-9: gỡ query/UI M05 legacy có fallback dữ liệu mẫu; PH03 giữ 0 khác null.
+- P0-10: ánh xạ enum người có công đầy đủ, enum lạ hiển thị chưa xác định.
+- P0-11: M08 hiện hành tính nhãn quá hạn từ ngày hạn + trạng thái mở; ngày/trạng thái không hợp lệ không tự bị xem là quá hạn.
+- P0-13: chi tiết công việc dùng ID cụ thể.
+- Gỡ các component/query/schema M05 và M08 cũ không được route hiện hành dùng, gồm fallback giả và trạng thái `WAITING_OVERDUE` dễ gây hiểu nhầm.
+- Kiểm tra cục bộ tại `fe753fd`: 9/9 test mới PASS; `typecheck`, `lint`, `fitness`, `build`, `git diff --check` PASS. Lint còn bốn cảnh báo legacy đã có. GitHub CI ở SHA này đang chờ push; staging/Auth/RLS/Storage/E2E chưa chạy.
+
+**NO-GO giữ nguyên.** Candidate source changes không xác nhận đủ 128 OP, không mở nghiệp vụ pháp lý và không thay nghiệm thu staging.
