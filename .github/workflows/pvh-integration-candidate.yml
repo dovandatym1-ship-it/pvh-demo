@@ -23,6 +23,7 @@ jobs:
       - run: node --test tests/app-layout-auth-guard.test.mjs
       - run: node --test tests/m04-legacy-retirement.test.mjs
       - run: node --experimental-strip-types --test tests/m01-workflow-rules.test.mjs
+      - run: node --experimental-strip-types --test tests/m01-presentation.test.mjs
       - run: node --test tests/m01-sql-guardrails.test.mjs
       - run: node --test tests/dashboard-metrics.test.mjs tests/dashboard-role-semantics.test.mjs
       - run: node --experimental-strip-types --test tests/self-service-notifications.test.mjs
