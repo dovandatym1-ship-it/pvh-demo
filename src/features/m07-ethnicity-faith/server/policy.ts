@@ -13,11 +13,7 @@ export function assertCanManageFaith(ctx: RequestContext): void {
 }
 
 export function assertCanAccessHamlet(ctx: RequestContext, hamletId: string): void {
-  if (ctx.scopes.hamletIds && ctx.scopes.hamletIds.length > 0) {
-    if (!ctx.scopes.hamletIds.includes(hamletId)) {
-      throw new ForbiddenError(
-        `Không có quyền truy cập dữ liệu tín ngưỡng xóm ${hamletId} (FORBIDDEN)`
-      );
-    }
+  if (ctx.scopes.hamletIds && !ctx.scopes.hamletIds.includes(hamletId)) {
+    throw new ForbiddenError("Không có quyền truy cập dữ liệu ngoài địa bàn được phân công (FORBIDDEN)");
   }
 }
