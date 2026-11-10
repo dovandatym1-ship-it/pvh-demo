@@ -10,7 +10,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { type Result, ok, fail } from "@/lib/types/result";
 
-const RoleCode = z.enum(["SYSTEM_ADMIN", "WORK_MANAGER", "WORK_OFFICER", "WORK_VIEWER", "AUDITOR", "FAITH_OFFICER", "FAITH_MANAGER"]);
+const RoleCode = z.enum(["SYSTEM_ADMIN", "WORK_MANAGER", "WORK_OFFICER", "WORK_VIEWER", "AUDITOR", "FAITH_OFFICER", "FAITH_MANAGER", "SOCIAL_OFFICER", "SOCIAL_MANAGER"]);
 const Uuid = z.string().uuid();
 const InviteInput = z.object({
   email: z.string().trim().email().max(254),
