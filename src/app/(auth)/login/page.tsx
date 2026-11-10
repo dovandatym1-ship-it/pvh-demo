@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { ArrowRight, Eye, EyeOff, Layers3, LockKeyhole, Mail, ShieldCheck, Zap } from "lucide-react";
 import { loginWithCredentialsAction } from "@/lib/auth/actions";
 import { deploymentBrand } from "@/config/deployment-brand";
@@ -53,6 +54,9 @@ function LoginForm() {
             {showPassword ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}
           </button>
         </div>
+      </div>
+      <div className="flex justify-end">
+        <Link href="/quen-mat-khau" className="inline-flex min-h-9 items-center text-xs font-semibold text-emerald-800 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700">Quên mật khẩu?</Link>
       </div>
       <button type="submit" disabled={loading} className="flex w-full items-center justify-center gap-3 rounded-xl bg-emerald-800 px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800 disabled:cursor-wait disabled:opacity-60">
         {loading ? "Đang đăng nhập..." : "Đăng nhập"} {!loading && <ArrowRight size={18} aria-hidden="true" />}
