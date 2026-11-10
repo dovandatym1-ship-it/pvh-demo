@@ -6,6 +6,8 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { ForbiddenError } from "@/lib/errors/app-error";
 import { isDemoAuthEnabled, isValidDemoPersona } from "@/lib/auth/demo-mode";
 import { isMembershipCurrentlyActive } from "@/lib/auth/membership-validity";
+import { PasswordRecoverySchema } from "@/features/self-service/schemas";
+import { z } from "zod";
 
 export interface LoginActionResult {
   success?: boolean;
@@ -79,4 +81,71 @@ export async function logoutAction() {
   const supabase = await createServerSupabaseClient();
   await supabase.auth.signOut();
   redirect("/login");
+}
+
+const RecoveryEmailSchema = z.string().trim().email().max(254);
+
+/** Only an approved public application origin may receive Supabase recovery codes. */
+function passwordRecoveryRedirectUrl(): string | null {
+  try {
+    const configured = process.env.NEXT_PUBLIC_APP_URL;
+    if (!configured) return null;
+    const url = new URL(configured);
+    const local = process.env.NODE_ENV !== "production"
+      && url.protocol === "http:"
+      && (url.hostname === "localhost" || url.hostname === "127.0.0.1");
+    if (!local && url.protocol !== "https:") return null;
+    if (url.username || url.password || url.search || url.hash || url.pathname !== "/") return null;
+    return new URL("/dat-lai-mat-khau", url).toString();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Send an account recovery email without disclosing whether an address exists.
+ * The user's browser stores the PKCE verifier; the email delivers a short-lived
+ * code which is verified only at completePasswordRecoveryAction.
+ */
+export async function requestPasswordResetAction(formData: FormData): Promise<LoginActionResult> {
+  const parsed = RecoveryEmailSchema.safeParse(formData.get("email"));
+  if (!parsed.success) return { error: "Địa chỉ email công vụ chưa hợp lệ." };
+  const redirectTo = passwordRecoveryRedirectUrl();
+  if (!redirectTo) return { error: "Chưa cấu hình địa chỉ ứng dụng an toàn để khôi phục mật khẩu." };
+  try {
+    const db = await createServerSupabaseClient();
+    // Do not branch on the Auth response: user existence and mail throttling
+    // must never be distinguishable in the public UI.
+    await db.auth.resetPasswordForEmail(parsed.data, { redirectTo });
+    return { success: true };
+  } catch {
+    return { error: "Dịch vụ xác thực hiện không khả dụng. Vui lòng thử lại sau." };
+  }
+}
+
+/**
+ * Atomically consume the user's one-time PKCE recovery code BEFORE calling
+ * updateUser. A pre-existing login session is never accepted as proof of
+ * password recovery; no arbitrary client user ID or service-role key is used.
+ */
+export async function completePasswordRecoveryAction(input: unknown): Promise<LoginActionResult> {
+  const parsed = PasswordRecoverySchema.safeParse(input);
+  if (!parsed.success) return { error: "Liên kết hoặc mật khẩu chưa hợp lệ (tối thiểu 12 ký tự)." };
+  try {
+    const db = await createServerSupabaseClient();
+    const { data: verified, error: exchangeError } =
+      await db.auth.exchangeCodeForSession(parsed.data.code);
+    if (exchangeError || !verified.user || !verified.session) {
+      return { error: "Liên kết khôi phục đã hết hạn hoặc đã được sử dụng. Vui lòng yêu cầu liên kết mới." };
+    }
+    const { error: updateError } = await db.auth.updateUser({ password: parsed.data.newPassword });
+    if (updateError) {
+      await db.auth.signOut();
+      return { error: "Không đổi được mật khẩu. Vui lòng yêu cầu liên kết mới hoặc liên hệ quản trị viên." };
+    }
+    await db.auth.signOut();
+    return { success: true };
+  } catch {
+    return { error: "Không xác minh được liên kết khôi phục. Vui lòng yêu cầu liên kết mới." };
+  }
 }
