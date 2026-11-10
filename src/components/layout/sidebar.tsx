@@ -108,9 +108,10 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   // An explicitly empty list means no navigation entitlement, not the full demo menu.
-  const displayGroups = groups === undefined
-    ? persona ? filterLegacyNavigation(DEFAULT_GROUPS, persona.permissions) : DEFAULT_GROUPS
-    : groups;
+  const configuredGroups = groups === undefined ? DEFAULT_GROUPS : groups;
+  const displayGroups = groups === undefined && persona
+    ? filterLegacyNavigation(configuredGroups, persona.permissions)
+    : configuredGroups;
 
   return (
     <>
