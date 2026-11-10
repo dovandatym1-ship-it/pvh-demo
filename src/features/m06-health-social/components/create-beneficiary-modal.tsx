@@ -69,25 +69,6 @@ export function CreateBeneficiaryModal({
         return;
       }
 
-      /* No optimistic personal-data object: reload only after the audited RPC commits. */
-      /* const newItem: SocialBeneficiaryDTO = {
-        id: res.data.id,
-        code: res.data.code,
-        fullName: payload.fullName,
-        cccd: payload.cccd,
-        phone: payload.phone || undefined,
-        hamletId: payload.hamletId,
-        aidCategory: payload.aidCategory,
-        monthlyAmount: payload.monthlyAmount,
-        diagnosis: payload.diagnosis || undefined,
-        paymentStatus: "PENDING",
-        healthInsuranceProvided: payload.healthInsuranceProvided,
-        version: 1,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      */
       onSuccess();
       onClose();
       setFullName("");
@@ -176,6 +157,7 @@ export function CreateBeneficiaryModal({
               Thôn / Xóm cư trú <span className="text-red-500">*</span>
             </label>
             <select
+              required
               value={hamletId}
               onChange={(e) => setHamletId(e.target.value)}
               className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md bg-white focus:ring-1 focus:ring-emerald-600"
@@ -187,7 +169,7 @@ export function CreateBeneficiaryModal({
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Mức trợ cấp hàng tháng (VNĐ) <span className="text-red-500">*</span>
+              Mức hỗ trợ đề nghị theo hồ sơ (VNĐ) <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
