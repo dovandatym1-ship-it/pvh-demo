@@ -138,12 +138,12 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         description: "Nhập CSV mô phỏng có kiểm tra, đối soát và lịch sử nguồn.",
       },
       {
-        title: "Dữ liệu dùng chung",
-        route: "/du-lieu-dung-chung",
+        title: "Danh mục dùng chung",
+        route: "/danh-muc-dung-chung",
         iconName: "Database",
-        moduleKey: "m01",
-        requiredPermission: "m01:work:read",
-        status: "LEGACY_MOCK",
+        moduleKey: "m11",
+        requiredPermission: "m11:catalog:read",
+        status: "DEEP",
       },
       {
         title: "Cổng tích hợp liên thông",
