@@ -11,39 +11,26 @@ import type {
 } from "../types";
 
 export async function getSocialBeneficiaries(ctx: RequestContext): Promise<SocialBeneficiaryDTO[]> {
-  const supabase = await createServerSupabaseClient();
-
-  let query = supabase
-    .from("social_protection_beneficiaries")
-    .select("*")
-    .eq("tenant_id", ctx.tenantId)
-    .order("created_at", { ascending: true });
-  if (ctx.scopes.hamletIds) {
-    if (ctx.scopes.hamletIds.length === 0) return [];
-    query = query.in("hamlet_id", [...ctx.scopes.hamletIds]);
+  assertCanReadHealthSocial(ctx);
+  // Never SELECT raw beneficiary PII through public tables. The RPC verifies
+  // the live membership, scoped hamlets and field-level unmask permission.
+  const db = await createServerSupabaseClient();
+  const { data, error } = await db.schema("app").rpc("list_social_beneficiaries", {p_limit:1000});
+  if (error || !Array.isArray(data)) {
+    throw new Error("Không thể tải hồ sơ bảo trợ xã hội theo quyền hiện hành.");
   }
-  const { data, error } = await query;
-
-  if (error) {
-    throw new Error("Không thể tải dữ liệu chuyên ngành; vui lòng thử lại.");
-  }
-  if (!data) return [];
-
-  return data.map((row) => ({
-    id: String(row.id),
-    code: String(row.code),
+  return data.map(row => ({
+    id: String(row.id), code: String(row.code),
     fullName: String(row.full_name),
-    cccd: String(row.cccd),
-    phone: row.phone ? String(row.phone) : undefined,
-    hamletId: String(row.hamlet_id),
-    aidCategory: String(row.aid_category),
-    monthlyAmount: Number(row.monthly_amount) || 0,
-    diagnosis: row.diagnosis ? String(row.diagnosis) : undefined,
-    paymentStatus: (row.payment_status as SocialBeneficiaryDTO["paymentStatus"]) || "PENDING",
+    cccd: typeof row.cccd === "string" ? row.cccd : "",
+    phone: typeof row.phone === "string" ? row.phone : undefined,
+    hamletId: String(row.hamlet_id),aidCategory: String(row.aid_category),
+    monthlyAmount: row.monthly_amount === null ? 0 : Number(row.monthly_amount),
+    diagnosis: typeof row.diagnosis === "string" ? row.diagnosis : undefined,
+    paymentStatus: row.payment_status as SocialBeneficiaryDTO["paymentStatus"],
     healthInsuranceProvided: Boolean(row.health_insurance_provided),
-    version: Number(row.version) || 1,
-    createdAt: String(row.created_at),
-    updatedAt: String(row.updated_at),
+    version: Number(row.version),
+    createdAt: String(row.created_at),updatedAt: String(row.updated_at),
   }));
 }
 
