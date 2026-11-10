@@ -58,12 +58,12 @@ select extensions.throws_ok(
  '42501',null,'Manager cannot create in out-of-scope hamlet');
 select extensions.lives_ok(
  $$select app.request_social_aid_reconciliation(
- (select id from public.social_protection_beneficiaries limit 1),
+ (app.list_social_beneficiaries()->0->>'id')::uuid,
  'BANG_DOI_SOAT_CI_001','CI-M06-IDEMP-001')$$,
  'Reconciliation is an audited request, not a payment');
 select extensions.is(
  (select app.request_social_aid_reconciliation(
- (select id from public.social_protection_beneficiaries limit 1),
+ (app.list_social_beneficiaries()->0->>'id')::uuid,
  'BANG_DOI_SOAT_CI_001','CI-M06-IDEMP-001')->>'cached'),
  'true','Repeated reconciliation request is idempotent');
 reset role;
