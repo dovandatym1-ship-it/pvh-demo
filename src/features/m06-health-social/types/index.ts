@@ -20,9 +20,9 @@ export interface FoodSafetyInspectionDTO {
   readonly facilityName: string;
   readonly inspectionType: "STREET_FOOD" | "SCHOOL_CANTEEN" | "ARTISAN_PRODUCER";
   readonly inspectionDate: string;
-  readonly totalScore: number;
-  readonly sampleRetention24hPassed: boolean;
-  readonly conclusion: "PASSED" | "WARNING_REMEDIAL" | "FAILED_SUSPEND";
+  readonly totalScore: number | null;
+  readonly sampleRetention24hPassed: boolean | null;
+  readonly conclusion: "PENDING" | "PASSED" | "WARNING_REMEDIAL" | "FAILED_SUSPEND";
 }
 
 export interface MedicalFacilityDTO {
@@ -34,7 +34,7 @@ export interface MedicalFacilityDTO {
   readonly licenseIssueDate: string;
   readonly gppCertified: boolean;
   readonly controlledDrugsLedger: boolean;
-  readonly inspectionStatus: "NORMAL" | "WARNING";
+  readonly inspectionStatus: "UNVERIFIED" | "NORMAL" | "WARNING";
 }
 
 export interface EpidemicLogDTO {
