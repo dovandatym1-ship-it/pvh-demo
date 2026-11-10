@@ -27,7 +27,15 @@ const SOURCES = [
 export async function getDomainCountMetrics(ctx:RequestContext):Promise<DomainCountMetric[]> {
   const permitted=SOURCES.filter(item=>ctx.permissions.includes(item.permission));
   if(!permitted.length)return [];
-  const db=await createServerSupabaseClient();
+  let db: Awaited<ReturnType<typeof createServerSupabaseClient>>;
+  try {
+    db = await createServerSupabaseClient();
+  } catch {
+    return permitted.map(item => ({
+      code: item.code, label: item.label, source: item.source, route: item.route,
+      count: null, status: "unavailable" as const,
+    }));
+  }
   return Promise.all(permitted.map(async item=>{
     try{
       // The table SELECT and forced RLS must both allow this request. Counting
