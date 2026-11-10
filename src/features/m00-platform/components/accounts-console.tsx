@@ -25,9 +25,19 @@ export interface StaffRow {
   fullName: string;
   roles: string[];
   isActive: boolean;
+  orgUnitName: string;
 }
 
-export function AccountsConsole({ staff }: { staff: StaffRow[] }) {
+export interface StaffOrgUnit {
+  id: string;
+  name: string;
+  kind: string;
+}
+
+export function AccountsConsole({ staff, orgUnits }: {
+  staff: StaffRow[];
+  orgUnits: readonly StaffOrgUnit[];
+}) {
   const [pending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<string | null>(null);
   const [selectedRoles, setSelectedRoles] = useState<Record<string, string>>({});
@@ -52,6 +62,7 @@ export function AccountsConsole({ staff }: { staff: StaffRow[] }) {
         email: String(data.get("email") || ""),
         fullName: String(data.get("fullName") || ""),
         roleCode: String(data.get("roleCode") || ""),
+        orgUnitId: String(data.get("orgUnitId") || "") || null,
       });
       setFeedback(result.ok ? "Đã gửi lời mời và tạo phân công; tải lại danh sách để đối chiếu." : result.error.message);
       if (result.ok) form.reset();
@@ -95,6 +106,18 @@ export function AccountsConsole({ staff }: { staff: StaffRow[] }) {
               {ROLE_OPTIONS.map((role) => <option key={role.code} value={role.code}>{role.label}</option>)}
             </select>
           </label>
+          <label className="text-sm">Đơn vị công tác
+            <select name="orgUnitId" defaultValue="" className="mt-1 min-h-11 w-full rounded-lg border border-slate-300 px-3 text-sm">
+              <option value="">Chưa chọn đơn vị cụ thể</option>
+              {orgUnits.map(unit => <option key={unit.id} value={unit.id}>
+                {unit.kind === "HAMLET" ? "Thôn/xóm: " : unit.kind === "COMMUNE" ? "Xã: " : "Bộ phận: "}{unit.name}
+              </option>)}
+            </select>
+          </label>
+          <p className="self-center text-xs text-slate-500">
+            Nếu chọn thôn/xóm, phạm vi dữ liệu được giới hạn theo địa bàn này tại server.
+            Quyền chuyên môn vẫn phụ thuộc vai trò được cấp.
+          </p>
           <button disabled={pending} type="submit" className="self-end rounded bg-emerald-700 p-2 font-semibold text-white disabled:opacity-50">{pending ? "Đang xử lý..." : "Gửi lời mời và phân công"}</button>
         </form>
       </section>
@@ -136,6 +159,7 @@ export function AccountsConsole({ staff }: { staff: StaffRow[] }) {
               <div>
                 <p className="font-medium">{person.fullName}</p>
                 <p className="text-xs text-slate-500">{person.roles.map(roleLabel).join(", ") || "Chưa được cấp vai trò"}</p>
+                <p className="mt-1 text-xs text-slate-500">Đơn vị: {person.orgUnitName}</p>
               </div>
               <span className={`text-xs rounded-full px-2 py-1 ${person.isActive ? "bg-green-50 text-green-800" : "bg-slate-100 text-slate-600"}`}>
                 {person.isActive ? "Đang hiệu lực" : "Đã thu hồi"}
