@@ -1,7 +1,7 @@
 import React from "react";
 import { getRequestContext } from "@/lib/auth/request-context";
 import { assertCanViewFaith } from "@/features/m07-ethnicity-faith/server/policy";
-import { getReligiousEstablishments, getReputablePersons, getReligiousHamlets } from "@/features/m07-ethnicity-faith/server/queries";
+import { getReligiousEstablishments, getReputablePersons, getReligiousHamlets, getReligiousEvents } from "@/features/m07-ethnicity-faith/server/queries";
 import { EstablishmentTable } from "@/features/m07-ethnicity-faith/components/establishment-table";
 import { ReputablePersonTable } from "@/features/m07-ethnicity-faith/components/reputable-person-table";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -12,8 +12,8 @@ export const dynamic = "force-dynamic";
 export default async function DanTocTonGiaoPage() {
   const ctx = await getRequestContext();
   assertCanViewFaith(ctx);
-  const [establishments, reputablePersons, hamlets] = await Promise.all([
-    getReligiousEstablishments(ctx), getReputablePersons(ctx), getReligiousHamlets(ctx),
+  const [establishments, reputablePersons, hamlets, events] = await Promise.all([
+    getReligiousEstablishments(ctx), getReputablePersons(ctx), getReligiousHamlets(ctx), getReligiousEvents(ctx),
   ]);
 
   const totalFollowers = establishments.reduce((sum, item) => sum + item.followerCount, 0);
@@ -66,7 +66,7 @@ export default async function DanTocTonGiaoPage() {
 
       <div className="space-y-4">
         <h2 className="text-lg font-semibold text-gray-800">Danh mục cơ sở tín ngưỡng và điểm nhóm tôn giáo</h2>
-        <EstablishmentTable items={establishments} hamlets={hamlets} userPermissions={ctx.permissions} />
+        <EstablishmentTable items={establishments} events={events} hamlets={hamlets} userPermissions={ctx.permissions} />
       </div>
 
       <div className="space-y-4">
