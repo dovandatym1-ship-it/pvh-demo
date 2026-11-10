@@ -11,6 +11,8 @@ const ROLE_OPTIONS = [
   {code:"AUDITOR",label:"Cán bộ kiểm tra"},
   {code:"FAITH_OFFICER",label:"Cán bộ dân tộc, tín ngưỡng và tôn giáo"},
   {code:"FAITH_MANAGER",label:"Quản lý công tác dân tộc, tín ngưỡng và tôn giáo"},
+  {code:"SOCIAL_OFFICER",label:"Cán bộ y tế và an sinh xã hội"},
+  {code:"SOCIAL_MANAGER",label:"Quản lý y tế và an sinh xã hội"},
 ] as const;
 const roleLabel=(code:string)=>ROLE_OPTIONS.find(role=>role.code===code)?.label??"Vai trò chưa có nhãn";
 
