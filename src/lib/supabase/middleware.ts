@@ -41,7 +41,8 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  const isAuthRoute = pathname === "/login" || pathname.startsWith("/api/auth/");
+  const isAuthRoute = pathname === "/login" || pathname === "/quen-mat-khau"
+    || pathname === "/dat-lai-mat-khau" || pathname.startsWith("/api/auth/");
   const isStaticRoute =
     pathname.startsWith("/_next/") ||
     pathname.startsWith("/static/") ||
