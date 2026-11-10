@@ -75,7 +75,7 @@ export default async function DanTocTonGiaoPage() {
 
       <div className="space-y-4">
         <h2 className="text-lg font-semibold text-gray-800">Danh sách người có uy tín trong đồng bào dân tộc thiểu số</h2>
-        <ReputablePersonTable items={reputablePersons} userPermissions={ctx.permissions} />
+        <ReputablePersonTable items={reputablePersons} hamlets={hamlets} />
       </div>
     </div>
   );
