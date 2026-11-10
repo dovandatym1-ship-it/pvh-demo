@@ -49,3 +49,12 @@ export type CatalogEvent = {
   before_value: Record<string, unknown> | null;
   after_value: Record<string, unknown>;
 };
+
+export type CatalogWorkspace = {
+  catalogs: Catalog[];
+  values: CatalogValue[];
+  history: CatalogEvent[];
+  catalogsTotal: number;
+  valuesTotal: number;
+  historyTotal: number;
+};
