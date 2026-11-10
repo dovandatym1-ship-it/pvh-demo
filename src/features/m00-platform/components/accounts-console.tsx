@@ -3,7 +3,16 @@
 import { useState, useTransition, type FormEvent } from "react";
 import { inviteStaffAction, revokeStaffAction, setStaffRoleAction } from "../server/accounts";
 
-const ROLE_OPTIONS = ["SYSTEM_ADMIN", "WORK_MANAGER", "WORK_OFFICER", "WORK_VIEWER", "AUDITOR"] as const;
+const ROLE_OPTIONS = [
+  {code:"SYSTEM_ADMIN",label:"Quản trị hệ thống"},
+  {code:"WORK_MANAGER",label:"Quản lý công việc"},
+  {code:"WORK_OFFICER",label:"Cán bộ xử lý công việc"},
+  {code:"WORK_VIEWER",label:"Người được xem công việc"},
+  {code:"AUDITOR",label:"Cán bộ kiểm tra"},
+  {code:"FAITH_OFFICER",label:"Cán bộ dân tộc, tín ngưỡng và tôn giáo"},
+  {code:"FAITH_MANAGER",label:"Quản lý công tác dân tộc, tín ngưỡng và tôn giáo"},
+] as const;
+const roleLabel=(code:string)=>ROLE_OPTIONS.find(role=>role.code===code)?.label??"Vai trò chưa có nhãn";
 
 export interface StaffRow {
   userId: string;
@@ -35,7 +44,7 @@ export function AccountsConsole({ staff }: { staff: StaffRow[] }) {
   const updateRole = (userId: string, grant: boolean) => {
     const role = selectedRoles[userId];
     if (!role) return setFeedback("Chọn một vai trò trước khi cập nhật.");
-    if (!window.confirm(`${grant ? "Cấp" : "Thu hồi"} quyền ${role} cho tài khoản này?`)) return;
+    if (!window.confirm(`${grant ? "Cấp" : "Thu hồi"} quyền ${roleLabel(role)} cho tài khoản này?`)) return;
     startTransition(async () => {
       const result = await setStaffRoleAction(userId, role, grant);
       setFeedback(result.ok ? "Đã cập nhật vai trò. Làm mới trang để đối soát." : result.error.message);
@@ -66,7 +75,7 @@ export function AccountsConsole({ staff }: { staff: StaffRow[] }) {
           </label>
           <label className="text-sm">Vai trò ban đầu
             <select className="mt-1 w-full rounded border p-2" name="roleCode" required defaultValue="WORK_OFFICER">
-              {ROLE_OPTIONS.map((role) => <option key={role} value={role}>{role}</option>)}
+              {ROLE_OPTIONS.map((role) => <option key={role.code} value={role.code}>{role.label}</option>)}
             </select>
           </label>
           <button disabled={pending} type="submit" className="self-end rounded bg-emerald-700 p-2 font-semibold text-white disabled:opacity-50">{pending ? "Đang xử lý..." : "Gửi lời mời và phân công"}</button>
@@ -81,7 +90,7 @@ export function AccountsConsole({ staff }: { staff: StaffRow[] }) {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <p className="font-medium">{person.fullName}</p>
-                <p className="text-xs text-slate-500">{person.roles.join(", ") || "Chưa được cấp vai trò"}</p>
+                <p className="text-xs text-slate-500">{person.roles.map(roleLabel).join(", ") || "Chưa được cấp vai trò"}</p>
               </div>
               <span className={`text-xs rounded-full px-2 py-1 ${person.isActive ? "bg-green-50 text-green-800" : "bg-slate-100 text-slate-600"}`}>
                 {person.isActive ? "Đang hiệu lực" : "Đã thu hồi"}
@@ -90,7 +99,7 @@ export function AccountsConsole({ staff }: { staff: StaffRow[] }) {
             {person.isActive && <div className="flex flex-wrap gap-2 items-center">
               <select aria-label={`Vai trò cho ${person.fullName}`} className="rounded border p-2 text-sm" value={selectedRoles[person.userId] || ""} onChange={(e) => setSelectedRoles((old) => ({ ...old, [person.userId]: e.target.value }))}>
                 <option value="">Chọn vai trò</option>
-                {ROLE_OPTIONS.map((role) => <option key={role} value={role}>{role}</option>)}
+                {ROLE_OPTIONS.map((role) => <option key={role.code} value={role.code}>{role.label}</option>)}
               </select>
               <button disabled={pending} onClick={() => updateRole(person.userId, true)} className="rounded border p-2 text-sm">Cấp vai trò</button>
               <button disabled={pending} onClick={() => updateRole(person.userId, false)} className="rounded border p-2 text-sm">Thu hồi vai trò</button>
