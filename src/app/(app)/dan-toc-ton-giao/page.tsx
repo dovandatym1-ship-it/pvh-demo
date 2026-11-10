@@ -3,6 +3,7 @@ import { getRequestContext } from "@/lib/auth/request-context";
 import { assertCanViewFaith } from "@/features/m07-ethnicity-faith/server/policy";
 import { getReligiousEstablishments, getReputablePersons, getReligiousHamlets, getReligiousEvents } from "@/features/m07-ethnicity-faith/server/queries";
 import { EstablishmentTable } from "@/features/m07-ethnicity-faith/components/establishment-table";
+import { ReligiousEventsPanel } from "@/features/m07-ethnicity-faith/components/religious-events-panel";
 import { ReputablePersonTable } from "@/features/m07-ethnicity-faith/components/reputable-person-table";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Compass, Users, Landmark, HeartHandshake } from "lucide-react";
@@ -66,8 +67,11 @@ export default async function DanTocTonGiaoPage() {
 
       <div className="space-y-4">
         <h2 className="text-lg font-semibold text-gray-800">Danh mục cơ sở tín ngưỡng và điểm nhóm tôn giáo</h2>
-        <EstablishmentTable items={establishments} events={events} hamlets={hamlets} userPermissions={ctx.permissions} />
+        <EstablishmentTable items={establishments} hamlets={hamlets} userPermissions={ctx.permissions} />
       </div>
+
+      <ReligiousEventsPanel establishments={establishments} events={events}
+        canManage={ctx.permissions.includes("m07:faith:manage")} />
 
       <div className="space-y-4">
         <h2 className="text-lg font-semibold text-gray-800">Danh sách người có uy tín trong đồng bào dân tộc thiểu số</h2>
