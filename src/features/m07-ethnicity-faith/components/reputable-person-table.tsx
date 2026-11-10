@@ -3,17 +3,16 @@
 import React from "react";
 import type { ReputablePersonDTO } from "../types";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Users, Award, ShieldCheck } from "lucide-react";
+import { Users } from "lucide-react";
 
 interface ReputablePersonTableProps {
   items: ReputablePersonDTO[];
-  userPermissions?: readonly string[];
+  hamlets: readonly {id:string;name:string}[];
 }
 
 export function ReputablePersonTable({
   items,
-  userPermissions = [],
+  hamlets,
 }: ReputablePersonTableProps) {
   if (!items || items.length === 0) {
     return (
@@ -29,7 +28,7 @@ export function ReputablePersonTable({
     return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(val);
   };
 
-  const canManage = userPermissions.includes("m07:faith:manage");
+  const hamletNames = new Map(hamlets.map(unit=>[unit.id,unit.name]));
 
   return (
     <div className="overflow-x-auto border rounded-lg bg-white shadow-sm">
@@ -42,7 +41,7 @@ export function ReputablePersonTable({
             <th className="py-3 px-4">Năm công nhận</th>
             <th className="py-3 px-4">Trạng thái chính sách</th>
             <th className="py-3 px-4">Mức phụ cấp</th>
-            <th className="py-3 px-4 text-right">Thao tác</th>
+            
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
@@ -52,23 +51,19 @@ export function ReputablePersonTable({
               <td className="py-3 px-4">
                 <Badge variant="neutral">{person.ethnicGroup}</Badge>
               </td>
-              <td className="py-3 px-4 text-gray-600">Xóm {person.hamletId}</td>
+              <td className="py-3 px-4 text-gray-600">{hamletNames.get(person.hamletId) ?? "Địa bàn chưa xác định"}</td>
               <td className="py-3 px-4 font-mono text-gray-500">{person.yearRecognized}</td>
               <td className="py-3 px-4">
                 {person.policyStatus === "DANG_HUONG" ? (
                   <Badge variant="success">Đang hưởng</Badge>
                 ) : (
-                  <Badge variant="warning">{person.policyStatus}</Badge>
+                  <Badge variant="warning">{person.policyStatus === "DANG_XAC_MINH" ? "Đang xác minh" : person.policyStatus === "TAM_DUNG" ? "Tạm dừng" : "Thay thế"}</Badge>
                 )}
               </td>
               <td className="py-3 px-4 font-semibold text-gray-800">
                 {formatCurrency(person.monthlyAllowance)}
               </td>
-              <td className="py-3 px-4 text-right">
-                <Button size="sm" variant="outline" disabled={!canManage}>
-                  Cập nhật
-                </Button>
-              </td>
+              
             </tr>
           ))}
         </tbody>
