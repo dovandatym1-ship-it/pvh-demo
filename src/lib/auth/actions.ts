@@ -7,6 +7,7 @@ import { ForbiddenError } from "@/lib/errors/app-error";
 import { isDemoAuthEnabled, isValidDemoPersona } from "@/lib/auth/demo-mode";
 import { isMembershipCurrentlyActive } from "@/lib/auth/membership-validity";
 import { PasswordRecoverySchema } from "@/features/self-service/schemas";
+import { preferredLandingRoute } from "@/config/navigation";
 import { z } from "zod";
 
 export interface LoginActionResult {
@@ -52,7 +53,10 @@ export async function loginWithCredentialsAction(formData: FormData): Promise<Lo
     return { error: "Tài khoản chưa được phân công hợp lệ tại đơn vị. Liên hệ quản trị viên." };
   }
 
-  redirect("/ban-lam-viec");
+  redirect(preferredLandingRoute(
+    Array.isArray(membership.permissions) ? membership.permissions : [],
+    Array.isArray(membership.roles) ? membership.roles : [],
+  ));
 }
 
 /**
