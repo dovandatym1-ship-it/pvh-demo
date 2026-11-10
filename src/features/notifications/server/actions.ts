@@ -36,3 +36,29 @@ export async function markOwnNotificationReadAction(input: unknown): Promise<Res
     return fail("UNAUTHENTICATED", "Phiên đăng nhập không hợp lệ");
   }
 }
+
+/**
+ * Mark only this authenticated account's unread notifications as read.
+ * The actor and tenant come from verified server context, never from the client.
+ */
+export async function markAllOwnNotificationsReadAction(): Promise<Result<{ updated: true }>> {
+  try {
+    const ctx = await getRequestContext();
+    const db = await createServerSupabaseClient();
+    const { data: { user }, error: authError } = await db.auth.getUser();
+    if (authError || !user || user.id !== ctx.userId) {
+      return fail("FORBIDDEN", "Phiên xác thực không hợp lệ");
+    }
+    const { error } = await db.from("pvh_user_notifications")
+      .update({ read_at: new Date().toISOString() })
+      .eq("tenant_id", ctx.tenantId)
+      .eq("recipient_id", ctx.userId)
+      .is("read_at", null);
+    if (error) return fail("INTERNAL", "Không thể đánh dấu tất cả thông báo đã đọc.");
+    revalidatePath("/thong-bao");
+    revalidatePath("/", "layout");
+    return ok({ updated: true });
+  } catch {
+    return fail("UNAUTHENTICATED", "Phiên đăng nhập không hợp lệ");
+  }
+}
