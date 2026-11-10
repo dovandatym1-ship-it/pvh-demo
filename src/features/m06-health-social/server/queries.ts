@@ -53,9 +53,9 @@ export async function getFoodSafetyInspections(ctx: RequestContext): Promise<Foo
     facilityName: String(row.facility_name),
     inspectionType: (row.inspection_type as FoodSafetyInspectionDTO["inspectionType"]) || "STREET_FOOD",
     inspectionDate: String(row.inspection_date),
-    totalScore: Number(row.total_score) || 0,
-    sampleRetention24hPassed: Boolean(row.sample_retention_24h_passed),
-    conclusion: (row.conclusion as FoodSafetyInspectionDTO["conclusion"]) || "PASSED",
+    totalScore: row.total_score === null ? null : Number(row.total_score),
+    sampleRetention24hPassed: row.sample_retention_24h_passed === null ? null : Boolean(row.sample_retention_24h_passed),
+    conclusion: (row.conclusion as FoodSafetyInspectionDTO["conclusion"]) || "PENDING",
   }));
 }
 
@@ -78,11 +78,11 @@ export async function getMedicalFacilities(ctx: RequestContext): Promise<Medical
     facilityName: String(row.facility_name),
     facilitySubType: (row.facility_sub_type as MedicalFacilityDTO["facilitySubType"]) || "DRUG_STORE",
     practitionerName: String(row.practitioner_name),
-    licenseNumber: String(row.license_number),
-    licenseIssueDate: String(row.license_issue_date),
+    licenseNumber: row.license_number ? String(row.license_number) : "",
+    licenseIssueDate: row.license_issue_date ? String(row.license_issue_date) : "",
     gppCertified: Boolean(row.gpp_certified),
     controlledDrugsLedger: Boolean(row.controlled_drugs_ledger),
-    inspectionStatus: (row.inspection_status as MedicalFacilityDTO["inspectionStatus"]) || "NORMAL",
+    inspectionStatus: (row.inspection_status as MedicalFacilityDTO["inspectionStatus"]) || "UNVERIFIED",
   }));
 }
 
@@ -114,8 +114,8 @@ export async function getEpidemicLogs(ctx: RequestContext): Promise<EpidemicLogD
     hospitalizedCount: Number(row.hospitalized_count) || 0,
     deathsCount: Number(row.deaths_count) || 0,
     outbreakAlertFlag: Boolean(row.outbreak_alert_flag),
-    logWeek: Number(row.log_week) || 44,
-    logYear: Number(row.log_year) || 2026,
+    logWeek: Number(row.log_week),
+    logYear: Number(row.log_year),
     reportedDate: String(row.reported_date),
   }));
 }
