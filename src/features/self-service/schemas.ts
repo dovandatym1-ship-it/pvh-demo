@@ -33,3 +33,18 @@ export const PasswordChangeSchema = z.object({
 });
 
 export type PasswordChangeInput = z.infer<typeof PasswordChangeSchema>;
+
+/** Password recovery requires a fresh single-use Supabase PKCE code, not a login session. */
+export const PasswordRecoverySchema = z.object({
+  code: z.string().trim().min(10, "Liên kết đặt lại mật khẩu không hợp lệ.").max(4096),
+  newPassword: z.string().min(12, "Mật khẩu mới phải có ít nhất 12 ký tự.")
+    .max(72, "Mật khẩu mới không được vượt 72 ký tự."),
+  confirmPassword: z.string().min(1, "Vui lòng nhập lại mật khẩu mới."),
+}).strict().superRefine(({ newPassword, confirmPassword }, context) => {
+  if (newPassword !== confirmPassword) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["confirmPassword"],
+      message: "Hai lần nhập mật khẩu chưa khớp." });
+  }
+});
+
+export type PasswordRecoveryInput = z.infer<typeof PasswordRecoverySchema>;
