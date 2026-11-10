@@ -7,7 +7,8 @@ import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@
 import { recordSocialAidPaymentAction } from "../server/actions";
 import type { SocialBeneficiaryDisplayDTO } from "../types";
 import { buildSocialHamletOptions, type HamletOption } from "../types/hamlet-options";
-import { CheckCircle2, Clock, ShieldAlert, HeartHandshake } from "lucide-react";
+import { CheckCircle2, Clock, ShieldAlert, HeartHandshake, Plus } from "lucide-react";
+import { CreateBeneficiaryModal } from "./create-beneficiary-modal";
 import { useRouter } from "next/navigation";
 
 interface BeneficiaryTableProps {
@@ -21,6 +22,10 @@ export function BeneficiaryTable({ items, hamlets, canUnmaskPII, canManage }: Be
   const [selectedHamlet, setSelectedHamlet] = React.useState<string>("ALL");
   const [selectedStatus, setSelectedStatus] = React.useState<string>("ALL");
   const [pendingId, setPendingId] = React.useState<string | null>(null);
+  const [createOpen, setCreateOpen] = React.useState(false);
+  const [reconcileId, setReconcileId] = React.useState<string | null>(null);
+  const [sourceReference, setSourceReference] = React.useState("");
+  const [requestKey, setRequestKey] = React.useState("");
   const [feedback, setFeedback] = React.useState<string | null>(null);
   const router = useRouter();
   const hamletOptions = React.useMemo(() => buildSocialHamletOptions(items, hamlets), [items, hamlets]);
@@ -33,14 +38,18 @@ export function BeneficiaryTable({ items, hamlets, canUnmaskPII, canManage }: Be
   });
 
   const handlePay = async (id: string) => {
+    if (sourceReference.trim().length < 5 || !requestKey) {
+      setFeedback("Cần mã nguồn/chứng từ đối chiếu tối thiểu 5 ký tự.");return;
+    }
     setPendingId(id);
     setFeedback(null);
     try {
-      const result = await recordSocialAidPaymentAction({ beneficiaryId: id });
+      const result = await recordSocialAidPaymentAction({ beneficiaryId: id, sourceReference: sourceReference.trim(), idempotencyKey: requestKey });
       if (!result.ok) {
         setFeedback(result.error.message);
       } else {
-        setFeedback("Đã ghi nhận kết quả đối soát từ nguồn có thẩm quyền.");
+        setFeedback("Đã tiếp nhận yêu cầu đối soát. Chưa xác nhận tiền đã được chi trả.");
+        setReconcileId(null);setSourceReference("");setRequestKey("");
         router.refresh();
       }
     } catch {
@@ -59,7 +68,7 @@ export function BeneficiaryTable({ items, hamlets, canUnmaskPII, canManage }: Be
           <Badge variant="neutral">{filtered.length} đối tượng</Badge>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <select
             value={selectedHamlet}
             onChange={(e) => setSelectedHamlet(e.target.value)}
@@ -75,10 +84,13 @@ export function BeneficiaryTable({ items, hamlets, canUnmaskPII, canManage }: Be
             className="text-xs border border-slate-300 rounded px-2.5 py-1.5 bg-white text-slate-700"
           >
             <option value="ALL">Tất cả trạng thái</option>
-            <option value="PENDING">Chưa chi trả</option>
+            <option value="PENDING">Chưa xác nhận chi trả</option>
             <option value="PAID">Đã chi trả</option>
             <option value="SUSPENDED">Tạm dừng chi trả</option>
           </select>
+          {canManage && <Button variant="primary" size="sm" disabled={hamlets.length===0} onClick={()=>setCreateOpen(true)}>
+            <Plus className="mr-1 inline h-4 w-4" /> Tiếp nhận hồ sơ
+          </Button>}
         </div>
       </div>
 
@@ -147,14 +159,23 @@ export function BeneficiaryTable({ items, hamlets, canUnmaskPII, canManage }: Be
                   {canManage && (
                     <TableCell className="text-right">
                       {item.paymentStatus === "PENDING" && (
-                        <Button
-                          variant="secondary"
-                          size="xs"
-                          disabled={pendingId === item.id}
-                          onClick={() => handlePay(item.id)}
-                        >
-                          {pendingId === item.id ? "Đang ghi..." : "Ghi nhận đối soát"}
-                        </Button>
+                        reconcileId===item.id ?
+                          <div className="min-w-48 space-y-2">
+                            <label className="block text-left text-xs text-slate-700">Mã nguồn/chứng từ đối soát
+                              <input className="mt-1 w-full rounded border border-slate-300 p-2 text-sm"
+                                value={sourceReference} onChange={event=>setSourceReference(event.target.value)}
+                                placeholder="Mã bảng kê hoặc chứng từ" maxLength={200}/>
+                            </label>
+                            <div className="flex justify-end gap-2">
+                              <Button size="xs" variant="outline" onClick={()=>{setReconcileId(null);setSourceReference("");}}>Hủy</Button>
+                              <Button size="xs" variant="primary" disabled={pendingId===item.id||sourceReference.trim().length<5}
+                                onClick={()=>handlePay(item.id)}>{pendingId===item.id?"Đang gửi...":"Gửi yêu cầu"}</Button>
+                            </div>
+                          </div> :
+                          <Button variant="secondary" size="xs" disabled={pendingId!==null}
+                            onClick={()=>{setReconcileId(item.id);setSourceReference("");setRequestKey(crypto.randomUUID());}}>
+                            Lập yêu cầu đối soát
+                          </Button>
                       )}
                     </TableCell>
                   )}
@@ -164,6 +185,9 @@ export function BeneficiaryTable({ items, hamlets, canUnmaskPII, canManage }: Be
           </TableBody>
         </Table>
       </div>
+
+      <CreateBeneficiaryModal isOpen={createOpen} onClose={()=>setCreateOpen(false)}
+        hamlets={hamlets} onSuccess={()=>router.refresh()}/>
 
       {!canUnmaskPII && (
         <div className="flex items-center gap-2 p-3 bg-amber-50 rounded border border-amber-200 text-xs text-amber-800">
