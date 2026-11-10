@@ -10,13 +10,16 @@ interface HealthInspectionPanelsProps {
   readonly foodSafeties: FoodSafetyInspectionDTO[];
   readonly medicalFacilities: MedicalFacilityDTO[];
   readonly epidemicLogs: EpidemicLogDTO[];
+  readonly hamlets: readonly {id:string;name:string}[];
 }
 
 export function HealthInspectionPanels({
   foodSafeties,
   medicalFacilities,
   epidemicLogs,
+  hamlets,
 }: HealthInspectionPanelsProps) {
+  const hamletNames = React.useMemo(()=>new Map(hamlets.map(unit=>[unit.id,unit.name])),[hamlets]);
   const [activeTab, setActiveTab] = React.useState<"food" | "medical" | "epidemic">("food");
 
   return (
@@ -189,7 +192,7 @@ export function HealthInspectionPanels({
               {epidemicLogs.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-medium text-slate-900">
-                    Xóm {item.hamletId}
+                    {hamletNames.get(item.hamletId) ?? "Địa bàn chưa xác định"}
                   </TableCell>
                   <TableCell className="text-xs text-slate-600">
                     {item.diseaseGroup}
