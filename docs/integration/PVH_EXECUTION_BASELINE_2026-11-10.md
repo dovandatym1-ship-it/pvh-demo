@@ -63,3 +63,33 @@ At the tested source SHA, the candidate was 152 commits ahead of base with zero 
 ## Disposition
 
 D1 fetch and base verification are complete. GIT-02 is **PARTIAL** until all fourteen migrations replay locally in Supabase and the remaining baseline evidence is available. No source migration, cloud project, deployment, or production data was changed by this baseline run.
+
+## PR #1–#11 source-tree comparison
+
+The comparison below counts files changed relative to each source branch's merge base with `origin/main`. An exact blob is identical in the candidate. A same-path difference can be a newer change, a rewrite or a mismatch; it is not classified as present automatically.
+
+| PR | Source files | Exact blobs in candidate | Same path, different blob | Missing path |
+|---:|---:|---:|---:|---:|
+| #1 | 53 | 27 | 21 | 5 |
+| #2 | 62 | 45 | 16 | 1 |
+| #3 | 78 | 55 | 23 | 0 |
+| #4 | 125 | 85 | 40 | 0 |
+| #5 | 24 | 16 | 7 | 1 |
+| #6 | 1 | 0 | 1 | 0 |
+| #7 | 66 | 49 | 14 | 3 |
+| #8 | 81 | 63 | 18 | 0 |
+| #9 | 128 | 91 | 37 | 0 |
+| #10 | 135 | 93 | 42 | 0 |
+| #11 | 151 | 92 | 59 | 0 |
+
+These figures prove source-tree overlap only. They do not prove that an entire PR was integrated or that behavior is equivalent.
+
+### Action from the comparison
+
+- Ported the missing M01 presentation regression test from PR #7 and added it to the integration candidate workflow. Commit `75ae99051c4ea969fd90874e5d47e1223ed4e63c`; targeted Node 22 test passes 3/3. It covers Vietnamese status/priority and event labels plus UTC+07 deadline conversion.
+- PR #1's absent DB-CI script/fixture and archived historical SQL test paths need an explicit replacement review against `pvh-db-replay.yml` and the active 14-file migration set. They have not been copied or marked equivalent by the blob comparison.
+- The absent PR #2 G2 verification and PR #7 completion documents are historical acceptance artifacts. The current integration acceptance and execution plans overlap their purpose, but their test cases have not yet been crosswalked one by one.
+- The PR #5 standalone workflow's self-service test is already invoked by the candidate workflow. The behavior and workflow path still need to be recorded in the branch disposition matrix before GIT-03 can close.
+- Same-path differences across all PRs remain open until categorized against the branch disposition ledger. No cumulative feature branch was merged blindly.
+
+**GIT-03 · IN PROGRESS.** The PR #7 test is ported. The rest of the deltas listed above still need a disposition before GIT-03/GIT-04 can be marked complete.
