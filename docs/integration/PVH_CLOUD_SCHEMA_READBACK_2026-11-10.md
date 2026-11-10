@@ -14,19 +14,24 @@
 - Security advisor returned **Leaked Password Protection Disabled** (`WARN`). Review [Supabase password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection) before production.
 - Nothing was created, migrated, written, or changed in `Demo-pvh` by this audit.
 
-## Why CI green still cannot authorize release
+## Code đã tiến triển so với ảnh chụp cloud ban đầu
 
-1. Integration candidate includes **9 active canonical migrations**; only the first **2** are recorded as applied in connected cloud.
-2. The current active migration set covers the foundation, M01, PH03 M04/M05/M08, PH04 M09/M10 and notification/profile. Domain tables for M02/M03/M06/M07 were originally in **archived superseded migrations**, not the 9 active canonical files.
-3. The M06 beneficiary create action currently calls direct table insert followed by a separate best-effort audit insert. On the observed cloud there is no target domain table. If that table is independently provisioned elsewhere, the audit still is not atomic; **do not mark M06 CRUD ready**.
-4. M11 has only five draft features, not a verified database schema or API.
-5. A new isolated local replay/pgTAP workflow at `.github/workflows/pvh-db-replay.yml` is intended to detect migration and contract errors without touching cloud.
+1. Trên nhánh tích hợp hiện có **14 migration canonical** (gồm 2 migration cloud baseline). Các migration bổ sung cho M11, M07, M06, M03, M02 nằm trong mã nguồn, **chưa được áp dụng cloud**.
+2. [Local DB Replay PASS](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42750990737) cho đủ 14 migration và pgTAP M01/M02/M03/M04/M05/M06/M07/M08/M11, thông báo và quyền recipient. Đây là Postgres/Supabase cục bộ độc lập, không chứng minh cloud đã khớp.
+3. M06 nay dùng RPC `app.create_social_beneficiary` và `app.request_social_aid_reconciliation` có kiểm soát, không còn gọi INSERT nhạy cảm + audit rời rạc trong Server Action. Cần chạy E2E với phân quyền và xác nhận pháp lý trước khi coi quy trình hoàn thành.
+4. M11 đã có source cho danh mục, giá trị, phân cấp, lịch sử và migration. Năm chức năng M11 **vẫn là phạm vi bổ sung dạng DRAFT**, không suy diễn đã duyệt.
+5. Login, dashboard phân hệ, thông báo, phân công đơn vị và lớp khóa server của `(legacy)` có code trên nhánh. Không đồng nghĩa mọi OP/field/rule trong 128 OP đã được nghiệm thu.
 
+## Vì sao chưa được phép triển khai production
+
+- Môi trường `Demo-pvh` đang ghi nhận **2 migration**, còn nguồn tích hợp có **14**. Phải xét checksum, dependency, rollback và kiểm tra trên staging biệt lập trước khi quyết định đồng bộ.
+- Cổng source/lint/build và local pgTAP không thay thế E2E có Auth thật, RLS qua HTTP/Storage, điều kiện thẩm quyền và kiểm thử hai xã clone độc lập.
+- Trạng thái mã nguồn là `CODE_CHECKED` hoặc `PARTIAL` theo từng OP; chưa có bằng chứng 128/128 OP đủ UI/action/schema/quyền/test.
 ## Mandatory release decisions
 
 | Gate | Required proof | Status |
 |---|---|---|
-| G-DB | Clean 9-file replay with Supabase local/isolated staging; migrations and applied history reconciled; rollback rehearsal | BLOCKED until test results |
+| G-DB | 14-file local replay PASS; cần staging độc lập, migration/applied history reconciled, negative RLS và rollback rehearsal | LOCAL_PASS / STAGING_BLOCKED |
 | G-SEC | Auth real users, RLS positive/negative with at least 3 roles and out-of-scope hamlet, Storage private access, password leak protection decision | NOT VERIFIED |
 | G-FLOW | Browser → API → database readback, at-least-once retries, OCC conflict, audit and report export | NOT VERIFIED |
 | G-COVERAGE | OP → UI/Action → schema/RPC → permission → test for every in-scope OP (128 source OP, 5 M11 drafts separate) | NOT VERIFIED |
@@ -35,8 +40,8 @@
 
 ## Security and implementation actions
 
-- **P0**: Never activate M02/M03/M06/M07 write functionality solely because a menu or a React form exists. Implement the missing canonical schema, correct RLS, audited atomic RPCs, idempotency, and evidence-based end-to-end checks before enabling writes.
-- **P0**: Replace any M06 multi-request write/audit path with a single guarded transactional server-side RPC when an approved migration is available; block direct writes and false-success UI paths until then.
+- **P0**: Never activate M02/M03/M06/M07 write functionality solely because a menu or a React form exists. Mã nguồn đã bổ sung migration/RPC; phải xác nhận đầy đủ field, RLS, idempotency, audit và E2E với vai trò hợp lệ trước khi cho ghi dữ liệu thực.
+- **P0**: Đường ghi M06 đã chuyển sang RPC trong source. Còn cần kiểm chứng negative test, thẩm quyền, workflow và độ chính xác dữ liệu đầu-cuối trên staging.
 - **P1**: Reconcile permission names for all modules with actual grants and forced RLS, then rerun negative tests from authenticated sessions and from direct PostgREST endpoints.
 - **P1**: Restore missing update/archive/restore and history behavior according to each business rule, never universally hard-delete public-service records.
 - **P1**: Verify mobile/keyboard UI, full Vietnamese labeling and role-focused dashboard against real scoped counts.
