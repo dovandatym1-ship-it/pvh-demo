@@ -59,9 +59,16 @@ test("M07 applies explicit route guard; education never sends private owner CCCD
 });
 
 test("territorial boundaries checked for M02/M06 read queries and M06 writes", () => {
-  for (const domain of ["m02-internal-affairs", "m06-health-social"]) {
-    assert.match(source("src/features/" + domain + "/server/queries.ts"), /query\.in\("hamlet_id"/);
-  }
+  const m02 = source("src/features/m02-internal-affairs/server/queries.ts");
+  const m02Sql = source("supabase/migrations/20261110140000_m02_labor_and_ncc.sql");
+  // M02 NCC no longer selects sensitive source columns from a direct table.
+  // Its RPC must filter hamlets in SQL and mask fields before reaching JS.
+  assert.match(m02, /\.rpc\("list_ncc_beneficiaries"/);
+  assert.match(m02, /q=q\.in\("id",\[\.\.\.ctx\.scopes\.hamletIds\]\)/);
+  assert.match(m02Sql, /n\.hamlet_id::text in\(select jsonb_array_elements_text\(v_scope->'org_unit_ids'\)\)/);
+  assert.match(m02Sql, /case when v_sensitive then x\.cccd else null end/);
+  const m06 = source("src/features/m06-health-social/server/queries.ts");
+  assert.match(m06, /query\.in\("hamlet_id"/);
   const actions = source("src/features/m06-health-social/server/actions.ts");
   const sql = source("supabase/migrations/20261110120000_m06_social_intake.sql");
   assert.match(actions, /assertCanAccessHamlet\(ctx,\s*parsed\.data\.hamletId\)/);
