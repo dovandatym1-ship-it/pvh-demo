@@ -7,86 +7,62 @@ import { CreateBeneficiarySchema, RecordPaymentSchema } from "../schemas/health-
 import { assertCanManageBeneficiaries, assertCanRecordPayment, assertCanAccessHamlet } from "./policy";
 import { type Result, ok, fail } from "@/lib/types/result";
 
-export async function createBeneficiaryAction(
-  rawInput: unknown
-): Promise<Result<{ id: string; code: string }>> {
-  try {
-    const ctx = await getRequestContext();
-    assertCanManageBeneficiaries(ctx);
-
-    const parsed = CreateBeneficiarySchema.safeParse(rawInput);
-    if (!parsed.success) {
-      return fail(
-        "VALIDATION",
-        parsed.error.issues.map((i) => i.message).join("; ")
-      );
-    }
-
-    const { hamletId } = parsed.data;
-    assertCanAccessHamlet(ctx, hamletId);
-
-    // Release gate M06-F06: never create a sensitive beneficiary through a
-    // direct INSERT followed by an unaudited/best-effort second request.
-    // The approved, single-transaction RPC, data-source authority and
-    // canonical M06 migration are not yet present in the active DB baseline.
-    // Fail closed rather than potentially saving a real person's data without
-    // an immutable audit record. Re-enable only after G-DB/G-SEC + owner review.
-    return fail(
-      "INTERNAL",
-      "Tiếp nhận hồ sơ bảo trợ đang tạm khóa để hoàn thiện quy trình ghi nhận và nhật ký bắt buộc."
-    );
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Đã có lỗi xảy ra khi tạo đối tượng bảo trợ";
-    return fail("INTERNAL", message);
+function sqlError(error:{code?:string}|null):Result<never>{
+  switch(error?.code){
+    case "42501":return fail("FORBIDDEN","Không có quyền hoặc vượt phạm vi địa bàn.");
+    case "23505":return fail("VALIDATION","Số định danh hoặc mã hồ sơ đã tồn tại trong đơn vị.");
+    case "23503":return fail("VALIDATION","Địa bàn hoặc hồ sơ đối tượng không còn hợp lệ.");
+    case "P0002":return fail("NOT_FOUND","Không tìm thấy đối tượng thuộc đơn vị.");
+    case "PV409":return fail("VERSION_CONFLICT","Mã yêu cầu đối soát đã dùng với nội dung khác.");
+    case "22023":return fail("VALIDATION","Thông tin đề nghị hoặc nguồn đối soát chưa hợp lệ.");
+    default:return fail("INTERNAL","CSDL chưa xác nhận ghi dữ liệu. Không hiển thị thành công.");
   }
 }
 
-export async function recordSocialAidPaymentAction(
-  rawInput: unknown
-): Promise<Result<{ success: boolean; beneficiaryId: string }>> {
-  try {
-    const ctx = await getRequestContext();
-    assertCanRecordPayment(ctx);
-
-    const parsed = RecordPaymentSchema.safeParse(rawInput);
-    if (!parsed.success) {
-      return fail(
-        "VALIDATION",
-        parsed.error.issues.map((i) => i.message).join("; ")
-      );
-    }
-
-    const { beneficiaryId, idempotencyKey } = parsed.data;
-    const supabase = await createServerSupabaseClient();
-    // Verify tenant and territorial scope before the RPC; errors must never imply success.
-    const { data: beneficiary, error: lookupError } = await supabase
-      .from("social_protection_beneficiaries")
-      .select("hamlet_id")
-      .eq("tenant_id", ctx.tenantId)
-      .eq("id", beneficiaryId)
-      .maybeSingle();
-    if (lookupError) return fail("INTERNAL", "Không thể đối chiếu phạm vi hồ sơ.");
-    if (!beneficiary) return fail("NOT_FOUND", "Không tìm thấy hồ sơ thuộc đơn vị hiện tại.");
-    assertCanAccessHamlet(ctx, String(beneficiary.hamlet_id));
-
-    // Only the audited RPC may record an external reconciliation
-    const { error } = await supabase.rpc("record_social_aid_payment", {
-      p_tenant_id: ctx.tenantId,
-      p_beneficiary_id: beneficiaryId,
-      p_idempotency_key: idempotencyKey ?? null,
+export async function createBeneficiaryAction(
+ rawInput:unknown
+):Promise<Result<{id:string;code:string}>>{
+  const parsed=CreateBeneficiarySchema.safeParse(rawInput);
+  if(!parsed.success)return fail("VALIDATION","Thông tin tiếp nhận hồ sơ không hợp lệ",parsed.error.flatten());
+  try{
+    const ctx=await getRequestContext();
+    assertCanManageBeneficiaries(ctx);
+    assertCanAccessHamlet(ctx,parsed.data.hamletId);
+    const db=await createServerSupabaseClient();
+    const {data,error}=await db.schema("app").rpc("create_social_beneficiary",{
+      p_full_name:parsed.data.fullName,p_cccd:parsed.data.cccd,
+      p_phone:parsed.data.phone||null,p_hamlet_id:parsed.data.hamletId,
+      p_aid_category:parsed.data.aidCategory,p_monthly_amount:parsed.data.monthlyAmount,
+      p_diagnosis:parsed.data.diagnosis||null,
+      p_health_insurance_provided:parsed.data.healthInsuranceProvided,
     });
-
-    if (error) {
-      return fail("INTERNAL", "Không thể đối soát chi trả; không được tự ghi trạng thái PAID.");
-    }
-
+    if(error)return sqlError(error);
+    if(!data?.id||!data?.code||data.status!=="PENDING")
+      return fail("INTERNAL","Không nhận được xác nhận lưu hồ sơ tiếp nhận.");
     revalidatePath("/y-te-an-sinh");
-    return ok({
-      success: true,
-      beneficiaryId,
+    return ok({id:String(data.id),code:String(data.code)});
+  }catch{return fail("FORBIDDEN","Phiên đăng nhập hoặc phân công không hợp lệ.");}
+}
+
+/** A source-backed request is NOT evidence that public funds were paid. */
+export async function recordSocialAidPaymentAction(
+ rawInput:unknown
+):Promise<Result<{success:boolean;beneficiaryId:string}>>{
+  const parsed=RecordPaymentSchema.safeParse(rawInput);
+  if(!parsed.success)return fail("VALIDATION","Mã hồ sơ, mã yêu cầu hoặc nguồn đối soát không hợp lệ",parsed.error.flatten());
+  try{
+    const ctx=await getRequestContext();
+    assertCanRecordPayment(ctx);
+    const db=await createServerSupabaseClient();
+    const {data,error}=await db.schema("app").rpc("request_social_aid_reconciliation",{
+      p_beneficiary_id:parsed.data.beneficiaryId,
+      p_source_reference:parsed.data.sourceReference,
+      p_idempotency_key:parsed.data.idempotencyKey,
     });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Đã có lỗi xảy ra khi chi trả trợ cấp";
-    return fail("INTERNAL", message);
-  }
+    if(error)return sqlError(error);
+    if(!data?.id||data.status!=="REQUESTED")
+      return fail("INTERNAL","Chưa nhận được biên nhận yêu cầu đối soát.");
+    revalidatePath("/y-te-an-sinh");
+    return ok({success:true,beneficiaryId:parsed.data.beneficiaryId});
+  }catch{return fail("FORBIDDEN","Không đủ quyền lập yêu cầu đối soát.");}
 }
