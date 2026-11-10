@@ -25,7 +25,7 @@ export async function getSchools(ctx: RequestContext): Promise<SchoolDTO[]> {
     principal: String(row.principal),
     totalStudents: Number(row.total_students) || 0,
     schoolYear: String(row.school_year),
-    universalizationStandard: (row.universalization_standard as SchoolDTO["universalizationStandard"]) || "LEVEL_2",
+    universalizationStandard: row.universalization_standard as SchoolDTO["universalizationStandard"],
   }));
 }
 
@@ -34,7 +34,7 @@ export async function getPrivateChildcareFacilities(ctx: RequestContext): Promis
 
   const { data, error } = await supabase
     .from("private_childcare_facilities")
-    .select("*")
+    .select("id,name,facility_type,owner_name,capacity,current_enrolled,total_area_sqm,sqm_per_child,fire_safety_certified,food_safety_certified,licensing_status")
     .eq("tenant_id", ctx.tenantId)
     .order("name", { ascending: true });
 
@@ -48,7 +48,7 @@ export async function getPrivateChildcareFacilities(ctx: RequestContext): Promis
     name: String(row.name),
     facilityType: (row.facility_type as PrivateFacilityDTO["facilityType"]) || "INDEPENDENT_NURSERY_GROUP",
     ownerName: String(row.owner_name),
-    ownerCccd: String(row.owner_cccd),
+    ownerCccd: "", // PII intentionally never selected from browser-facing query.
     capacity: Number(row.capacity) || 0,
     currentEnrolled: Number(row.current_enrolled) || 0,
     totalAreaSqm: Number(row.total_area_sqm) || 0,
@@ -79,9 +79,11 @@ export async function getTuitionExemptions(ctx: RequestContext): Promise<Tuition
     schoolName: String(row.school_name),
     grade: String(row.grade),
     category: (row.category as TuitionExemptionDTO["category"]) || "POOR_HOUSEHOLD",
-    exemptionPercent: Number(row.exemption_percent) || 100,
+    exemptionPercent: Number(row.exemption_percent),
     supportAmount: Number(row.support_amount) || 0,
-    status: (row.status as TuitionExemptionDTO["status"]) || "APPROVED",
+    status: (row.status as TuitionExemptionDTO["status"]) || "PENDING",
     semester: String(row.semester),
+    version: Number(row.version),
+    decisionReference: row.decision_reference ? String(row.decision_reference) : null,
   }));
 }
