@@ -4,6 +4,7 @@ import {
   getNCCBeneficiaries,
   getLaborContracts,
   getLaborDisputes,
+  getNccHamlets,
 } from "@/features/m02-internal-affairs/server/queries";
 import { NCCTable } from "@/features/m02-internal-affairs/components/ncc-table";
 import { LaborPanels } from "@/features/m02-internal-affairs/components/labor-panels";
@@ -16,10 +17,11 @@ export default async function NoiVuAppPage() {
 
   const canUnmask = canViewUnmaskedPII(ctx);
 
-  const [nccBeneficiaries, laborContracts, laborDisputes] = await Promise.all([
+  const [nccBeneficiaries, laborContracts, laborDisputes, hamlets] = await Promise.all([
     getNCCBeneficiaries(ctx),
     getLaborContracts(ctx),
     getLaborDisputes(ctx),
+    getNccHamlets(ctx),
   ]);
 
   return (
@@ -38,7 +40,7 @@ export default async function NoiVuAppPage() {
         </div>
       </div>
 
-      <NCCTable items={toNccDisplayRows(nccBeneficiaries, canUnmask)} canUnmaskPII={canUnmask} />
+      <NCCTable items={toNccDisplayRows(nccBeneficiaries, canUnmask)} hamlets={hamlets} canUnmaskPII={canUnmask} />
 
       <div className="pt-4">
         <LaborPanels contracts={laborContracts} disputes={laborDisputes} canManage={ctx.permissions.includes("m02:internal:write")} />
