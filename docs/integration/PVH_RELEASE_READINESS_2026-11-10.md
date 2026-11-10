@@ -130,7 +130,7 @@ Mốc `223411b4` sửa `getActiveHamlets` dùng `ctx.scopes.hamletIds` (không p
 
 Audit xác định các khoảng kiến trúc trọng yếu cần đóng: dữ liệu chủ M01; căn cứ, tiêu chí từng phần và quyết định chính thức M04; công thức/phương pháp từng chỉ tiêu M05; finding-level M08; cùng quyền trường nhạy cảm M02/M03/M06/M07. Các phần thiếu nguồn hoặc thẩm quyền tiếp tục bị khóa.
 
-## 10. Candidate code update — `fe753fd`
+## 10. Candidate code update — `9bbb39a`
 
 - P0-3: menu demo lọc theo quyền đúng persona, không suy quyền admin/wildcard.
 - P0-8/P0-12: gỡ các UI/query M04 legacy dùng nhận diện thôn và điểm số mặc định; luồng PH03 hiện hành vẫn minh họa/rà soát nội bộ.
@@ -139,6 +139,17 @@ Audit xác định các khoảng kiến trúc trọng yếu cần đóng: dữ l
 - P0-11: M08 hiện hành tính nhãn quá hạn từ ngày hạn + trạng thái mở; ngày/trạng thái không hợp lệ không tự bị xem là quá hạn.
 - P0-13: chi tiết công việc dùng ID cụ thể.
 - Gỡ các component/query/schema M05 và M08 cũ không được route hiện hành dùng, gồm fallback giả và trạng thái `WAITING_OVERDUE` dễ gây hiểu nhầm.
-- Kiểm tra cục bộ tại `fe753fd`: 9/9 test mới PASS; `typecheck`, `lint`, `fitness`, `build`, `git diff --check` PASS. Lint còn bốn cảnh báo legacy đã có. GitHub CI ở SHA này đang chờ push; staging/Auth/RLS/Storage/E2E chưa chạy.
+- Kiểm tra cục bộ tại `fe753fd`: 9/9 test mới PASS; `typecheck`, `lint`, `fitness`, `build`, `git diff --check` PASS. Lint còn bốn cảnh báo legacy đã có. Commit `9bbb39a` giữ hành vi menu entitlement rỗng và đã chạy lại ba nhóm test sidebar liên quan (17/17) cùng `typecheck`.
+- GitHub Actions tại HEAD `9bbb39ab26b83e0cb89c2b3cc370e694df5f8361`: **6/6 check thành công**, gồm `source-checks`, `Validate (Node 22 LTS)`, `static-and-contract` và hai lượt `dependency-audit`. Bằng chứng: [run 42790087784](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42790087784), [run 42790087742](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42790087742), [run 42790087581](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42790087581), [run 42790078141](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42790078141). Đây là bằng chứng code/CI; staging/Auth/RLS/Storage/browser E2E vẫn chưa chạy.
 
 **NO-GO giữ nguyên.** Candidate source changes không xác nhận đủ 128 OP, không mở nghiệp vụ pháp lý và không thay nghiệm thu staging.
+
+## 11. Đối chiếu lại finding bảo mật từ project backlog — 10/11/2026
+
+Context dự án còn `PVH-I-016` và `PVH-I-017` ở trạng thái OPEN/HIGH; chỉ đọc các mô tả này như finding cần tái kiểm chứng, không tự đóng trạng thái backlog. Spot-check tại HEAD hiện tại cho thấy:
+
+- **M06/PII:** bảng người hưởng trợ cấp không cấp `SELECT` cho `authenticated`; `getSocialBeneficiaries` gọi `app.list_social_beneficiaries`, RPC kiểm tra permission/phạm vi và chỉ trả CCCD, điện thoại, mức hưởng, chẩn đoán khi có quyền `m06:social:pii_unmask`. Đây là biện pháp ở mã nguồn hiện tại, chưa chứng minh payload/RLS trên cloud.
+- **RPC nghiệp vụ:** lời gọi server M02/M03/M05/M06/M08 hiện chọn schema `app`; các migration hiện hành dùng `auth.uid()` và RPC có kiểm tra permission. Không tìm thấy lời gọi `current_user_id()` trong source/migrations active đã rà soát. Đây chưa thay thế replay, kiểm thử role/scope âm và readback trên staging.
+- **Job nội bộ:** các RPC claim/complete/fail job bị revoke với `public`, `anon`, `authenticated`, chỉ cấp `service_role` trong migration. Cần giữ lại ca kiểm tra quyền này trong G-SEC.
+
+**Trạng thái finding:** `SOURCE_MITIGATION_CHECKED / RUNTIME_UNVERIFIED`; đề nghị reviewer đối chiếu lại backlog sau khi có G-SEC staging. Không đóng I-016/I-017 chỉ dựa trên source hoặc CI.
