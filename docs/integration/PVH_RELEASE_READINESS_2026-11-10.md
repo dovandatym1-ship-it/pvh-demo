@@ -91,3 +91,18 @@ Mốc `223411b4` sửa `getActiveHamlets` dùng `ctx.scopes.hamletIds` (không p
 - **Đã làm được trong phạm vi nhánh:** reconciled code từ các Phase, các tuyến cốt lõi, sửa nhãn tiếng Việt, dashboard count, login, thông báo, guardrail migration và source CI.
 - **Chưa đạt definition of done W0–W5:** staging & RLS/Storage, xác thực Auth thật, browser UAT, measured performance, owner approval; không có quyền đánh dấu PASS.
 - **Quyết định:** giữ PR #12 ở dạng **DRAFT / NO-GO**. Không merge `main`, không deploy và không tự thay đổi Supabase cloud.
+
+## 7. Bổ sung bằng chứng thực hiện — 10/11/2026 (sau W0–W5 baseline)
+
+> **Không đổi release verdict:** NO-GO. Bằng chứng dưới đây chỉ đóng các kiểm thử *cục bộ*. G-DB/G-SEC trên staging và G-COVERAGE 128 OP vẫn chưa đạt.
+
+| Mã | Kết quả mới | Bằng chứng / giới hạn |
+|---|---|---|
+| DB-LOCAL-01 | **PASS** | [Workflow local replay + pgTAP](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42741880487): 9 active migration sạch, M01, M04/M05/M08, thông báo và avatar. Không sử dụng Supabase cloud. |
+| SEC-LOCAL-02 | **PASS** | [RLS negative hai người nhận](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42742938865): Auth A/B giả lập, chỉ được đọc/cập nhật thông báo của chính mình; anon bị từ chối. Không thay thế E2E Auth ngoài cloud. |
+| APP-AUTH-03 | **CODE_CHECKED** | Layout `src/app/(app)/layout.tsx` chặn toàn bộ children khi `getRequestContext` thất bại; `tests/app-layout-auth-guard.test.mjs` vào CI. Các trang con/action vẫn phải kiểm quyền độc lập. |
+| M06-ATOMIC-04 | **BLOCKED_BY_DESIGN** | `createBeneficiaryAction` được fail-closed thay cho insert trực tiếp + audit request rời rạc; mở lại sau khi có approved atomic RPC, RLS, schema và pháp lý. Không tuyên bố M06 CRUD hoàn thành. |
+| CLOUD-READ-05 | **READ-ONLY** | `Demo-pvh`: đúng 2 applied migrations, 14 bảng nền tảng có RLS, không có bảng M02/M03/M06/M07. [Receipt chi tiết](PVH_CLOUD_SCHEMA_READBACK_2026-11-10.md). Supabase advisor cảnh báo leaked-password protection đang tắt. |
+| DEPLOY-06 | **NOT_READY** | Trên tài khoản Vercel kết nối chưa tìm thấy dự án PVH; chưa có preview URL, environment hoặc staging độc lập để nghiệm thu browser. |
+
+**Hành động còn bắt buộc:** môi trường Supabase staging riêng và Vercel preview; kiểm tra quyền và Storage qua API/Browser thực, source→KPI readback, kiểm thử hai xã độc lập, khắc phục thiếu schema/CRUD/field/rule của 128 OP, UAT, backup/restore, chốt chi phí và owner quyết định merge. Mọi tính năng hành chính chưa có thẩm quyền đã kiểm chứng tiếp tục ở chế độ minh họa/chưa mở tác vụ chính thức.
