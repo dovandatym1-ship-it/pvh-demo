@@ -30,6 +30,7 @@ jobs:
       - run: node --test tests/ph03-contract-static.test.mjs
       - run: node --experimental-strip-types --test tests/ph03-presentation.test.mjs
       - run: node --import tsx --test tests/ph06-data-safety.test.ts
+      - run: node --test tests/m06-transaction-guard.test.mjs
       - run: npm run test:ph04
       - run: node --experimental-strip-types --test tests/ph04-presentation.test.mjs
       - run: node --experimental-strip-types --test tests/ph05-clone-brand.test.mjs
