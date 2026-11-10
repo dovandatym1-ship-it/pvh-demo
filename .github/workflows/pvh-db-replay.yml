@@ -1,0 +1,55 @@
+name: PVH isolated DB replay and security contracts
+
+on:
+  push:
+    branches: ['integrate/pvh-*']
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/pvh-db-replay.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/pvh-db-replay.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pvh-db-replay-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fresh-db-replay:
+    name: Fresh local Supabase migrations + pgTAP
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SUPABASE_ACCESS_TOKEN: ''
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up pinned Supabase CLI (local; never linked to cloud)
+        uses: supabase/setup-cli@v3
+        with:
+          version: 3.0.0
+      - name: Check migration inventory and CLI
+        run: |
+          node scripts/check-migration-ledger.mjs
+          supabase --version
+          supabase db start --help
+          supabase test db --help
+      - name: Fresh local replay of all 9 active migrations
+        run: supabase db start
+      - name: M01 transactional and authorization contracts
+        run: supabase test db supabase/tests/02_ph02_m01_contract.sql
+      - name: M04/M05/M08 RLS and workflow tests
+        run: supabase test db supabase/tests/04_ph03_domain_contracts.sql supabase/tests/05_ph03_actor_workflows.sql
+      - name: Notifications and avatar hardening contract
+        run: supabase test db supabase/tests/06_pvh_notifications_storage_contract.sql
+      - name: Print local DB status (no credentials)
+        if: always()
+        run: supabase status --output json 2>/dev/null | sed -E 's/("([^"]*(key|token|secret|password)[^"]*)":)[^,}]*/\1"[REDACTED]"/g' || true
+
+# This job never authenticates to or writes Demo-pvh cloud. A green run proves
+# local migrations + selected pgTAP checks, not hosted RLS or browser E2E.
