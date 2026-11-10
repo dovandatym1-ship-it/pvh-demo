@@ -29,3 +29,14 @@ test("Language standard does not rewrite permission or database enums", () => {
   assert.match(sidebar, /groups === undefined \? DEFAULT_GROUPS : groups/);
   assert.match(sidebar, /Quản trị hệ thống và cán bộ/);
 });
+
+test("Authenticated but unassigned users can open login instead of redirect-looping", () => {
+  const middleware = read("src/lib/supabase/middleware.ts");
+  const auth = read("src/lib/auth/actions.ts");
+  const layout = read("src/app/(app)/layout.tsx");
+  assert.match(middleware, /pathname === "\/login"/);
+  assert.doesNotMatch(middleware, /if \(isAuthenticated && pathname\.startsWith\("\/login"\)\)/);
+  assert.match(auth, /isMembershipCurrentlyActive\(membership\)/);
+  assert.match(auth, /await supabase\.auth\.signOut\(\)/);
+  assert.match(layout, /redirect\("\/login"\)/);
+});
