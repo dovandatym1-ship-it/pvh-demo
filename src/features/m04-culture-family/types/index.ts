@@ -36,18 +36,6 @@ export interface CultureSubmissionDTO {
   readonly createdBy?: string | null;
 }
 
-export interface HamletCultureSummaryDTO {
-  readonly hamletId: string;
-  readonly hamletCode: string;
-  readonly hamletName: string;
-  readonly leaderName: string;
-  readonly totalHouseholds: number;
-  readonly culturalHouseholds: number;
-  readonly rate: number;
-  readonly culturalHouseStatus: "DAT_CHUAN" | "CHUA_DAT";
-  readonly titleStatus: "CONG_NHAN" | "CHUA_CONG_NHAN";
-}
-
 // Backward compatibility types
 export type CulturalTitleStatus = "PROPOSED" | "EVALUATED" | "APPROVED" | "REJECTED";
 

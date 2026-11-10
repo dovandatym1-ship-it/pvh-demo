@@ -4,6 +4,7 @@ import { useRef,useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { recommendationStatusLabel, vietnameseToday } from "@/lib/presentation/ph03-labels";
+import { inspectionDeadlineState } from "../deadline-state";
 import { createInspectionRecordAction,createInspectionRecommendationAction,
  resolveInspectionRecommendationAction } from "../server/ph03-actions";
 import type { InspectionRecord,InspectionRecommendation } from "../server/ph03-queries";
@@ -15,6 +16,7 @@ const field="rounded border border-slate-300 px-3 py-2 text-sm w-full";
 const button="rounded bg-emerald-700 px-4 py-2 text-sm text-white disabled:opacity-40";
 export function InspectionWorkspace({records,recommendations,hamlets,assignees,canWrite,canReview}:Props){
  const router=useRouter();const [busy,setBusy]=useState(false);const [message,setMessage]=useState("");
+ const today=vietnameseToday();
  const [code,setCode]=useState("");const [target,setTarget]=useState("");
  const [category,setCategory]=useState("Văn hóa");const [hamlet,setHamlet]=useState(hamlets[0]?.id??"");
  const [inspector,setInspector]=useState("");const [checklist,setChecklist]=useState("ILLUSTRATIVE-v1");
@@ -121,16 +123,24 @@ export function InspectionWorkspace({records,recommendations,hamlets,assignees,c
   <div className="overflow-x-auto rounded border bg-white">
    <h2 className="font-semibold p-4">Theo dõi kiến nghị và công việc khắc phục</h2>
    <table className="min-w-full text-sm text-left">
-    <thead className="bg-slate-100"><tr>{["Mã","Nội dung","Hạn","Trạng thái","Công việc M01","Thẩm tra"].map(x=>
+    <thead className="bg-slate-100"><tr>{["Mã","Nội dung","Hạn xử lý","Trạng thái","Công việc M01","Thẩm tra"].map(x=>
      <th className="p-3" key={x}>{x}</th>)}</tr></thead>
-    <tbody>{recommendations.map(r=><tr className="border-t" key={r.id}>
+    <tbody>{recommendations.map(r=>{
+     const deadlineState=inspectionDeadlineState(r.status,r.dueDate,today);
+     return <tr className="border-t" key={r.id}>
      <td className="p-3">{r.code}</td><td className="p-3">{r.title}</td>
-     <td className="p-3">{r.dueDate}</td><td className="p-3">{recommendationStatusLabel(r.status)} · Lần cập nhật {r.version}</td>
+     <td className="p-3"><span>{r.dueDate}</span>{deadlineState==="OVERDUE"&&
+      <span className="ml-2 rounded bg-red-50 px-2 py-0.5 text-xs font-medium text-red-800">Quá hạn</span>}
+      {deadlineState==="DUE_TODAY"&&
+      <span className="ml-2 rounded bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">Đến hạn hôm nay</span>}
+      {deadlineState==="UNKNOWN"&&
+      <span className="ml-2 rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-700">Chưa xác định hạn</span>}</td>
+     <td className="p-3">{recommendationStatusLabel(r.status)} · Lần cập nhật {r.version}</td>
      <td className="p-3"><Link className="text-emerald-800 underline"
       href={"/cong-viec/"+r.workItemId}>Mở công việc</Link></td>
      <td className="p-3">{canReview&&r.status!=="RESOLVED_CLOSED"&&
       <button type="button" className="text-emerald-800 underline" onClick={()=>setReviewId(r.id)}>Đối soát</button>}</td>
-    </tr>)}</tbody>
+    </tr>})}</tbody>
    </table>
    {!recommendations.length&&<p className="p-5 text-sm text-slate-500">Chưa có kiến nghị.</p>}
   </div>

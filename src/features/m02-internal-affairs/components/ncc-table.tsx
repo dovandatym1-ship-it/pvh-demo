@@ -4,6 +4,7 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import type { NCCBeneficiaryDisplayDTO } from "../types";
+import { nccCategoryLabel } from "../types/presentation";
 import { Award, ShieldAlert } from "lucide-react";
 
 interface NCCTableProps {
@@ -78,13 +79,7 @@ export function NCCTable({ items, hamlets, canUnmaskPII }: NCCTableProps) {
                   <Badge variant="neutral">{hamletNames.get(item.hamletId) ?? "Địa bàn chưa xác định"}</Badge>
                 </TableCell>
                 <TableCell className="text-xs text-slate-700 font-medium">
-                  {item.category === "BA_ME_VNAH"
-                    ? "Bà mẹ Việt Nam anh hùng"
-                    : item.category === "THUONG_BINH"
-                    ? "Thương binh"
-                    : item.category === "BENH_BINH"
-                    ? "Bệnh binh"
-                    : item.category === "LIET_SI" ? "Liệt sĩ" : "Chất độc hóa học"}
+                  {nccCategoryLabel(item.category)}
                 </TableCell>
                 <TableCell className="text-xs text-slate-600">
                   {item.medalTitle}

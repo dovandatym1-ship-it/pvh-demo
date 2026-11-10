@@ -25,6 +25,7 @@ import {
 import { Persona } from "@/lib/auth/session";
 import { TenantConfig } from "@/lib/tenancy/tenant-config";
 import { deploymentBrand } from "@/config/deployment-brand";
+import { filterLegacyNavigation } from "./legacy-navigation";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   LayoutDashboard,
@@ -107,7 +108,9 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   // An explicitly empty list means no navigation entitlement, not the full demo menu.
-  const displayGroups = groups === undefined ? DEFAULT_GROUPS : groups;
+  const displayGroups = groups === undefined
+    ? persona ? filterLegacyNavigation(DEFAULT_GROUPS, persona.permissions) : DEFAULT_GROUPS
+    : groups;
 
   return (
     <>
