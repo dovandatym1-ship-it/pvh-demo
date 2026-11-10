@@ -22,48 +22,19 @@ export async function createBeneficiaryAction(
       );
     }
 
-    const { fullName, cccd, phone, hamletId, aidCategory, monthlyAmount, diagnosis, healthInsuranceProvided } = parsed.data;
+    const { hamletId } = parsed.data;
     assertCanAccessHamlet(ctx, hamletId);
-    const generatedCode = `BT-${crypto.randomUUID().slice(0, 12).toUpperCase()}`;
 
-    const supabase = await createServerSupabaseClient();
-    const { data, error } = await supabase
-      .from("social_protection_beneficiaries")
-      .insert({
-        tenant_id: ctx.tenantId,
-        code: generatedCode,
-        full_name: fullName,
-        cccd,
-        phone: phone || null,
-        hamlet_id: hamletId,
-        aid_category: aidCategory,
-        monthly_amount: monthlyAmount,
-        diagnosis: diagnosis || null,
-        payment_status: "PENDING",
-        health_insurance_provided: healthInsuranceProvided,
-      })
-      .select("id, code")
-      .single();
-
-    if (error || !data) {
-      return fail("INTERNAL", "Không thể lưu đối tượng bảo trợ; không tạo mã hoặc ID giả.");
-    }
-
-    // Insert audit log
-    await supabase.from("audit_log").insert({
-      tenant_id: ctx.tenantId,
-      user_id: ctx.userId,
-      action: "m06.beneficiary.create",
-      entity_type: "social_protection_beneficiary",
-      entity_id: data.id,
-      changes: { code: data.code, fullName, aidCategory },
-    });
-
-    revalidatePath("/y-te-an-sinh");
-    return ok({
-      id: data.id,
-      code: data.code,
-    });
+    // Release gate M06-F06: never create a sensitive beneficiary through a
+    // direct INSERT followed by an unaudited/best-effort second request.
+    // The approved, single-transaction RPC, data-source authority and
+    // canonical M06 migration are not yet present in the active DB baseline.
+    // Fail closed rather than potentially saving a real person's data without
+    // an immutable audit record. Re-enable only after G-DB/G-SEC + owner review.
+    return fail(
+      "INTERNAL",
+      "Tiếp nhận hồ sơ bảo trợ đang tạm khóa để hoàn thiện quy trình ghi nhận và nhật ký bắt buộc."
+    );
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Đã có lỗi xảy ra khi tạo đối tượng bảo trợ";
     return fail("INTERNAL", message);
