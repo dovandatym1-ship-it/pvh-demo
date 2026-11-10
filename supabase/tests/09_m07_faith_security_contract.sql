@@ -57,9 +57,14 @@ select extensions.throws_ok(
  $$select app.create_faith_establishment('M07-CI-02','Cơ sở ngoài địa bàn','PHAT_GIAO',
  'Đại diện kiểm thử','55555555-5555-4555-8555-555555555555','Địa chỉ kiểm thử',0)$$,
  '42501',null,'Cross-hamlet create is forbidden');
+-- The actor is not granted audit-read; inspect the audit using the local
+-- database owner within this rollback-only test, never broaden RLS for tests.
+reset role;
 select extensions.is(
  (select count(*)::integer from public.audit_log where action='M07_CREATE_FAITH_ESTABLISHMENT'),
  1,'Successful create leaves precisely one audit receipt');
+set local role authenticated;
+set local request.jwt.claim.sub='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
 select extensions.lives_ok(
  $$select app.register_faith_event(
  (select id from public.religious_establishments where code='M07-CI-01'),
