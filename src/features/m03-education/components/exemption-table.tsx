@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
@@ -15,11 +16,24 @@ interface ExemptionTableProps {
 
 export function ExemptionTable({ items, canManage }: ExemptionTableProps) {
   const [pendingId, setPendingId] = React.useState<string | null>(null);
+  const [decision, setDecision] = React.useState<{id:string;status:"APPROVED"|"REJECTED";version:number}|null>(null);
+  const [decisionReference, setDecisionReference] = React.useState("");
+  const [feedback, setFeedback] = React.useState<{ok:boolean;message:string}|null>(null);
+  const router = useRouter();
 
-  const handleDecision = async (id: string, status: "APPROVED" | "REJECTED") => {
-    setPendingId(id);
+  const handleDecision = async () => {
+    if(!decision || decisionReference.trim().length<5 || pendingId)return;
+    setPendingId(decision.id);setFeedback(null);
     try {
-      await approveTuitionExemptionAction({ exemptionId: id, status });
+      const result=await approveTuitionExemptionAction({
+        exemptionId:decision.id,status:decision.status,
+        expectedVersion:decision.version,decisionReference:decisionReference.trim(),
+      });
+      if(!result.ok){setFeedback({ok:false,message:result.error.message});return;}
+      setFeedback({ok:true,message:"Đã ghi nhận kết quả từ nguồn có thẩm quyền và lưu nhật ký."});
+      setDecision(null);setDecisionReference("");router.refresh();
+    } catch {
+      setFeedback({ok:false,message:"Không thể xác nhận hồ sơ. Chưa có thay đổi được ghi nhận."});
     } finally {
       setPendingId(null);
     }
@@ -37,6 +51,22 @@ export function ExemptionTable({ items, canManage }: ExemptionTableProps) {
         </div>
       </div>
 
+      {feedback&&<p role={feedback.ok?"status":"alert"} className={feedback.ok?"rounded border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900":"rounded border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900"}>{feedback.message}</p>}
+      {decision&&<div className="space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
+        <p className="text-sm font-semibold">Xác nhận {decision.status==="APPROVED"?"đủ căn cứ duyệt":"kết quả từ chối"} hồ sơ</p>
+        <label className="block text-sm">Mã văn bản/hồ sơ từ nguồn có thẩm quyền *
+          <input required minLength={5} maxLength={200} value={decisionReference}
+            onChange={event=>setDecisionReference(event.target.value)}
+            className="mt-1 min-h-10 w-full rounded border border-slate-300 bg-white px-3 text-sm"
+            placeholder="Nhập mã văn bản đã được xác minh" />
+        </label>
+        <p className="text-xs text-amber-900">Chỉ ghi quyết định đã có căn cứ và đúng thẩm quyền; không tự ban hành quyết định.</p>
+        <div className="flex gap-2"><Button size="sm" variant="secondary"
+          disabled={Boolean(pendingId)||decisionReference.trim().length<5}
+          onClick={handleDecision}>Ghi nhận kết quả</Button>
+          <Button size="sm" variant="outline" onClick={()=>{setDecision(null);setDecisionReference("");}}>Hủy</Button>
+        </div>
+      </div>}
       <div className="border border-slate-200 rounded-lg overflow-hidden bg-white">
         <Table>
           <TableHeader>
@@ -97,16 +127,16 @@ export function ExemptionTable({ items, canManage }: ExemptionTableProps) {
                         <Button
                           variant="secondary"
                           size="xs"
-                          disabled={pendingId === item.id}
-                          onClick={() => handleDecision(item.id, "APPROVED")}
+                          disabled={pendingId !== null}
+                          onClick={() => {setDecision({id:item.id,status:"APPROVED",version:item.version});setDecisionReference("");}}
                         >
                           Duyệt
                         </Button>
                         <Button
                           variant="outline"
                           size="xs"
-                          disabled={pendingId === item.id}
-                          onClick={() => handleDecision(item.id, "REJECTED")}
+                          disabled={pendingId !== null}
+                          onClick={() => {setDecision({id:item.id,status:"REJECTED",version:item.version});setDecisionReference("");}}
                         >
                           Từ chối
                         </Button>
