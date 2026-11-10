@@ -13,6 +13,8 @@ const ROLE_OPTIONS = [
   {code:"FAITH_MANAGER",label:"Quản lý công tác dân tộc, tín ngưỡng và tôn giáo"},
   {code:"SOCIAL_OFFICER",label:"Cán bộ y tế và an sinh xã hội"},
   {code:"SOCIAL_MANAGER",label:"Quản lý y tế và an sinh xã hội"},
+  {code:"EDUCATION_OFFICER",label:"Cán bộ giáo dục"},
+  {code:"EDUCATION_REVIEWER",label:"Cán bộ được phân công rà soát hồ sơ giáo dục"},
 ] as const;
 const roleLabel=(code:string)=>ROLE_OPTIONS.find(role=>role.code===code)?.label??"Vai trò chưa có nhãn";
 
