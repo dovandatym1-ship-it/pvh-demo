@@ -6,18 +6,13 @@ on:
     paths:
       - 'supabase/**'
       - '.github/workflows/pvh-db-replay.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'supabase/**'
-      - '.github/workflows/pvh-db-replay.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: pvh-db-replay-${{ github.ref }}
+  group: pvh-db-replay-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
