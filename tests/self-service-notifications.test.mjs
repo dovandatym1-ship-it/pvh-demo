@@ -111,3 +111,33 @@ test("Mobile popovers dismiss on outside click, Escape, route changes and preser
   assert.match(component, /original\.current\?\.focus/);
   assert.match(component, /sm:absolute/);
 });
+
+test("Bulk notification read remains restricted to authenticated own recipient and tenant", () => {
+  const action = read("src/features/notifications/server/actions.ts").split("export async function markAllOwnNotificationsReadAction")[1];
+  assert.ok(action, "bulk action is implemented");
+  assert.match(action, /user\.id !== ctx\.userId/);
+  assert.match(action, /eq\("tenant_id", ctx\.tenantId\)/);
+  assert.match(action, /eq\("recipient_id", ctx\.userId\)/);
+  assert.match(action, /is\("read_at", null\)/);
+  assert.match(action, /if \(error\) return fail/);
+  assert.doesNotMatch(action, /createSupabaseAdminClient|service_role/);
+
+  const ui = read("src/features/notifications/components/notification-list.tsx");
+  assert.match(ui, /markAllOwnNotificationsReadAction\(\)/);
+  assert.match(ui, /Đánh dấu tất cả đã đọc/);
+  assert.match(ui, /role=\{bulkFeedback\.ok \? "status" : "alert"\}/);
+  assert.match(ui, /if \(result\.ok\) router\.refresh\(\)/);
+});
+
+test("Dashboard connects source-attributed domain counts without granting M01 role access", () => {
+  const page = read("src/app/(app)/dashboard/page.tsx");
+  const server = read("src/features/dashboard/server/get-domain-count-metrics.ts");
+  assert.match(page, /getDomainCountMetrics\(ctx\)/);
+  assert.match(page, /<DomainCountPanel metrics=\{domainMetrics\}/);
+  assert.match(page, /hasWorkAccess \? await getM01DashboardSnapshot\(ctx\) : null/);
+  assert.match(server, /ctx\.permissions\.includes\(item\.permission\)/);
+  assert.match(server, /count:"exact",head:true/);
+  assert.match(server, /eq\("tenant_id",ctx\.tenantId\)/);
+  assert.match(server, /status:"unavailable"/);
+  assert.doesNotMatch(server, /\bservice_role\b/);
+});
