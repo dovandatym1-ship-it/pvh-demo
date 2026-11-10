@@ -87,17 +87,21 @@ export function HealthInspectionPanels({
                     {item.inspectionDate}
                   </TableCell>
                   <TableCell className="text-center font-semibold text-xs">
-                    {item.totalScore}/100
+                    {item.totalScore === null ? "Chưa chấm điểm" : `${item.totalScore}/100`}
                   </TableCell>
                   <TableCell className="text-center">
-                    {item.sampleRetention24hPassed ? (
+                    {item.sampleRetention24hPassed === null ? (
+                      <span className="text-slate-500 font-medium text-xs">Chưa kiểm tra</span>
+                    ) : item.sampleRetention24hPassed ? (
                       <span className="text-emerald-700 font-medium text-xs">Đạt</span>
                     ) : (
                       <span className="text-rose-600 font-medium text-xs">Không đạt</span>
                     )}
                   </TableCell>
                   <TableCell className="text-right">
-                    {item.conclusion === "PASSED" ? (
+                    {item.conclusion === "PENDING" ? (
+                      <Badge variant="neutral">Chưa có kết luận</Badge>
+                    ) : item.conclusion === "PASSED" ? (
                       <Badge variant="success">Đạt yêu cầu</Badge>
                     ) : item.conclusion === "WARNING_REMEDIAL" ? (
                       <Badge variant="warning">Nhắc nhở / Khắc phục</Badge>
@@ -142,7 +146,7 @@ export function HealthInspectionPanels({
                     {item.practitionerName}
                   </TableCell>
                   <TableCell className="font-mono text-xs text-slate-600">
-                    {item.licenseNumber} ({item.licenseIssueDate})
+                    {item.licenseNumber || "Chưa có thông tin"} {item.licenseIssueDate ? `(${item.licenseIssueDate})` : ""}
                   </TableCell>
                   <TableCell className="text-center">
                     {item.gppCertified ? (
@@ -152,7 +156,9 @@ export function HealthInspectionPanels({
                     )}
                   </TableCell>
                   <TableCell className="text-right">
-                    {item.inspectionStatus === "NORMAL" ? (
+                    {item.inspectionStatus === "UNVERIFIED" ? (
+                      <Badge variant="neutral">Chưa xác minh</Badge>
+                    ) : item.inspectionStatus === "NORMAL" ? (
                       <Badge variant="success">Bình thường</Badge>
                     ) : (
                       <Badge variant="danger">Cảnh báo vi phạm</Badge>
@@ -207,7 +213,7 @@ export function HealthInspectionPanels({
                       </Badge>
                     ) : (
                       <Badge variant="success">
-                        <ShieldCheck className="w-3 h-3 mr-1 inline" /> Kiểm soát
+                        <ShieldCheck className="w-3 h-3 mr-1 inline" /> Chưa ghi nhận cảnh báo
                       </Badge>
                     )}
                   </TableCell>
