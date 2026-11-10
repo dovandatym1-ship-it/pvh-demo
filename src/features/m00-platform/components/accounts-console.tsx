@@ -15,6 +15,8 @@ const ROLE_OPTIONS = [
   {code:"SOCIAL_MANAGER",label:"Quản lý y tế và an sinh xã hội"},
   {code:"EDUCATION_OFFICER",label:"Cán bộ giáo dục"},
   {code:"EDUCATION_REVIEWER",label:"Cán bộ được phân công rà soát hồ sơ giáo dục"},
+  {code:"INTERNAL_OFFICER",label:"Cán bộ nội vụ và lao động"},
+  {code:"INTERNAL_REVIEWER",label:"Cán bộ rà soát nội vụ và lao động"},
 ] as const;
 const roleLabel=(code:string)=>ROLE_OPTIONS.find(role=>role.code===code)?.label??"Vai trò chưa có nhãn";
 
