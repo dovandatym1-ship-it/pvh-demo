@@ -56,6 +56,7 @@ export default async function YTeAnSinhAppPage() {
           foodSafeties={foodSafeties}
           medicalFacilities={medicalFacilities}
           epidemicLogs={epidemicLogs}
+          hamlets={hamlets}
         />
       </div>
     </div>
