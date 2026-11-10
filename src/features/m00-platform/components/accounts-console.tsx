@@ -31,6 +31,17 @@ export function AccountsConsole({ staff }: { staff: StaffRow[] }) {
   const [pending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<string | null>(null);
   const [selectedRoles, setSelectedRoles] = useState<Record<string, string>>({});
+  const [searchText, setSearchText] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "revoked">("all");
+  const [roleFilter, setRoleFilter] = useState("");
+  const filteredStaff = staff.filter(person => {
+    const keyword = searchText.trim().toLocaleLowerCase("vi");
+    const matchedText = !keyword || person.fullName.toLocaleLowerCase("vi").includes(keyword);
+    const matchedStatus = statusFilter === "all" ||
+      (statusFilter === "active" ? person.isActive : !person.isActive);
+    const matchedRole = !roleFilter || person.roles.includes(roleFilter);
+    return matchedText && matchedStatus && matchedRole;
+  });
 
   const submitInvite = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -89,9 +100,37 @@ export function AccountsConsole({ staff }: { staff: StaffRow[] }) {
       </section>
 
       <section className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
-        <h2 className="font-semibold text-slate-900">Danh sách phân công</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-semibold text-slate-900">Danh sách phân công</h2>
+          <p className="text-xs text-slate-500" aria-live="polite">
+            Hiển thị {filteredStaff.length}/{staff.length} tài khoản
+          </p>
+        </div>
+        <div className="grid gap-3 md:grid-cols-[minmax(0,1.5fr)_minmax(140px,0.8fr)_minmax(180px,1fr)]">
+          <label className="text-sm text-slate-700">Tìm theo họ và tên
+            <input type="search" className="mt-1 min-h-11 w-full rounded-lg border border-slate-300 px-3 text-sm"
+              value={searchText} onChange={e => setSearchText(e.target.value)}
+              placeholder="Nhập họ và tên cán bộ" aria-label="Tìm theo họ và tên cán bộ"/>
+          </label>
+          <label className="text-sm text-slate-700">Trạng thái
+            <select className="mt-1 min-h-11 w-full rounded-lg border border-slate-300 px-3 text-sm"
+              value={statusFilter} onChange={e => setStatusFilter(e.target.value as typeof statusFilter)}>
+              <option value="all">Tất cả</option>
+              <option value="active">Đang hiệu lực</option>
+              <option value="revoked">Đã thu hồi</option>
+            </select>
+          </label>
+          <label className="text-sm text-slate-700">Vai trò
+            <select className="mt-1 min-h-11 w-full rounded-lg border border-slate-300 px-3 text-sm"
+              value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
+              <option value="">Tất cả vai trò</option>
+              {ROLE_OPTIONS.map(role => <option key={role.code} value={role.code}>{role.label}</option>)}
+            </select>
+          </label>
+        </div>
         {staff.length === 0 && <p className="text-sm text-slate-500">Chưa có tài khoản được phân công.</p>}
-        {staff.map((person) => (
+        {staff.length > 0 && filteredStaff.length === 0 && <p role="status" className="rounded-lg bg-slate-50 p-4 text-sm text-slate-600">Không có cán bộ phù hợp với điều kiện lọc.</p>}
+        {filteredStaff.map((person) => (
           <div key={person.userId} className="rounded-lg border border-slate-200 p-4 space-y-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
