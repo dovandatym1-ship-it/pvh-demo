@@ -62,6 +62,11 @@ test("territorial boundaries checked for M02/M06 read queries and M06 writes", (
   for (const domain of ["m02-internal-affairs", "m06-health-social"]) {
     assert.match(source("src/features/" + domain + "/server/queries.ts"), /query\.in\("hamlet_id"/);
   }
-  assert.match(source("src/features/m06-health-social/server/actions.ts"), /assertCanAccessHamlet\(ctx,\s*hamletId\)/);
-  assert.match(source("src/features/m06-health-social/server/actions.ts"), /assertCanAccessHamlet\(ctx,\s*String\(beneficiary\.hamlet_id\)\)/);
+  const actions = source("src/features/m06-health-social/server/actions.ts");
+  const sql = source("supabase/migrations/20261110120000_m06_social_intake.sql");
+  assert.match(actions, /assertCanAccessHamlet\(ctx,\s*parsed\.data\.hamletId\)/);
+  assert.match(actions, /request_social_aid_reconciliation/);
+  assert.match(sql, /FORBIDDEN_HAMLET/);
+  assert.match(sql, /v_beneficiary\.hamlet_id/);
+  assert.doesNotMatch(actions, /\.from\("social_protection_beneficiaries"\)/);
 });
