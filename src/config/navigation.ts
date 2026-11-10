@@ -20,6 +20,18 @@ export interface NavigationGroup {
   readonly items: readonly NavigationItem[];
 }
 
+const DASHBOARD_READ_PERMISSIONS = [
+  "m01:work:read", "m02:internal:read", "m03:education:read",
+  "m04:culture:read", "m05:digital:read", "m06:social:read",
+  "m07:faith:read", "m08:inspection:read", "m09:report:read",
+  "m10:indicator:import", "m11:catalog:read",
+] as const;
+
+/** Dashboard combines only permitted modules; it does not grant M01 access. */
+function canSeeDashboard(permissions: readonly string[]): boolean {
+  return DASHBOARD_READ_PERMISSIONS.some(code => hasExplicitPermission(permissions, code));
+}
+
 export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
   {
     title: "Điều hành và tác nghiệp",
@@ -29,13 +41,13 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         route: "/dashboard",
         iconName: "LayoutDashboard",
         moduleKey: "m01",
-        requiredPermission: "m01:work:read",
         status: "DEEP",
       },
       {
         title: "Bàn làm việc",
         route: "/ban-lam-viec",
         iconName: "LayoutDashboard",
+        requiredPermission: "m01:work:read",
         status: "DEEP",
       },
       {
@@ -181,6 +193,7 @@ export function hasPermission(
   userPermissions: readonly string[] = [],
   userRoles: readonly string[] = []
 ): boolean {
+  if (item.route === "/dashboard") return canSeeDashboard(userPermissions);
   if (!item.requiredPermission && !item.requiredRole) {
     return true;
   }
@@ -227,7 +240,7 @@ export function canAccessRoute(
       }
     }
   }
-  return match ? hasPermission(match, userPermissions, userRoles) : true;
+  return match ? hasPermission(match, userPermissions, userRoles) : false;
 }
 
 /**
