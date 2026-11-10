@@ -88,8 +88,11 @@ These figures prove source-tree overlap only. They do not prove that an entire P
 
 - Ported the missing M01 presentation regression test from PR #7 and added it to the integration candidate workflow. Commit `75ae99051c4ea969fd90874e5d47e1223ed4e63c`; targeted Node 22 test passes 3/3. It covers Vietnamese status/priority and event labels plus UTC+07 deadline conversion.
 - PR #1's absent DB-CI script/fixture and archived historical SQL test paths need an explicit replacement review against `pvh-db-replay.yml` and the active 14-file migration set. They have not been copied or marked equivalent by the blob comparison.
-- The absent PR #2 G2 verification and PR #7 completion documents are historical acceptance artifacts. The current integration acceptance and execution plans overlap their purpose, but their test cases have not yet been crosswalked one by one.
+- Added PR #2's detailed 20-case M01 staging checklist as `PVH_M01_STAGING_ACCEPTANCE_2026-11-10.md`, updated to require replay of the candidate's 14 canonical migrations. It remains unexecuted. Its historical open-issue section needs a fresh code review before G2 starts. The PR #7 completion delta remains a historical document without an explicit line-by-line disposition.
 - The PR #5 standalone workflow's self-service test is already invoked by the candidate workflow. The behavior and workflow path still need to be recorded in the branch disposition matrix before GIT-03 can close.
 - Same-path differences across all PRs remain open until categorized against the branch disposition ledger. No cumulative feature branch was merged blindly.
 
 **GIT-03 · IN PROGRESS.** The PR #7 test is ported. The rest of the deltas listed above still need a disposition before GIT-03/GIT-04 can be marked complete.
+
+
+The M01 staging checklist was added on the candidate after this source-tree comparison. It preserves test procedures and does not claim G2 execution or PASS.
