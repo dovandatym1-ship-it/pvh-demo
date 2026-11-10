@@ -6,24 +6,27 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { createReligiousEstablishmentAction } from "../server/actions";
 import type { ReligiousEstablishmentDTO } from "../types";
+import type { FaithHamletOption } from "../server/queries";
 
 interface CreateEstablishmentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (newEstablishment: ReligiousEstablishmentDTO) => void;
+  hamlets: readonly FaithHamletOption[];
 }
 
 export function CreateEstablishmentModal({
   isOpen,
   onClose,
   onSuccess,
+  hamlets,
 }: CreateEstablishmentModalProps) {
   const [name, setName] = useState("");
   const [religionType, setReligionType] = useState<"PHAT_GIAO" | "TIN_LANH" | "CONG_GIAO" | "TIN_NGUONG_DAN_GIAN">("PHAT_GIAO");
   const [representativeName, setRepresentativeName] = useState("");
-  const [hamletId, setHamletId] = useState("xom-a1");
+  const [hamletId, setHamletId] = useState("");
   const [address, setAddress] = useState("");
-  const [followerCount, setFollowerCount] = useState<number>(50);
+  const [followerCount, setFollowerCount] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,10 +41,16 @@ export function CreateEstablishmentModal({
       return;
     }
 
+    if (!hamlets.some(unit=>unit.id===hamletId)) {
+      setError("Chọn thôn, xóm thuộc phạm vi được phân công.");return;
+    }
+    if (address.trim().length < 3) {
+      setError("Cần nhập địa chỉ cụ thể, không tự tạo từ mã địa bàn.");return;
+    }
     setLoading(true);
     setError(null);
 
-    const generatedCode = `CS-${Date.now().toString().slice(-4)}`;
+    const generatedCode = `CS-${crypto.randomUUID().replaceAll("-", "").slice(0, 12).toUpperCase()}`;
 
     try {
       const payload = {
@@ -50,7 +59,7 @@ export function CreateEstablishmentModal({
         religionType,
         representativeName: representativeName.trim(),
         hamletId,
-        address: address.trim() || `Xóm ${hamletId}`,
+        address: address.trim(),
         followerCount: Number(followerCount) || 0,
       };
 
@@ -83,7 +92,7 @@ export function CreateEstablishmentModal({
           <Button variant="outline" size="sm" onClick={onClose} disabled={loading}>
             Hủy bỏ
           </Button>
-          <Button variant="primary" size="sm" onClick={handleSubmit} disabled={loading}>
+          <Button variant="primary" size="sm" onClick={handleSubmit} disabled={loading || hamlets.length===0}>
             {loading ? "Đang lưu..." : "Lưu đăng ký"}
           </Button>
         </>
@@ -133,13 +142,13 @@ export function CreateEstablishmentModal({
               Địa bàn xóm / thôn <span className="text-red-500">*</span>
             </label>
             <select
+              required
               value={hamletId}
               onChange={(e) => setHamletId(e.target.value)}
               className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md bg-white focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
             >
-              <option value="xom-a1">Xóm A1</option>
-              <option value="xom-a2">Xóm A2</option>
-              <option value="xom-a3">Xóm A3</option>
+              <option value="">Chọn thôn, xóm</option>
+              {hamlets.map(unit=><option key={unit.id} value={unit.id}>{unit.name}</option>) }
             </select>
           </div>
         </div>
