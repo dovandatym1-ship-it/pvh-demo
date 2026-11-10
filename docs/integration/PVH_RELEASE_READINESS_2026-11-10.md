@@ -78,9 +78,9 @@ Mốc `223411b4` sửa `getActiveHamlets` dùng `ctx.scopes.hamletIds` (không p
 ## 5. Runbook để đóng G-DB/G-SEC/G-UX/G-PERF/G-FLOW
 
 1. **Cho phép một môi trường staging tách biệt** với `Demo-pvh`, không dùng dữ liệu thật. Lưu applied migration ledger hiện tại chỉ để đối chiếu, tuyệt đối không `db push` vào cloud production.
-2. Tạo Postgres/Supabase staging sạch; chạy **14 migration canonical** từ `supabase/migrations/` đúng thứ tự và kiểm extension/RLS/RPC/Storage. Kiểm checksum/tương thích trước khi lập phương án update cloud.
+2. Tạo Postgres/Supabase staging sạch; chạy **14 migration canonical** từ `supabase/migrations/` đúng thứ tự và kiểm extension/RLS/RPC/Storage. Kiểm checksum/tương thích trước khi lập phương án update cloud. Trong Supabase API Settings, expose schema `app` cho PostgREST; lưu receipt cấu hình và xác nhận schema cache nhận RPC của `app`.
 3. Seed dữ liệu giả: tối thiểu **101 công việc** (để bắt KPI cap), nhiều trạng thái/hạn, hai tenant giả định hoặc dữ liệu phân biệt để test cross-scope; ít nhất 3 tài khoản đã phân quyền (lãnh đạo, công chức, trưởng thôn); bản ghi y tế nhạy cảm và file. Không đặt thông tin cá nhân thật.
-4. Với từng role: login→dashboard→lọc công việc→chi tiết→tạo/giao/chuyển→readback; test forbidden direct route/API/RPC, tenant/hamlet khác, tệp riêng tư, retry trùng khóa, OCC 409, snapshot báo cáo, CSV invalid, audit.
+4. Với từng role: login→dashboard→lọc công việc→chi tiết→tạo/giao/chuyển→readback; gọi RPC qua `.schema("app")` bằng JWT role được cấp quyền; test anon/role thiếu quyền, direct route/API, tenant/hamlet khác, tệp riêng tư, retry trùng khóa, OCC 409, snapshot báo cáo, CSV invalid, audit.
 5. Kiểm tra UX trên 375/768/1024/1440 và keyboard/zoom; đo Web Vitals, query count và bundle, đối chiếu KPI với SQL `count` cùng phạm vi.
 6. Phân loại lỗi P0/P1/P2, sửa trực tiếp nhánh integration, rerun 3 CI gates và E2E đến khi không còn P0. Chốt scope còn DEFER theo mỗi OP; chủ dự án duyệt PR một lần sau khi xem receipts.
 
@@ -151,5 +151,6 @@ Context dự án còn `PVH-I-016` và `PVH-I-017` ở trạng thái OPEN/HIGH; c
 - **M06/PII:** bảng người hưởng trợ cấp không cấp `SELECT` cho `authenticated`; `getSocialBeneficiaries` gọi `app.list_social_beneficiaries`, RPC kiểm tra permission/phạm vi và chỉ trả CCCD, điện thoại, mức hưởng, chẩn đoán khi có quyền `m06:social:pii_unmask`. Đây là biện pháp ở mã nguồn hiện tại, chưa chứng minh payload/RLS trên cloud.
 - **RPC nghiệp vụ:** lời gọi server M02/M03/M05/M06/M08 hiện chọn schema `app`; các migration hiện hành dùng `auth.uid()` và RPC có kiểm tra permission. Không tìm thấy lời gọi `current_user_id()` trong source/migrations active đã rà soát. Đây chưa thay thế replay, kiểm thử role/scope âm và readback trên staging.
 - **Job nội bộ:** các RPC claim/complete/fail job bị revoke với `public`, `anon`, `authenticated`, chỉ cấp `service_role` trong migration. Cần giữ lại ca kiểm tra quyền này trong G-SEC.
+- **PostgREST custom schema:** `supabase/config.toml` khai báo `app` trong `[api].schemas` cho môi trường local; migration cấp `USAGE` schema cho `authenticated, service_role` và thu hẹp `EXECUTE` của RPC theo từng hàm. Đây chưa chứng minh cấu hình API hosted: [Supabase yêu cầu thêm custom schema trong API Settings → Exposed schemas](https://supabase.com/docs/guides/api/using-custom-schemas). G-SEC phải chụp/read back cấu hình staging, gọi thành công RPC bằng đúng JWT role, rồi xác nhận anon/role không được cấp bị từ chối. Không dùng `GRANT ALL ON ALL ROUTINES` để thay thế allowlist quyền hiện hành.
 
 **Trạng thái finding:** `SOURCE_MITIGATION_CHECKED / RUNTIME_UNVERIFIED`; đề nghị reviewer đối chiếu lại backlog sau khi có G-SEC staging. Không đóng I-016/I-017 chỉ dựa trên source hoặc CI.
