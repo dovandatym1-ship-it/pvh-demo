@@ -193,6 +193,9 @@ export function hasPermission(
   userPermissions: readonly string[] = [],
   userRoles: readonly string[] = []
 ): boolean {
+  // Retired or deferred screens are not active products, even if a role happens
+  // to carry their historical permissions. The local demo shell is separate.
+  if (item.status === "LEGACY_MOCK" || item.status === "DEFERRED") return false;
   if (item.route === "/dashboard") return canSeeDashboard(userPermissions);
   if (!item.requiredPermission && !item.requiredRole) {
     return true;
