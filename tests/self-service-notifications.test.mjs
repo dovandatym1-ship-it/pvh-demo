@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { notificationLabel } from "../src/features/notifications/presentation.ts";
 import { normalizeNotificationFilters, notificationPageUrl } from "../src/features/notifications/filters.ts";
-import { PersonalContactSchema, PasswordChangeSchema } from "../src/features/self-service/schemas.ts";
+import { PersonalContactSchema, PasswordChangeSchema, PasswordRecoverySchema } from "../src/features/self-service/schemas.ts";
 import { avatarObjectPath, validateNormalizedJpeg } from "../src/features/self-service/avatar-contract.ts";
 
 function read(path) { return readFileSync(new URL(`../${path}`, import.meta.url), "utf8"); }
@@ -140,4 +140,17 @@ test("Dashboard connects source-attributed domain counts without granting M01 ro
   assert.match(server, /eq\("tenant_id",ctx\.tenantId\)/);
   assert.match(server, /status:"unavailable"/);
   assert.doesNotMatch(server, /\bservice_role\b/);
+});
+
+test("Recovery schema rejects unknown fields, short secrets, and missing one-time codes", () => {
+  const good = {
+    code: "12345678901234567890",
+    newPassword: "my-long-new-passphrase",
+    confirmPassword: "my-long-new-passphrase",
+  };
+  assert.equal(PasswordRecoverySchema.safeParse(good).success, true);
+  assert.equal(PasswordRecoverySchema.safeParse({ ...good, code: "" }).success, false);
+  assert.equal(PasswordRecoverySchema.safeParse({ ...good, newPassword: "short", confirmPassword: "short" }).success, false);
+  assert.equal(PasswordRecoverySchema.safeParse({ ...good, confirmPassword: "mismatch" }).success, false);
+  assert.equal(PasswordRecoverySchema.safeParse({ ...good, userId: "other-user" }).success, false);
 });
