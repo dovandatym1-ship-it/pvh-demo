@@ -41,7 +41,7 @@ export default async function NoiVuAppPage() {
       <NCCTable items={toNccDisplayRows(nccBeneficiaries, canUnmask)} canUnmaskPII={canUnmask} />
 
       <div className="pt-4">
-        <LaborPanels contracts={laborContracts} disputes={laborDisputes} />
+        <LaborPanels contracts={laborContracts} disputes={laborDisputes} canManage={ctx.permissions.includes("m02:internal:write")} />
       </div>
     </div>
   );
