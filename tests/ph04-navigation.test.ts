@@ -12,3 +12,24 @@ test("PH04 navigation exposes reporting and imports only with explicit permissio
   assert.equal(canAccessRoute("/nhap-chi-tieu",["m09:report:read"]),false);
   assert.equal(canAccessRoute("/nhap-chi-tieu",["m10:indicator:import"]),true);
 });
+
+test("specialist dashboards are visible without inventing M01 work permission", () => {
+  const routes = (permissions: string[]) =>
+    filterNavigation(permissions).flatMap(group => group.items.map(item => item.route));
+  const specialist = ["m07:faith:read"];
+  assert.ok(routes(specialist).includes("/dashboard"));
+  assert.ok(routes(specialist).includes("/dan-toc-ton-giao"));
+  assert.ok(!routes(specialist).includes("/ban-lam-viec"));
+  assert.ok(!routes(specialist).includes("/cong-viec"));
+  assert.equal(canAccessRoute("/dashboard", specialist), true);
+  assert.equal(canAccessRoute("/cong-viec", specialist), false);
+  assert.equal(canAccessRoute("/dashboard", []), false);
+  assert.equal(canAccessRoute("/quan-tri/tai-khoan", specialist), false);
+});
+
+test("unregistered paths are denied rather than silently authorized", () => {
+  assert.equal(canAccessRoute("/unknown-system-screen", ["m01:work:read"]), false);
+  assert.equal(canAccessRoute("/dashboard/unrecognized", ["m07:faith:read"]), true);
+  assert.equal(canAccessRoute("/quan-tri/tai-khoan/another-user", ["m00:membership:read"]), false);
+  assert.equal(canAccessRoute("/quan-tri/tai-khoan/another-user", ["m00:membership:manage"]), true);
+});
