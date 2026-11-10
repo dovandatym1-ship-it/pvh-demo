@@ -68,19 +68,11 @@ export async function updateSession(request: NextRequest) {
     return redirectWithSession(redirectUrl);
   }
 
-  // Redirect authenticated user away from login page
-  if (isAuthenticated && pathname.startsWith("/login")) {
-    const redirectParam = request.nextUrl.searchParams.get("redirect");
-    const targetUrl =
-      redirectParam && redirectParam.startsWith("/") &&
-      !redirectParam.startsWith("//") && !redirectParam.startsWith("/login")
-        ? redirectParam
-        : "/ban-lam-viec";
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = targetUrl;
-    redirectUrl.search = "";
-    return redirectWithSession(redirectUrl);
-  }
+  // Authentication is NOT authorization. A Supabase Auth user can exist
+  // without a current commune membership; automatically redirecting away from
+  // /login created an infinite /login ↔ protected-layout loop in that case.
+  // The login action checks active membership before entering /ban-lam-viec.
+  // Keep /login available even when a session cookie exists.
 
   return supabaseResponse;
 }
