@@ -1,7 +1,7 @@
 import React from "react";
 import { getRequestContext } from "@/lib/auth/request-context";
 import { assertCanViewFaith } from "@/features/m07-ethnicity-faith/server/policy";
-import { getReligiousEstablishments, getReputablePersons } from "@/features/m07-ethnicity-faith/server/queries";
+import { getReligiousEstablishments, getReputablePersons, getReligiousHamlets } from "@/features/m07-ethnicity-faith/server/queries";
 import { EstablishmentTable } from "@/features/m07-ethnicity-faith/components/establishment-table";
 import { ReputablePersonTable } from "@/features/m07-ethnicity-faith/components/reputable-person-table";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -12,8 +12,9 @@ export const dynamic = "force-dynamic";
 export default async function DanTocTonGiaoPage() {
   const ctx = await getRequestContext();
   assertCanViewFaith(ctx);
-  const establishments = await getReligiousEstablishments(ctx);
-  const reputablePersons = await getReputablePersons(ctx);
+  const [establishments, reputablePersons, hamlets] = await Promise.all([
+    getReligiousEstablishments(ctx), getReputablePersons(ctx), getReligiousHamlets(ctx),
+  ]);
 
   const totalFollowers = establishments.reduce((sum, item) => sum + item.followerCount, 0);
 
@@ -36,7 +37,7 @@ export default async function DanTocTonGiaoPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900">{establishments.length}</div>
-            <p className="text-xs text-gray-500 mt-1">Hoạt động ổn định trên địa bàn</p>
+            <p className="text-xs text-gray-500 mt-1">Hồ sơ đang được quản lý, chưa suy ra đã được phê duyệt</p>
           </CardContent>
         </Card>
 
@@ -47,7 +48,7 @@ export default async function DanTocTonGiaoPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">{totalFollowers}</div>
-            <p className="text-xs text-gray-500 mt-1">Đã đăng ký sinh hoạt tập trung</p>
+            <p className="text-xs text-gray-500 mt-1">Số liệu kê khai trong hồ sơ, chưa đối soát nguồn độc lập</p>
           </CardContent>
         </Card>
 
@@ -58,14 +59,14 @@ export default async function DanTocTonGiaoPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{reputablePersons.length}</div>
-            <p className="text-xs text-gray-500 mt-1">Đang hưởng phụ cấp chính sách</p>
+            <p className="text-xs text-gray-500 mt-1">Tổng số hồ sơ trong danh sách, không đồng nghĩa đang hưởng chính sách</p>
           </CardContent>
         </Card>
       </div>
 
       <div className="space-y-4">
         <h2 className="text-lg font-semibold text-gray-800">Danh mục cơ sở tín ngưỡng và điểm nhóm tôn giáo</h2>
-        <EstablishmentTable items={establishments} userPermissions={ctx.permissions} />
+        <EstablishmentTable items={establishments} hamlets={hamlets} userPermissions={ctx.permissions} />
       </div>
 
       <div className="space-y-4">
