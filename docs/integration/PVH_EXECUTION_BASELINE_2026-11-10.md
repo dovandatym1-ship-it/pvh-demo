@@ -1,10 +1,10 @@
 # PVH execution baseline
 
 **Execution:** D1/GIT-01 and local portion of GIT-02  
-**Candidate:** local branch `codex/pvh-completion-candidate` at `fcd420a6d71c69612c2ec60d83ce180199e5e261`  
-**Base:** `origin/main` at `e08fa3587bede82be6ea77c45d7a83a76cf9be24`  
-**Source:** `origin/integrate/pvh-backbone-review-20261110` at the same candidate SHA  
-**Refreshed:** 2026-11-10
+**Candidate:** local branch `codex/pvh-completion-candidate` at `a7e4fa67b106bb3920f649916093395aaa9b7cfa`
+**Base:** `origin/main` at `e08fa3587bede82be6ea77c45d7a83a76cf9be24`
+**Source:** `origin/integrate/pvh-backbone-review-20261110` at the same candidate SHA
+**Refreshed:** 2026-11-10; PR refs fetched at the D1 snapshot, candidate tree comparison refreshed at `a7e4fa6`.
 
 ## Git snapshot
 
@@ -28,13 +28,13 @@ origin/fix/pvh-ph04-data-quality-20261109 b76423e8897cb30bd95522586732754521fb79
 origin/fix/pvh-ph05-clone-brand-20261109 36fa5c3feb4b6e824930c3a89317cb1934452de4
 origin/fix/pvh-ph06-data-safety-20261109 0506748c01f8f43293163b2f529a5c00675c92eb
 origin/fix/pvh-vietnamese-language-standardization-20261109 144272f730c35bd5cf695a256f1934cd218d5bc2
-origin/integrate/pvh-backbone-review-20261110 fcd420a6d71c69612c2ec60d83ce180199e5e261
+origin/integrate/pvh-backbone-review-20261110 a7e4fa67b106bb3920f649916093395aaa9b7cfa
 origin/main e08fa3587bede82be6ea77c45d7a83a76cf9be24
 origin/plan/pvh-master-integration-ux-first-20261109 b491c7375a470d3c1e7a8fc490b117ceacf6c170
 pulls/1 48d98e9b6dd8b0084f51c744d4f6208bf49b4802
 pulls/10 36fa5c3feb4b6e824930c3a89317cb1934452de4
 pulls/11 0506748c01f8f43293163b2f529a5c00675c92eb
-pulls/12 fcd420a6d71c69612c2ec60d83ce180199e5e261
+pulls/12 a7e4fa67b106bb3920f649916093395aaa9b7cfa
 pulls/2 18280d1e3eadefe073b678a903f6e11ae8ddba9e
 pulls/3 5876113884ca9eb0325002d0ea352d5ad622668c
 pulls/4 223baa3473ca1987f3105e9c28bc90aec7ae474c
@@ -45,7 +45,7 @@ pulls/8 4304097d9a56d05b326c6f59a6e71a925c2fcea1
 pulls/9 b76423e8897cb30bd95522586732754521fb795b
 ```
 
-At the tested source SHA, the candidate was 152 commits ahead of base with zero merge commits and 362 changed files. This receipt adds one documentation-only local commit and no application source changes. Source branch commits are not considered integrated solely because a ref exists. PR #1–#11 still require content/semantic disposition because their changes were ported and rewritten. A simple commit ancestry or patch-id result is insufficient for those rewritten changes.
+At the refreshed candidate SHA, the PR is 162 commits ahead of base with zero merge commits and 386 changed files. The latest commit updates release readiness/runbook evidence; it makes no application source or migration change. Source branch commits are not considered integrated solely because a ref exists. PR #1–#11 still require content/semantic disposition because their changes were ported and rewritten. A simple commit ancestry or patch-id result is insufficient for those rewritten changes.
 
 ## Local baseline evidence
 
@@ -57,12 +57,12 @@ At the tested source SHA, the candidate was 152 commits ahead of base with zero 
 - Lint succeeds with four existing warnings in legacy data page hooks and avatar image handling. `next lint` is deprecated.
 - PASS: `npm audit --omit=dev --audit-level=moderate` reports zero production dependency advisories. Full `npm ci` audit reports six moderate advisories across the complete dependency tree. Record full-tree audit for dependency owner review.
 - The local PH04 PGlite smoke applies only seven migration files. It does not prove replay of all fourteen active migrations.
-- NOT RUN: full Supabase CLI replay and pgTAP. This machine has no Docker executable. Hosted staging is not provisioned or configured in this checkout.
+- NOT RUN locally: Supabase CLI replay and pgTAP, because this machine has no Docker executable. Hosted staging is not provisioned or configured in this checkout. Candidate CI replay/pgTAP evidence is recorded below and does not imply staging readiness.
 - NOT RUN: authenticated browser E2E, hosted RLS/Storage, restore drill, two-commune UAT, visual/performance measurements. Source CI is not a substitute for these gates.
 
 ## Disposition
 
-D1 fetch and base verification are complete. GIT-02 is **PARTIAL** until all fourteen migrations replay locally in Supabase and the remaining baseline evidence is available. No source migration, cloud project, deployment, or production data was changed by this baseline run.
+D1 fetch and base verification are complete. Source/build checks pass at `a7e4fa6`; fresh replay of 14 canonical migrations plus pgTAP passed in candidate CI at `0adec43e`, and the migration tree is unchanged through `a7e4fa6`. The local-Docker replay remains unavailable and staging G-DB/G-SEC remain open. No cloud project, deployment, or production data was changed.
 
 ## PR #1–#11 source-tree comparison
 
@@ -70,13 +70,13 @@ The comparison below counts files changed relative to each source branch's merge
 
 | PR | Source files | Exact blobs in candidate | Same path, different blob | Missing path |
 |---:|---:|---:|---:|---:|
-| #1 | 53 | 27 | 21 | 5 |
+| #1 | 53 | 27 | 22 | 4 |
 | #2 | 62 | 45 | 16 | 1 |
 | #3 | 78 | 55 | 23 | 0 |
 | #4 | 125 | 85 | 40 | 0 |
 | #5 | 24 | 16 | 7 | 1 |
 | #6 | 1 | 0 | 1 | 0 |
-| #7 | 66 | 49 | 14 | 3 |
+| #7 | 66 | 50 | 14 | 2 |
 | #8 | 81 | 63 | 18 | 0 |
 | #9 | 128 | 91 | 37 | 0 |
 | #10 | 135 | 93 | 42 | 0 |
@@ -87,10 +87,19 @@ These figures prove source-tree overlap only. They do not prove that an entire P
 ### Action from the comparison
 
 - Ported the missing M01 presentation regression test from PR #7 and added it to the integration candidate workflow. Commit `75ae99051c4ea969fd90874e5d47e1223ed4e63c`; targeted Node 22 test passes 3/3. It covers Vietnamese status/priority and event labels plus UTC+07 deadline conversion.
-- PR #1's absent DB-CI script/fixture and archived historical SQL test paths need an explicit replacement review against `pvh-db-replay.yml` and the active 14-file migration set. They have not been copied or marked equivalent by the blob comparison.
+- PR #1's DB-CI fixture is ported to the candidate replay workflow. Fresh replay of all 14 canonical migrations plus pgTAP passed at `0adec43e` ([run 42750990737](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42750990737)); no migration file changed through `a7e4fa6`. The old standalone `db-ci.yml`, `verify-db-local.sh`, and archived historical SQL tests remain absent; their semantic replacement/disposition is still open.
 - Added PR #2's detailed 20-case M01 staging checklist as `PVH_M01_STAGING_ACCEPTANCE_2026-11-10.md`, updated to require replay of the candidate's 14 canonical migrations. It remains unexecuted. Its historical open-issue section needs a fresh code review before G2 starts. The PR #7 completion delta remains a historical document without an explicit line-by-line disposition.
 - The PR #5 standalone workflow's self-service test is already invoked by the candidate workflow. The behavior and workflow path still need to be recorded in the branch disposition matrix before GIT-03 can close.
 - Same-path differences across all PRs remain open until categorized against the branch disposition ledger. No cumulative feature branch was merged blindly.
+
+### Paths absent from the candidate tree and current disposition
+
+| PR | Source path(s) absent from candidate | Current disposition | Remaining evidence |
+|---:|---|---|---|
+| #1 | `.github/workflows/db-ci.yml`; `scripts/verify-db-local.sh`; two archived SQL test files under `supabase/_legacy/.../tests/` | Replay fixture/trigger precondition is ported to `pvh-db-replay.yml`; these old paths are not copied because the legacy tests/scripts do not match the canonical migration set | Review the old test assertions against current pgTAP/CI coverage; keep open until that mapping is recorded |
+| #2 | `docs/plans/PVH_IMPLEMENTATION_2026-11-08/PH02_GATE_G2_VERIFICATION.md` | Replaced by `docs/integration/PVH_M01_STAGING_ACCEPTANCE_2026-11-10.md`, preserving the 20-case procedure and updating it for 14 canonical migrations | The cases remain unexecuted; run on isolated staging |
+| #5 | `.github/workflows/self-service-notifications.yml` | Separate workflow was not copied; its test is invoked by the candidate Integration Gate | Candidate CI passes that test; review whether the old independent trigger/schedule had any required behavior |
+| #7 | `docs/plans/PVH_IMPLEMENTATION_2026-11-08/PH02_COMPLETION_DELTA_2026-11-09.md`; `docs/plans/PVH_IMPLEMENTATION_2026-11-08/PH02_GATE_G2_VERIFICATION.md` | Gate procedure is replaced by the M01 staging checklist from PR #2; completion-delta document has no semantic disposition yet | Reconcile the historical completion delta with current M01 source and record each requirement as present/reworked/deferred |
 
 **GIT-03 · IN PROGRESS.** The PR #7 test is ported. The rest of the deltas listed above still need a disposition before GIT-03/GIT-04 can be marked complete.
 
@@ -99,9 +108,9 @@ The M01 staging checklist was added on the candidate after this source-tree comp
 
 ### PR #1 database replay fixture disposition
 
-The blob comparison found the PR #1 CI fixture absent from the candidate. The active foundation migration explicitly detects and revokes REST execution of `public.rls_auto_enable()`, while the PR #1 fixture documents the existing cloud `ensure_rls` event trigger. The current full-replay workflow did not reproduce that precondition.
+The initial blob comparison found the PR #1 CI fixture absent from the candidate. The active foundation migration explicitly detects and revokes REST execution of `public.rls_auto_enable()`, while the PR #1 fixture documents the existing cloud `ensure_rls` event trigger. The full-replay workflow was updated to reproduce that precondition in an isolated temporary migration file.
 
 Ported `supabase/_ci_fixtures/rls_event_trigger.sql` and updated `pvh-db-replay.yml` to copy it temporarily to `20261108000000_ci_only_cloud_prerequisite.sql` only after the canonical migration ledger check, before local replay. The workflow removes that exact path with an `always()` cleanup step. The fixture remains outside the canonical and archived migration directories. The source fixture explicitly models an existing trigger and is not a deployment migration.
 
 **Static checks:** migration ledger passes with 14 canonical migrations and 9 archived immutable migrations; temporary path absent after local checks; `git diff --check` passes.  
-**Runtime status:** Docker is unavailable in this checkout, so event-trigger replay and pgTAP have not run. Treat PR #1 replay work as ported, pending hosted CI evidence on the pushed candidate SHA.
+**Runtime status:** The local machine has no Docker executable. Hosted CI replay and pgTAP passed at `0adec43e` ([run 42750990737](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42750990737)); migration files are unchanged through `a7e4fa6`. This is local-candidate replay evidence, not staging/cloud G-DB evidence.

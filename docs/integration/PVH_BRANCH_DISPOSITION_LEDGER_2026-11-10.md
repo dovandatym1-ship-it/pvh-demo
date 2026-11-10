@@ -22,7 +22,7 @@
 | `fix/pvh-ph05-clone-brand-20261109` | `36fa5c3feb4b` | INHERITED_PATCH | Đã đối soát delta an toàn PH05 với cây PH06 |
 | `fix/pvh-ph06-data-safety-20261109` | `0506748c01f8` | CUMULATIVE_SOURCE | Nguồn v2 PH06 an toàn cho PII và territorial scope |
 | `fix/pvh-vietnamese-language-standardization-20261109` | `144272f730c3` | SELECTIVE_PORT | Bộ quét nhãn và các màn ưu tiên đã đưa vào; UAT ngữ nghĩa pending |
-| `integrate/pvh-backbone-review-20261110` | `223411b43216` | CANDIDATE | PR #12 nháp; CI source static, chưa đủ nghiệm thu môi trường |
+| `integrate/pvh-backbone-review-20261110` | `a7e4fa67b106` | CANDIDATE / 3 WORKFLOWS PASS | PR #12 còn Draft/NO-GO; field coverage, PR #1–#11 semantic disposition và staging G-DB/G-SEC/G-FLOW/G-UX/G-PERF chưa đóng |
 | `plan/pvh-master-integration-ux-first-20261109` | `b491c7375a47` | PLAN_INVENTORY | 37 master plan docs; bản mới tip có thể còn chưa đưa vào manifest |
 
 ## Nguyên tắc chuyển giao
@@ -42,5 +42,6 @@
 - CI thành công `e90e7929`: [CI](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42675803694), [Integration](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42675805528), [PH05](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42675803518).
 - CI thành công `223411b4`: [CI](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42676418268), [Integration](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42676418336), [PH05](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42676418360).
 - `78c1750b` bổ sung chuẩn hóa `org_unit_ids` → `hamletIds` và test; link CI HEAD cập nhật sau khi chạy xong.
+- PR #12 refreshed HEAD `a7e4fa67b106bb3920f649916093395aaa9b7cfa`: [CI Node 22](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42794311773), [Integration Candidate Gate](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42794311853), [PH05 Release Candidate Gate](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42794311837) all PASS. The 14-migration + pgTAP replay is separately evidenced at `0adec43e`; no migration file changed to `a7e4fa6`.
 
 **Chốt:** PR vẫn **DRAFT / NO-GO**, dữ liệu Supabase cloud và Vercel không thay đổi, một reviewer Đỗ Văn Đạt quyết định sau khi có G-DB/G-SEC/G-FLOW/G-UX/G-PERF.
