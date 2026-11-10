@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { canAccessRoute,filterNavigation } from "../src/config/navigation.ts";
+import { canAccessRoute, filterNavigation, preferredLandingRoute } from "../src/config/navigation.ts";
 
 test("PH04 navigation exposes reporting and imports only with explicit permissions",()=>{
   const withRights=filterNavigation(["m09:report:read","m10:indicator:import"]);
@@ -32,4 +32,25 @@ test("unregistered paths are denied rather than silently authorized", () => {
   assert.equal(canAccessRoute("/dashboard/unrecognized", ["m07:faith:read"]), true);
   assert.equal(canAccessRoute("/quan-tri/tai-khoan/another-user", ["m00:membership:read"]), false);
   assert.equal(canAccessRoute("/quan-tri/tai-khoan/another-user", ["m00:membership:manage"]), true);
+});
+
+test("post-login routing honors module permissions for every staff category", () => {
+  assert.equal(preferredLandingRoute(["m01:work:read"]), "/dashboard");
+  assert.equal(preferredLandingRoute(["m07:faith:read"]), "/dashboard");
+  assert.equal(preferredLandingRoute(["m11:catalog:read"]), "/dashboard");
+  assert.equal(preferredLandingRoute(["m00:membership:manage"]), "/quan-tri/tai-khoan");
+  assert.equal(preferredLandingRoute(["m00:membership:read"]), "/thong-tin-ca-nhan");
+  assert.equal(preferredLandingRoute(["fake:all"], ["SYSTEM_ADMIN"]), "/thong-tin-ca-nhan");
+  assert.equal(preferredLandingRoute([]), "/thong-tin-ca-nhan");
+});
+
+test("production navigation never presents legacy mock workflows", () => {
+  const all = filterNavigation([
+    "m01:work:read", "m00:membership:read", "m10:integration:read",
+  ]).flatMap(group => group.items.map(item => item.route));
+  assert.ok(all.includes("/dashboard"));
+  assert.ok(!all.includes("/quan-tri"));
+  assert.ok(!all.includes("/tich-hop"));
+  assert.equal(canAccessRoute("/quan-tri", ["m00:membership:read"]), false);
+  assert.equal(canAccessRoute("/tich-hop", ["m10:integration:read"]), false);
 });
