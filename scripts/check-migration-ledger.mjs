@@ -16,6 +16,7 @@ const canonical = new Set([
   "20261110110000_m07_safe_domain_foundation.sql",
   "20261110120000_m06_social_intake.sql",
   "20261110130000_m03_education_review.sql",
+  "20261110140000_m02_labor_and_ncc.sql",
 ]);
 const archiveHashes = {
   "20261108000001_walking_skeleton_core.sql": "f0ccadf9d023e7f278884368a0f1f78c6b78f93a",
