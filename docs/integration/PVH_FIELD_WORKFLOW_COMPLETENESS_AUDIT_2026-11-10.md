@@ -1,6 +1,6 @@
 # PVH — Audit độ đầy đủ trường dữ liệu và nghiệp vụ
 
-**Ngày:** 10/11/2026
+**Ngày rà soát:** 11/11/2026 (cập nhật trên candidate `2229ab5`)
 **Phạm vi:** candidate PR #12, nguồn OP/feature crosswalk tại `docs/plans/PVH_MASTER_INTEGRATION_2026-11-09/OP_FUNCTION_SCREEN_CODE_DB_CROSSWALK.csv`.
 **Kết luận:** Chưa đủ căn cứ để xác nhận trường dữ liệu và nghiệp vụ PVH đã đầy đủ. Có code và schema theo từng lát cắt, nhưng coverage nghiệp vụ, field dictionary và runtime evidence chưa được đo/đối soát xong. Tài liệu này không xác nhận thẩm quyền hành chính, pháp lý hoặc biểu mẫu chính thức.
 
@@ -12,9 +12,17 @@
 | Feature M11 dự thảo | 5 | Theo dõi riêng, không cộng vào 128 OP. |
 | Tổng dòng crosswalk | 133 | 128 OP + 5 feature draft. |
 | `runtime_verified` | 133 `UNVERIFIED` | Chưa có OP/feature nào được crosswalk chứng minh đã nghiệm thu runtime. |
-| `runtime_route`, `api_or_rpc`, `db_entity`, `permission`, `message_code`, `test_id`, `evidence_url` | 0/133 có giá trị | Không có traceability field-level/operation-level trong các cột này. Đây là thiếu bằng chứng liên kết, không phải bằng chứng rằng repo không có code tương ứng. |
+| M01 source-map decisions | 15/15 M01 OP có giá trị trong 7 cột traceability; 118/133 dòng ngoài M01 vẫn để trống | Liên kết được ghi từ static source review; chưa phải runtime evidence hoặc owner acceptance. Các dòng `NOT_FOUND_STATIC` ghi rõ rằng chưa tìm thấy mapping trong candidate. |
+| `runtime_route`, `api_or_rpc`, `db_entity`, `permission`, `message_code`, `test_id`, `evidence_url` | Có giá trị cho 15/133 dòng; 118/133 dòng chưa được map | Cột `runtime_route` dùng tiền tố `SOURCE_ONLY`/`LEGACY_STATIC_ONLY`; `test_id` dẫn đến test source/contract chứ không khẳng định browser/API/DB E2E đã chạy. |
 | Field dictionary được duyệt | Chưa có coverage đo được | Các trường trong completion plan hiện là ứng viên phân tích; chưa phải danh mục đã duyệt theo biểu mẫu/căn cứ. |
 | Browser/API/DB E2E coverage | Chưa đo | CI source/build và migration replay không thay thế coverage này. |
+
+### Cách đọc phần map M01
+
+- Liên kết code/test trong crosswalk trỏ đến source snapshot `2229ab5`; các file được dẫn không đổi trong lần cập nhật tài liệu này.
+- `SOURCE_ONLY` xác nhận có lát cắt trong mã nguồn để review tĩnh; không xác nhận route đã chạy, RPC kết nối được với hosted schema, hoặc vai trò thực đã được thử.
+- `NOT_FOUND_STATIC`/`NO_*_FOUND` nghĩa là chưa thấy artifact tương ứng trong candidate khi rà soát; đây không phải quyết định DEFER và cũng không thay xác nhận nghiệp vụ của chủ sở hữu.
+- Tất cả 133 dòng vẫn `runtime_verified=UNVERIFIED`, `merge_decision=PENDING_CODE_AUDIT` và `review_owner=OWNER_PENDING`.
 
 ## 2. Kết quả theo module
 
@@ -35,7 +43,7 @@
 
 ## 2.1. Trace source-level cho 15 OP M01 — snapshot `3d35d94`
 
-Đối chiếu tĩnh source/migration trên candidate PR #12 tại HEAD `3d35d94`; **không phải kết quả chạy browser, API, PostgreSQL hay nghiệm thu nghiệp vụ**. Tên OP lấy từ 15 dòng `OP-M01-001..015` trong `OP_FUNCTION_SCREEN_CODE_DB_CROSSWALK.csv`. Mọi dòng crosswalk vẫn `UNVERIFIED`; các cột route/API/DB/permission/test/evidence chưa được điền.
+Đối chiếu tĩnh source/migration trên candidate PR #12; **không phải kết quả chạy browser, API, PostgreSQL hay nghiệm thu nghiệp vụ**. Tên OP lấy từ 15 dòng `OP-M01-001..015` trong `OP_FUNCTION_SCREEN_CODE_DB_CROSSWALK.csv`. Các liên kết static source map đã được điền cho 15 OP M01 ở snapshot `2229ab5`; `runtime_verified` vẫn `UNVERIFIED` cho cả 133 dòng.
 
 | OP | Dấu vết trong candidate | Kết luận source-level và gap |
 |---|---|---|
