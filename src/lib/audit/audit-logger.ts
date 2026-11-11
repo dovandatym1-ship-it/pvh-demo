@@ -18,24 +18,6 @@ export interface AuditLogEntry {
   ipAddress?: string;
 }
 
-export const TENANT_A_UUID = "a0000000-0000-0000-0000-000000000001";
-
-export const PERSONA_UUIDS: Record<string, string> = {
-  ADMIN: "c0000000-0000-0000-0000-000000000000",
-  P1: "c0000000-0000-0000-0000-000000000001",
-  P2: "c0000000-0000-0000-0000-000000000002",
-  P3: "c0000000-0000-0000-0000-000000000003",
-  P4: "c0000000-0000-0000-0000-000000000004",
-  P5: "c0000000-0000-0000-0000-000000000005",
-  P6: "c0000000-0000-0000-0000-000000000006",
-};
-
-export function toValidUuid(id: string, fallback: string): string {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (uuidRegex.test(id)) return id;
-  return fallback;
-}
-
 function assertUuid(value: string, field: string): void {
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) {
     throw new ForbiddenError(`AUDIT_INVALID_${field}`);

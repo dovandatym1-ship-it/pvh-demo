@@ -21,6 +21,7 @@ test("audit writes never fabricate tenant, actor, or receipt identifiers", () =>
   assert.match(writeBody, /assertUuid\(entry\.tenantId, "TENANT"\)/);
   assert.match(writeBody, /assertUuid\(entry\.userId, "ACTOR"\)/);
   assert.doesNotMatch(writeBody, /toValidUuid|TENANT_A_UUID|PERSONA_UUIDS/);
+  assert.doesNotMatch(source, /export\s+(?:const|function)\s+(?:TENANT_A_UUID|PERSONA_UUIDS|toValidUuid)\b/);
   assert.doesNotMatch(writeBody, /id:\s*`audit-/);
   assert.match(writeBody, /AUDIT_WRITE_FAILED/);
 });
