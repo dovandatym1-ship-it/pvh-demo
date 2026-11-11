@@ -103,8 +103,9 @@ create trigger pvh_emit_work_item_notification_trigger
 after insert or update of assigned_to,status,due_date on public.work_items
 for each row execute function public.pvh_emit_work_item_notification();
 
--- The UI only supports read-after-write; due-date scheduled reminders, push/email,
--- read-all, bulk archive, and user preference delivery are deferred to later phases.
+-- The UI supports per-item and bulk read-after-write for in-app notifications.
+-- Scheduled due-date reminders, push/email, bulk archive, and configurable
+-- user-preference delivery are deferred to later phases.
 
 
 -- Private, size-limited avatar bucket for authenticated self-service.

@@ -1,6 +1,6 @@
 # PVH — Audit độ đầy đủ trường dữ liệu và nghiệp vụ
 
-**Ngày rà soát:** 11/11/2026 (cập nhật trên candidate `2229ab5`)
+**Ngày rà soát:** 11/11/2026 (static source-map snapshot M01 `2229ab5`, M00 `e20f343`)
 **Phạm vi:** candidate PR #12, nguồn OP/feature crosswalk tại `docs/plans/PVH_MASTER_INTEGRATION_2026-11-09/OP_FUNCTION_SCREEN_CODE_DB_CROSSWALK.csv`.
 **Kết luận:** Chưa đủ căn cứ để xác nhận trường dữ liệu và nghiệp vụ PVH đã đầy đủ. Có code và schema theo từng lát cắt, nhưng coverage nghiệp vụ, field dictionary và runtime evidence chưa được đo/đối soát xong. Tài liệu này không xác nhận thẩm quyền hành chính, pháp lý hoặc biểu mẫu chính thức.
 
@@ -12,14 +12,14 @@
 | Feature M11 dự thảo | 5 | Theo dõi riêng, không cộng vào 128 OP. |
 | Tổng dòng crosswalk | 133 | 128 OP + 5 feature draft. |
 | `runtime_verified` | 133 `UNVERIFIED` | Chưa có OP/feature nào được crosswalk chứng minh đã nghiệm thu runtime. |
-| M01 source-map decisions | 15/15 M01 OP có giá trị trong 7 cột traceability; 118/133 dòng ngoài M01 vẫn để trống | Liên kết được ghi từ static source review; chưa phải runtime evidence hoặc owner acceptance. Các dòng `NOT_FOUND_STATIC` ghi rõ rằng chưa tìm thấy mapping trong candidate. |
-| `runtime_route`, `api_or_rpc`, `db_entity`, `permission`, `message_code`, `test_id`, `evidence_url` | Có giá trị cho 15/133 dòng; 118/133 dòng chưa được map | Cột `runtime_route` dùng tiền tố `SOURCE_ONLY`/`LEGACY_STATIC_ONLY`; `test_id` dẫn đến test source/contract chứ không khẳng định browser/API/DB E2E đã chạy. |
+| M00/M01 source-map decisions | 27/27 M00+M01 OP có giá trị trong 7 cột traceability; 106/133 dòng ngoài hai module vẫn để trống | Liên kết được ghi từ static source review; chưa phải runtime evidence hoặc owner acceptance. Các dòng `NOT_FOUND_STATIC` ghi rõ rằng chưa tìm thấy mapping trong candidate. |
+| `runtime_route`, `api_or_rpc`, `db_entity`, `permission`, `message_code`, `test_id`, `evidence_url` | Có giá trị cho 27/133 dòng; 106/133 dòng chưa được map | Cột `runtime_route` dùng tiền tố `SOURCE_ONLY`/`LEGACY_STATIC_ONLY`; `test_id` dẫn đến test source/contract chứ không khẳng định browser/API/DB E2E đã chạy. |
 | Field dictionary được duyệt | Chưa có coverage đo được | Các trường trong completion plan hiện là ứng viên phân tích; chưa phải danh mục đã duyệt theo biểu mẫu/căn cứ. |
 | Browser/API/DB E2E coverage | Chưa đo | CI source/build và migration replay không thay thế coverage này. |
 
-### Cách đọc phần map M01
+### Cách đọc phần map M00/M01
 
-- Liên kết code/test trong crosswalk trỏ đến source snapshot `2229ab5`; các file được dẫn không đổi trong lần cập nhật tài liệu này.
+- Link source/test M00 dùng snapshot `e20f343`; link M01 dùng `2229ab5`. Đây là các snapshot mã nguồn bất biến để kiểm tra mapping, không phải receipt runtime.
 - `SOURCE_ONLY` xác nhận có lát cắt trong mã nguồn để review tĩnh; không xác nhận route đã chạy, RPC kết nối được với hosted schema, hoặc vai trò thực đã được thử.
 - `NOT_FOUND_STATIC`/`NO_*_FOUND` nghĩa là chưa thấy artifact tương ứng trong candidate khi rà soát; đây không phải quyết định DEFER và cũng không thay xác nhận nghiệp vụ của chủ sở hữu.
 - Tất cả 133 dòng vẫn `runtime_verified=UNVERIFIED`, `merge_decision=PENDING_CODE_AUDIT` và `review_owner=OWNER_PENDING`.
@@ -28,7 +28,7 @@
 
 | Module | Có thể xác nhận từ candidate | Phần trường/luồng chưa đủ hoặc chưa có nguồn xác nhận | Trạng thái kiến trúc |
 |---|---|---|---|
-| **M00** Quản trị | Membership, quyền, đơn vị, xác thực và một số thao tác quản trị có schema/RPC. | 12 OP còn `UNVERIFIED`; chưa có field-level mapping cho ủy quyền, hiệu lực tổ chức/phân công, version mẫu/quy tắc, retention/audit, vòng đời tài khoản và seed/reset demo. Cần owner chốt quan hệ M00–M11. | Có nền an toàn; chưa đủ mô hình quản trị theo OP. |
+| **M00** Quản trị | Membership, phân vai, phạm vi thôn, xác thực/khôi phục mật khẩu, audit receipt, M11 catalog CRUD và thông báo công việc có lát cắt schema/RPC/UI. Crosswalk đã có static source map cho 12 OP. | Cả 12 OP vẫn `UNVERIFIED`; thiếu quản trị đơn vị theo hiệu lực/lịch sử, ủy quyền có căn cứ, cấu hình loại hồ sơ/quy trình, vòng đời rule/template dùng chung, audit truy cập/xuất toàn diện, bootstrap/tắt module và reset demo có audit. Thông báo mới là in-app từ sự kiện việc, chưa có lịch nhắc/cấu hình kênh/owner policy. Cần owner chốt quan hệ M00–M11. | Có nền quản trị tài khoản và quyền theo một xã; chưa đủ mô hình vận hành đa đơn vị/ủy quyền/cấu hình quản trị theo OP. |
 | **M01** Công việc/hồ sơ | Work item, phân công, thời hạn, trạng thái, audit, tệp minh chứng, OCC/idempotency và phân trang đã có lát cắt triển khai. | Chưa thấy bộ master data canonical đầy đủ cho cá nhân/hộ/tổ chức/cơ sở và hồ sơ nguồn; plan/crosswalk còn yêu cầu chốt ownership, mã lĩnh vực và biến thể tiếp nhận. Không tự thêm trường CCCD/sức khỏe khi chưa có mục đích và căn cứ. | Workflow công việc không đồng nghĩa đã có nền dữ liệu chủ/hồ sơ nghiệp vụ đầy đủ. |
 | **M02** Nội vụ/lao động | Có các thực thể và thao tác theo lát cắt cán bộ, người có công, lao động/tranh chấp; đã có xử lý PII theo DTO ở một số luồng. | 18 OP `UNVERIFIED`; cần đối chiếu quyết định/căn cứ từng diện chính sách, lịch sử hiệu lực, hồ sơ chứng minh, thống kê và phân quyền từng trường. Enum lạ phải giữ trạng thái chưa xác định, không gán sang diện khác. | Chưa đủ để xác nhận hồ sơ/chi trả/chính sách chính thức. |
 | **M03** Giáo dục | Có schema/query cho cơ sở, học sinh/chỉ tiêu/hỗ trợ theo lát cắt. | 12 OP `UNVERIFIED`; thiếu đối chiếu biểu mẫu/năm học, quan hệ trường–lớp–người học, nguồn chính sách và trường tối thiểu cần lưu. Cần kiểm riêng dữ liệu trẻ em, truy cập theo trường/địa bàn, retention và export. | Không được suy rộng từ schema mẫu thành đủ hồ sơ giáo dục. |
