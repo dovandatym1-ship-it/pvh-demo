@@ -154,3 +154,12 @@ Context dự án còn `PVH-I-016` và `PVH-I-017` ở trạng thái OPEN/HIGH; c
 - **PostgREST custom schema:** `supabase/config.toml` khai báo `app` trong `[api].schemas` cho môi trường local; migration cấp `USAGE` schema cho `authenticated, service_role` và thu hẹp `EXECUTE` của RPC theo từng hàm. Đây chưa chứng minh cấu hình API hosted: [Supabase yêu cầu thêm custom schema trong API Settings → Exposed schemas](https://supabase.com/docs/guides/api/using-custom-schemas). G-SEC phải chụp/read back cấu hình staging, gọi thành công RPC bằng đúng JWT role, rồi xác nhận anon/role không được cấp bị từ chối. Không dùng `GRANT ALL ON ALL ROUTINES` để thay thế allowlist quyền hiện hành.
 
 **Trạng thái finding:** `SOURCE_MITIGATION_CHECKED / RUNTIME_UNVERIFIED`; đề nghị reviewer đối chiếu lại backlog sau khi có G-SEC staging. Không đóng I-016/I-017 chỉ dựa trên source hoặc CI.
+
+## 12. D2 revalidation — 11/11/2026
+
+- Reconfirmed PR #12 source head `7a3bc7c0d0361ae8a0416acbeafc8bfeca222693`, base `main@e08fa3587bede82be6ea77c45d7a83a76cf9be24`, 165 commits, 389 changed files, no merge commits.
+- In the isolated candidate checkout, configured Integration static/contract commands passed 119/119 and `test:ph04` passed 14/14; `typecheck`, `lint`, `fitness`, `build`, migration ledger, Vietnamese scanner, `git diff --check`, and `npm audit --omit=dev --audit-level=high` passed. The isolated PGlite smoke applies seven migration files, not all fourteen. Lint emitted the same four existing legacy warnings.
+- GitHub CI, Integration Candidate Gate, and PH05 at `7a3bc7c` all concluded failure, but the job API returned no step summaries or log URLs. These results do not identify a source failure and do not establish a pass. The exact Node native TypeScript-strip test invocation passed locally; push of this evidence refresh will trigger a new CI attempt.
+- No fresh database replay, staging Auth/RLS/Storage test, signed-in browser E2E, UX/performance measurement, or business-owner acceptance occurred in this refresh. Prior 14-migration replay evidence remains at `0adec43e` only.
+
+**Decision remains NO-GO.** The local source checks reduce code-level uncertainty, but release readiness is still blocked by fresh-head CI diagnostics and the isolated staging/business acceptance gates listed above.

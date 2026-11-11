@@ -1,4 +1,4 @@
-# PVH — Branch tip & disposition ledger (10/11/2026)
+# PVH — Branch tip & disposition ledger (updated 11/11/2026)
 
 **Phạm vi:** read-only snapshot GitHub 20 refs tại thời điểm kiểm kê. Đây là ledger đối soát để duyệt PR #12, **không phải lệnh merge** và không thay thế commit-by-commit audit. Nhánh main và các Phase giữ nguyên.
 
@@ -22,7 +22,7 @@
 | `fix/pvh-ph05-clone-brand-20261109` | `36fa5c3feb4b` | INHERITED_PATCH | Đã đối soát delta an toàn PH05 với cây PH06 |
 | `fix/pvh-ph06-data-safety-20261109` | `0506748c01f8` | CUMULATIVE_SOURCE | Nguồn v2 PH06 an toàn cho PII và territorial scope |
 | `fix/pvh-vietnamese-language-standardization-20261109` | `144272f730c3` | SELECTIVE_PORT | Bộ quét nhãn và các màn ưu tiên đã đưa vào; UAT ngữ nghĩa pending |
-| `integrate/pvh-backbone-review-20261110` | `a7e4fa67b106` | CANDIDATE / 3 WORKFLOWS PASS | PR #12 còn Draft/NO-GO; field coverage, PR #1–#11 semantic disposition và staging G-DB/G-SEC/G-FLOW/G-UX/G-PERF chưa đóng |
+| `integrate/pvh-backbone-review-20261110` | `7a3bc7c0d036` | CANDIDATE / local source checks PASS; current GitHub CI UNCLASSIFIED FAILURE | PR #12 có 165 commits/389 files và 0 merge commit; field coverage, PR #1–#11 semantic disposition và staging G-DB/G-SEC/G-FLOW/G-UX/G-PERF chưa đóng |
 | `plan/pvh-master-integration-ux-first-20261109` | `b491c7375a47` | PLAN_INVENTORY | 37 master plan docs; bản mới tip có thể còn chưa đưa vào manifest |
 
 ## Nguyên tắc chuyển giao
@@ -43,5 +43,6 @@
 - CI thành công `223411b4`: [CI](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42676418268), [Integration](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42676418336), [PH05](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42676418360).
 - `78c1750b` bổ sung chuẩn hóa `org_unit_ids` → `hamletIds` và test; link CI HEAD cập nhật sau khi chạy xong.
 - PR #12 refreshed HEAD `a7e4fa67b106bb3920f649916093395aaa9b7cfa`: [CI Node 22](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42794311773), [Integration Candidate Gate](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42794311853), [PH05 Release Candidate Gate](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42794311837) all PASS. The 14-migration + pgTAP replay is separately evidenced at `0adec43e`; no migration file changed to `a7e4fa6`.
+- D2 refresh at remote HEAD `7a3bc7c0d0361ae8a0416acbeafc8bfeca222693`: [CI](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42796993895), [Integration Candidate Gate](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42796993873), and [PH05](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42796993861) report failure. GitHub returned no job steps or logs for all four jobs, so cause is unclassified. Local verification is recorded in `PVH_EXECUTION_BASELINE_2026-11-10.md`; push of this evidence refresh will trigger a new CI attempt.
 
 **Chốt:** PR vẫn **DRAFT / NO-GO**, dữ liệu Supabase cloud và Vercel không thay đổi, một reviewer Đỗ Văn Đạt quyết định sau khi có G-DB/G-SEC/G-FLOW/G-UX/G-PERF.
