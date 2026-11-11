@@ -32,6 +32,16 @@ test("work item visibility check precedes conflict and transition details", () =
   assert.ok(row >= 0 && access > row && version > access);
 });
 
+test("transition holds a row lock through the optimistic version check and write", () => {
+  const body = definition("app.transition_work_item(");
+  const select = body.indexOf("select * into v_item from public.work_items");
+  const lock = body.indexOf("for update", select);
+  const version = body.indexOf("if v_item.version<>p_expected_version", select);
+  const update = body.indexOf("update public.work_items set status=p_to_state", select);
+  assert.ok(select >= 0 && lock > select && version > lock && update > version);
+  assert.match(body, /where id=p_id and tenant_id=v_tenant for update/);
+});
+
 test("review recipients must be authorized and cannot be the assignee", () => {
   const body = definition("app.transition_work_item(");
   assert.match(body, /m01:work:review/);
