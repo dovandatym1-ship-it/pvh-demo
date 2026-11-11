@@ -59,7 +59,7 @@
 
 - Phần có cơ sở source rõ nhất là **workflow công việc nội bộ**: tạo, giao/phối hợp, cập nhật hạn/địa bàn, chuyển trạng thái, minh chứng, lịch sử, inbox và phân trang. Đây chỉ là lát cắt, không đại diện toàn bộ 15 OP.
 - Chưa thể xác nhận M01 đầy đủ trường/nghiệp vụ: loại việc còn tự do; thiếu hồ sơ nguồn, trao đổi/yêu cầu bổ sung hoàn chỉnh; kế hoạch mới là lát cắt M05; entity chủ cá nhân/hộ/tổ chức/cơ sở và quản lý định danh chưa có mô hình DB canonical được chứng minh.
-- `tests/e2e/m01_multi_role.spec.ts` là test artifact, chưa phải bằng chứng đã chạy. Nó còn gọi `POST /api/work-items/:id/assign` và `GET /api/work-items/:id/audit`, trong khi source route tìm thấy chỉ có transition route; cần đồng bộ test với server actions/API hiện hành trước khi dùng làm gate.
+- Artifact `tests/e2e/m01_multi_role.spec.ts` đã bị loại vì không có Playwright dependency/config/script, dùng mật khẩu mẫu và gọi các route assign/audit không tồn tại. Các case nghiệp vụ được giữ trong `PVH_M01_STAGING_ACCEPTANCE_2026-11-10.md`; checklist còn `NOT_EXECUTED_ON_STAGING`, nên không có E2E/runtime evidence.
 - Trạng thái phù hợp: **PARTIAL / RUNTIME_UNVERIFIED / OWNER_PENDING**. Chưa thể kết luận PR #12 sẵn sàng merge chỉ từ workflow code.
 
 ## 3. Các P0 xử lý trong candidate và phần còn mở

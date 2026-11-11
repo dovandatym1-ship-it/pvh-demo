@@ -315,21 +315,22 @@ def test_f21_clean_build(h: TestHarness):
     h.assert_equal(len(matches), 0, "No new app components may import legacy work modules")
 
 
-# Feature 22: M01 Playwright Multi-role E2E Test
+# Feature 22: M01 Staging Acceptance Checklist
 @registry.register(
     test_id="T1.22.1",
     tier=1,
     feature_id=22,
-    name="Multi-role E2E Test Specification Exists",
-    description="Playwright E2E test file exists for multi-role work flow",
+    name="M01 Staging Acceptance Checklist Exists",
+    description="A pending checklist exists; its presence is not runtime evidence",
     source="ORIGINAL_REQUEST.md §R3, S2-07, Gate G2",
 )
 def test_f22_playwright_test_file(h: TestHarness):
-    test_path1 = "tests/e2e/m01_multi_role.spec.ts"
-    test_path2 = "tests/e2e/work_item_workflow.spec.ts"
+    checklist = "docs/integration/PVH_M01_STAGING_ACCEPTANCE_2026-11-10.md"
     h.assert_true(
-        h.file_exists(test_path1) or h.file_exists(test_path2) or h.file_exists("tests/e2e/runner.py"),
-        "Multi-role E2E test file must exist",
+        h.file_exists(checklist)
+        and "NOT_EXECUTED_ON_STAGING" in h.read_text(checklist)
+        and "G2 PASS chỉ khi" in h.read_text(checklist),
+        "M01 staging checklist must remain explicit that it is unexecuted",
     )
 
 
@@ -337,53 +338,49 @@ def test_f22_playwright_test_file(h: TestHarness):
     test_id="T1.22.2",
     tier=1,
     feature_id=22,
-    name="E2E Test Exercises Assigner Role",
-    description="Test simulates task creation and assignment by Assigner/Leader persona",
+    name="Checklist Covers Assigner Role",
+    description="M01 staging checklist specifies task creation and assignment cases",
     source="ORIGINAL_REQUEST.md §R3, S2-07",
 )
 def test_f22_assigner_role(h: TestHarness):
-    content = h.read_text("tests/e2e/m01_multi_role.spec.ts") if h.file_exists("tests/e2e/m01_multi_role.spec.ts") else ""
-    plan = h.read_text("README.md") if h.file_exists("README.md") else ""
-    h.assert_true("assign" in content.lower() or "assigner" in content.lower() or "giao việc" in (content + plan).lower(), "E2E test must exercise assigner role")
+    checklist = h.read_text("docs/integration/PVH_M01_STAGING_ACCEPTANCE_2026-11-10.md")
+    h.assert_true("G2-01" in checklist and "G2-03" in checklist, "M01 checklist must cover create, assignment, and acceptance")
 
 
 @registry.register(
     test_id="T1.22.3",
     tier=1,
     feature_id=22,
-    name="E2E Test Exercises Worker Processing Role",
-    description="Test simulates Worker persona moving task to In Progress and Under Review",
+    name="Checklist Covers Worker Processing Role",
+    description="M01 staging checklist specifies worker evidence and submission cases",
     source="ORIGINAL_REQUEST.md §R3, S2-07",
 )
 def test_f22_worker_role(h: TestHarness):
-    content = h.read_text("tests/e2e/m01_multi_role.spec.ts") if h.file_exists("tests/e2e/m01_multi_role.spec.ts") else ""
-    plan = h.read_text("README.md") if h.file_exists("README.md") else ""
-    h.assert_true("worker" in content.lower() or "xử lý" in (content + plan).lower() or "progress" in content.lower(), "E2E test must exercise worker role")
+    checklist = h.read_text("docs/integration/PVH_M01_STAGING_ACCEPTANCE_2026-11-10.md")
+    h.assert_true("G2-09" in checklist and "G2-10" in checklist, "M01 checklist must cover worker evidence and submission flow")
 
 
 @registry.register(
     test_id="T1.22.4",
     tier=1,
     feature_id=22,
-    name="E2E Test Exercises Reviewer Approval Role",
-    description="Test simulates Reviewer persona reviewing and completing task",
+    name="Checklist Covers Reviewer Approval Role",
+    description="M01 staging checklist specifies reviewer return and approval cases",
     source="ORIGINAL_REQUEST.md §R3, S2-07",
 )
 def test_f22_reviewer_role(h: TestHarness):
-    content = h.read_text("tests/e2e/m01_multi_role.spec.ts") if h.file_exists("tests/e2e/m01_multi_role.spec.ts") else ""
-    plan = h.read_text("README.md") if h.file_exists("README.md") else ""
-    h.assert_true("reviewer" in content.lower() or "rà soát" in (content + plan).lower() or "completed" in content.lower(), "E2E test must exercise reviewer role")
+    checklist = h.read_text("docs/integration/PVH_M01_STAGING_ACCEPTANCE_2026-11-10.md")
+    h.assert_true("G2-11" in checklist and "M duyệt" in checklist, "M01 checklist must cover reviewer return and approval")
 
 
 @registry.register(
     test_id="T1.22.5",
     tier=1,
     feature_id=22,
-    name="E2E Test Verifies Multi-role Audit Trail",
-    description="Test asserts that audit trail captures actions of assigner, worker, and reviewer",
+    name="Checklist Specifies Multi-role Audit Read-back",
+    description="M01 staging checklist defines audit evidence; it does not claim execution",
     source="ORIGINAL_REQUEST.md §R3, S2-07, Gate G2",
 )
 def test_f22_audit_trail_assertion(h: TestHarness):
-    content = h.read_text("tests/e2e/m01_multi_role.spec.ts") if h.file_exists("tests/e2e/m01_multi_role.spec.ts") else ""
-    plan = h.read_text("README.md") if h.file_exists("README.md") else ""
-    h.assert_true("audit" in (content + plan).lower(), "E2E test must assert audit trail integrity")
+    checklist = h.read_text("docs/integration/PVH_M01_STAGING_ACCEPTANCE_2026-11-10.md")
+    h.assert_true("G2-01" in checklist and "G2-11" in checklist and "audit" in checklist.lower(), "M01 checklist must specify audit read-back evidence")
