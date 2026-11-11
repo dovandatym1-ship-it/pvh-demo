@@ -1,6 +1,16 @@
 # PVH — Branch tip & disposition ledger (updated 11/11/2026)
 
-**Phạm vi:** ref snapshot sau `git fetch origin --prune` ngày 11/11/2026; tree audit PR #1–#11 được tính lại tại candidate `0951bac104da7f72702784e9e4e31a69d5a14abd` (source code snapshot vẫn là `f8c0fb0`; các commit sau đó chỉ đổi tài liệu/crosswalk/ledger/PR body). Đây là ledger đối soát để duyệt PR #12, **không phải lệnh merge** và không chứng minh runtime/owner acceptance. Nhánh main và các Phase giữ nguyên.
+**Phạm vi:** snapshot refs sau `git fetch origin --prune` ngày 11/11/2026. Bảng tree audit phía dưới là lịch sử tại candidate `0951bac104da7f72702784e9e4e31a69d5a14abd`; checkpoint source mới nhất là `ba89566d0edc5cf4285b34f952740b96025c6780`. Đây là ledger đối soát để duyệt PR #12, **không phải lệnh merge** và không chứng minh runtime/owner acceptance. `main` và Demo-pvh không bị thay đổi.
+
+## Checkpoint triển khai · source commit `ba89566` · 11/11/2026
+
+- PR #12 đang mở, Draft/NO-GO; base `main@e08fa3587bede82be6ea77c45d7a83a76cf9be24`; khi đọc metadata trước lần cập nhật ledger này, head code là `ba89566d0edc5cf4285b34f952740b96025c6780`, 183 commits, 407 files changed. Commit code đã được push fast-forward lên `integrate/pvh-backbone-review-20261110`.
+- Source checkpoint bổ sung: retire M04 legacy scoring modules có default score/rule chưa được owner duyệt; giữ action exports dạng fail-closed; dữ liệu demo đang gán sai diện được đổi thành `UNKNOWN` để không kết luận sai. Không thêm migration và không gọi Supabase/Vercel.
+- Bộ lệnh local theo workflow candidate đã PASS tại source checkpoint: regression suites, typecheck, lint, fitness và production build. Môi trường local dùng Node `25.9.0`, còn CI yêu cầu Node 22; build có 4 warning legacy. Kết quả local không thay CI.
+- Ba workflow exact-head hiện `failure` **trước khi job bắt đầu** do GitHub account payments/spending limit; không có step build/test chạy: [CI run 42964876301](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42964876301), [Integration run 42964876357](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42964876357), [PH05 run 42964876342](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42964876342). Cần repo owner xử lý billing rồi rerun đủ workflow trên SHA mới nhất.
+- Recheck source-path presence cho PR #1–#11 tại candidate: không có path `src/` hoặc `supabase/migrations/` nào được PR nguồn thêm/sửa nhưng vắng ở candidate. Đây chỉ là kiểm kê path; nội dung khác blob vẫn cần semantic review và các PR chưa được chứng minh nghiệm thu.
+- G0–G5 và staging còn BLOCKED: chưa có owner quyết định, fresh replay+pgTAP exact head, Auth/RLS/Storage đa vai trò, browser→API→DB read-back, E2E/UAT, UX/perf hoặc stability evidence. Không merge `main`, không migrate Demo-pvh.
+
 
 | Nhánh | Tip SHA (12 ký tự đầu) | Quyết định source | Điều kiện / giải thích |
 |---|---|---|---|
@@ -22,7 +32,7 @@
 | `fix/pvh-ph05-clone-brand-20261109` | `36fa5c3feb4b` | INHERITED_PATCH | Đã đối soát delta an toàn PH05 với cây PH06 |
 | `fix/pvh-ph06-data-safety-20261109` | `0506748c01f8` | CUMULATIVE_SOURCE | Nguồn v2 PH06 an toàn cho PII và territorial scope |
 | `fix/pvh-vietnamese-language-standardization-20261109` | `144272f730c3` | SELECTIVE_PORT | Bộ quét nhãn và các màn ưu tiên đã đưa vào; UAT ngữ nghĩa pending |
-| `integrate/pvh-backbone-review-20261110` | `0951bac104da` | CANDIDATE / no application-code path remains unchanged from base; retained base blobs among PR-source deltas are workflow/docs paths only | Tree audit không chứng minh semantic acceptance. CI exact HEAD bị chặn trước job do billing/spending-limit; field coverage mới là static trace; business/owner acceptance và staging G-DB/G-SEC/G-FLOW/G-UX/G-PERF chưa đóng |
+| `integrate/pvh-backbone-review-20261110` | `ba89566d0edc` | CANDIDATE / source checkpoint pushed; local source gates PASS | Exact-head CI bị chặn trước job do billing/spending-limit; field coverage mới là static trace; business/owner acceptance và staging G-DB/G-SEC/G-FLOW/G-UX/G-PERF chưa đóng |
 | `plan/pvh-master-integration-ux-first-20261109` | `b491c7375a47` | PLAN_INVENTORY | 37 master plan docs; bản mới tip có thể còn chưa đưa vào manifest |
 
 ## Đối soát tree PR #1–#11 với candidate
