@@ -1,6 +1,6 @@
 # PH03 — Hoàn thiện CRUD và trải nghiệm hiển thị (09/11/2026)
 
-**Nhánh:** fix/pvh-ph03-crud-ux-20261109; phát sinh từ feat/pvh-ph03-domain-verticals tại 5876113884ca9eb0325002d0ea352d5ad622668c.  
+**Nhánh:** fix/pvh-ph03-crud-ux-20261109; phát sinh từ feat/pvh-ph03-domain-verticals tại 5876113884ca9eb0325002d0ea352d5ad622668c.\
 **Người duyệt:** Đỗ Văn Đạt. **Trạng thái:** CODE_READY_AWAITING_GATE (không tự xác nhận G3 PASS).
 
 ## Đã triển khai trong lượt này

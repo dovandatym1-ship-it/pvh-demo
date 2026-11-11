@@ -1,8 +1,8 @@
 # PH01 implementation receipt — branch work in progress
 
-**Branch:** `feat/pvh-ph01-platform-auth`  
-**Starting commit:** `main@1b948f6cdbe8dae293dba9b6627c2b7201e036fc`  
-**Cloud Supabase:** no schema/role/user/data modifications authorized or executed.  
+**Branch:** `feat/pvh-ph01-platform-auth`\
+**Starting commit:** `main@1b948f6cdbe8dae293dba9b6627c2b7201e036fc`\
+**Cloud Supabase:** no schema/role/user/data modifications authorized or executed.\
 **Status:** `IMPLEMENTED_PARTIAL — NOT VERIFIED / NOT OWNER_ACCEPTED`.
 
 ## Changes staged in this branch

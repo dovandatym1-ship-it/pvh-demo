@@ -1,7 +1,7 @@
 # PH02 — Implementation Receipt (DRAFT, not a Gate PASS)
 
-**Branch:** `feat/pvh-ph02-core-workflow`  
-**Base:** `feat/pvh-ph01-platform-auth` (commit `88ce16db339b88d970bc8307d7713bd437e75f89`)  
+**Branch:** `feat/pvh-ph02-core-workflow`\
+**Base:** `feat/pvh-ph01-platform-auth` (commit `88ce16db339b88d970bc8307d7713bd437e75f89`)\
 **Owner duyệt:** Đỗ Văn Đạt, chưa duyệt / chưa merge.
 
 ## Code đã thực hiện

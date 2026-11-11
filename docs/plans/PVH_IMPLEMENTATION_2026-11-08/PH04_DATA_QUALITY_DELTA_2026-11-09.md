@@ -1,6 +1,6 @@
 # PH04 — Bản vá chất lượng số liệu, đối chiếu và nhập CSV (09/11/2026)
 
-**Nhánh:** fix/pvh-ph04-data-quality-20261109; kế thừa feat/pvh-ph04-reporting-integrations.  
+**Nhánh:** fix/pvh-ph04-data-quality-20261109; kế thừa feat/pvh-ph04-reporting-integrations.\
 **Người duyệt:** Đỗ Văn Đạt. **Gate G4:** chưa nghiệm thu hosted staging.
 
 ## Những lỗi đã sửa

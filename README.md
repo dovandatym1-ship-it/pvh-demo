@@ -3,7 +3,7 @@
 Ứng dụng dự kiến phục vụ tác nghiệp, phối hợp và báo cáo cho Phòng VH-XH cấp xã tại Thái Nguyên, dùng chung một codebase với cấu hình và dữ liệu độc lập theo xã.
 
 **Kiến trúc được người dùng đồng ý:** Next.js App Router + TypeScript + Supabase.  
-**Cập nhật tích hợp:** 10/11/2026.  
+**Cập nhật tích hợp:** 10/11/2026.\
 **Trạng thái phát hành:** **DRAFT / NO-GO** — [PR #12](https://github.com/dovandatym1-ship-it/pvh-demo/pull/12), chưa merge vào `main`, chưa triển khai production.
 
 **Bằng chứng đã đạt:** Next.js source CI, dependency audit và isolated local Supabase replay cho chuỗi migration hiện hành (14 file) cùng pgTAP M01/M04/M05/M08, notification/Storage và kiểm thử cách ly hai người nhận: [DB Replay PASS](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42742938865).

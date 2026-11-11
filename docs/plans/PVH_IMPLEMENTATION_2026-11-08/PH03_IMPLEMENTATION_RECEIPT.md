@@ -1,9 +1,9 @@
 # PH03 Implementation Receipt — 08/11/2026
 
-**Task group:** P03-01→P03-21 (increment 1, partial implementation)  
-**Branch:** `feat/pvh-ph03-domain-verticals`  
-**Base branch:** `feat/pvh-ph02-core-workflow`; fork point `faf9975e3e363ed978cf77af27ec7c4d70a7c864`, PR đã theo dõi base tiến lên `f0ffe1db666cf39e39c4976c02052c1e4f8ba976`  
-**Owner:** Đỗ Văn Đạt — `owner_approval: PENDING`  
+**Task group:** P03-01→P03-21 (increment 1, partial implementation)\
+**Branch:** `feat/pvh-ph03-domain-verticals`\
+**Base branch:** `feat/pvh-ph02-core-workflow`; fork point `faf9975e3e363ed978cf77af27ec7c4d70a7c864`, PR đã theo dõi base tiến lên `f0ffe1db666cf39e39c4976c02052c1e4f8ba976`\
+**Owner:** Đỗ Văn Đạt — `owner_approval: PENDING`\
 **Verdict:** `IMPLEMENTED_PARTIAL / G3 BLOCKED`; không tự đánh `VERIFIED` hoặc `OWNER_ACCEPTED`.
 
 ## 1. Phạm vi đã mã hóa

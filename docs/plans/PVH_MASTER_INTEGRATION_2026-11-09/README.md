@@ -1,7 +1,7 @@
 # PVH — MASTER INTEGRATION PLAN: UI-FIRST & PERFORMANCE-FIRST
-**Vai trò review:** Chief Software Architect + Principal BA + UX/Performance Lead  
-**Ngày:** 09/11/2026 · **Trạng thái:** PROPOSED / PLAN ONLY  
-**Repo:** `dovandatym1-ship-it/pvh-demo` · **Nhánh lưu plan:** `plan/pvh-master-integration-ux-first-20261109`  
+**Vai trò review:** Chief Software Architect + Principal BA + UX/Performance Lead\
+**Ngày:** 09/11/2026 · **Trạng thái:** PROPOSED / PLAN ONLY\
+**Repo:** `dovandatym1-ship-it/pvh-demo` · **Nhánh lưu plan:** `plan/pvh-master-integration-ux-first-20261109`\
 **Phê duyệt merge:** một owner, quyết định cuối cùng do chủ dự án. **Chưa merge, chưa deploy, chưa migrate cloud.**
 
 ## A. Executive decision

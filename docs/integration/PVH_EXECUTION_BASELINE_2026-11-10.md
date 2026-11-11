@@ -1,6 +1,6 @@
 # PVH execution baseline
 
-**Execution:** D1/GIT-01 and local portion of GIT-02  
+**Execution:** D1/GIT-01 and local portion of GIT-02\
 **Candidate:** local branch `codex/pvh-completion-candidate` at `2a13091ad4cd8cd3cd1a8bb23487dad5b9023403`
 **Base:** `origin/main` at `e08fa3587bede82be6ea77c45d7a83a76cf9be24`
 **Source:** `origin/integrate/pvh-backbone-review-20261110` at the same candidate SHA
@@ -123,5 +123,5 @@ The initial blob comparison found the PR #1 CI fixture absent from the candidate
 
 Ported `supabase/_ci_fixtures/rls_event_trigger.sql` and updated `pvh-db-replay.yml` to copy it temporarily to `20261108000000_ci_only_cloud_prerequisite.sql` only after the canonical migration ledger check, before local replay. The workflow removes that exact path with an `always()` cleanup step. The fixture remains outside the canonical and archived migration directories. The source fixture explicitly models an existing trigger and is not a deployment migration.
 
-**Static checks:** migration ledger passes with 14 canonical migrations and 9 archived immutable migrations; temporary path absent after local checks; `git diff --check` passes.  
+**Static checks:** migration ledger passes with 14 canonical migrations and 9 archived immutable migrations; temporary path absent after local checks; `git diff --check` passes.\
 **Runtime status:** The local machine has no Docker executable. Hosted CI replay and pgTAP passed at `0adec43e` ([run 42750990737](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42750990737)); migration files are unchanged through `a7e4fa6`. This is local-candidate replay evidence, not staging/cloud G-DB evidence.

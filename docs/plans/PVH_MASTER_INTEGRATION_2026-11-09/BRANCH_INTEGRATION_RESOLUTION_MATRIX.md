@@ -19,11 +19,11 @@
 **Branch hierarchy:** P3 → P4 → P5 → P6v2 là fast-forward ancestry khi so sánh tương ứng; P1/P2 tip phân kỳ. So P6v2 với P1: 7 commit P1 riêng; so P6v2 với P2: 7 commit P2 riêng; một phần có thể cùng lịch sử/cherry-pick tương đương, cần so patch-ID trước khi đếm và backport. So P6v2 với BASE: BASE còn 1 commit riêng, chạm 16 paths. DASH và SPECS đều tách từ BASE.
 
 ## 2. Merge plan by evidence, not chronology alone
-**Step A:** Snapshot + backup tags/SHAs, check clean and freeze CI.  
-**Step B:** Merge P6v2 into new integration branch from BASE, resolve per matrix below.  
-**Step C:** Audit P1 and P2 unique commits (full diff/patch-ID), classify REQUIRED, EQUIVALENT, SUPERSEDED, UNSAFE. Cherry-pick -x / re-implement **only proven missing behavior**.  
-**Step D:** Bring DASH as selective component/behavior changes; never simply take its M01 page over P6 paging.  
-**Step E:** Bring SPECS docs and P6v1 baseline note; do not enable M11 runtime without code.  
+**Step A:** Snapshot + backup tags/SHAs, check clean and freeze CI.\
+**Step B:** Merge P6v2 into new integration branch from BASE, resolve per matrix below.\
+**Step C:** Audit P1 and P2 unique commits (full diff/patch-ID), classify REQUIRED, EQUIVALENT, SUPERSEDED, UNSAFE. Cherry-pick -x / re-implement **only proven missing behavior**.\
+**Step D:** Bring DASH as selective component/behavior changes; never simply take its M01 page over P6 paging.\
+**Step E:** Bring SPECS docs and P6v1 baseline note; do not enable M11 runtime without code.\
 **Step F:** Unified Design System / perf / migration replay, PR owner review.
 
 ## 3. File-level decision register

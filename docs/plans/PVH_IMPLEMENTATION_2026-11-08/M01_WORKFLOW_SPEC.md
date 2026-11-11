@@ -1,7 +1,7 @@
 # OP-M01 — Quy trình điều hành công việc nội bộ
 
-**Bản:** 0.2 (triển khai trên nhánh PH02, cần Đỗ Văn Đạt duyệt)  
-**Phạm vi:** một xã/triển khai, tài khoản Supabase Auth thật, workflow công việc nội bộ.  
+**Bản:** 0.2 (triển khai trên nhánh PH02, cần Đỗ Văn Đạt duyệt)\
+**Phạm vi:** một xã/triển khai, tài khoản Supabase Auth thật, workflow công việc nội bộ.\
 **Loại trừ:** quyết định hành chính, ký số, nghiệp vụ chuyên ngành, thông báo ra bên ngoài.
 
 ## Tác nhân

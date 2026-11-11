@@ -57,7 +57,7 @@ Khôi phục từ `fix/pvh-ph02-completion-20261109` các màn tạo việc, l�
 - `49cef46bbcfc16b30aa0febafa9c4d7cce783fa0`: GitHub Actions **PVH Integration Candidate Gate**, run `42669739961`, source-checks **PASS**, dependency-audit **PASS**. `npm audit --omit=dev --audit-level=high` báo 0 lỗ hổng, đã thử `npm ci` từ lockfile mới. Nâng Next `15.5.29`, Zod `4.6.7`, overrides `postcss 8.5.32` của Next và `uuid 11.1.1`. Phải tái kiểm sau mọi thay đổi.
 - Thu thập tài liệu master plan **37 tệp** và full module spec **22 tệp** ở đúng đường dẫn từ các nhánh kế hoạch/tài liệu, không đánh đồng tài liệu với mã nguồn đã hoạt động. Crosswalk OP → màn → DB → kiểm thử còn `DRAFT` cho tới khi có evidence thực tế.
 - Mock Storage PGlite của smoke test bổ sung `metadata` để thử backfill tệp minh chứng, không hạ tiêu chuẩn migration.
-- **G-MERGE/G-DB/G-SEC/G-UX/G-PERF/G-OWNER chưa được ký duyệt**; chỉ owner duyệt merge. 
+- **G-MERGE/G-DB/G-SEC/G-UX/G-PERF/G-OWNER chưa được ký duyệt**; chỉ owner duyệt merge.
 
 
 ## Dashboard/Responsive Shell — candidate (PERF-301/302/303, UI-201)

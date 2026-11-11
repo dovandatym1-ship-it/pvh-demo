@@ -1,6 +1,6 @@
 # PVH — KẾ HOẠCH BỔ SUNG NGHIỆP VỤ VÀ TRƯỜNG DỮ LIỆU THEO TỪNG NHÁNH
-**Mã:** PVH-BFCP-2026-11-09 · **Trạng thái:** PLAN / CHƯA TRIỂN KHAI · **Owner duyệt:** chủ dự án (một người)  
-**Repo:** `dovandatym1-ship-it/pvh-demo` · **Nhánh lưu plan:** `plan/pvh-master-integration-ux-first-20261109`  
+**Mã:** PVH-BFCP-2026-11-09 · **Trạng thái:** PLAN / CHƯA TRIỂN KHAI · **Owner duyệt:** chủ dự án (một người)\
+**Repo:** `dovandatym1-ship-it/pvh-demo` · **Nhánh lưu plan:** `plan/pvh-master-integration-ux-first-20261109`\
 **Nguyên tắc:** Giữ nguyên Phase và nhánh hiện có; chỉ bổ sung có kiểm soát. Không tự merge main, không tự triển khai migration production, không tự xác nhận thẩm quyền pháp lý.
 
 ## 0. Kết luận baseline và phạm vi

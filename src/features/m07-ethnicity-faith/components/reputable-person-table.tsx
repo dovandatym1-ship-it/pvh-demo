@@ -41,7 +41,7 @@ export function ReputablePersonTable({
             <th className="py-3 px-4">Năm công nhận</th>
             <th className="py-3 px-4">Trạng thái chính sách</th>
             <th className="py-3 px-4">Mức phụ cấp</th>
-            
+
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
@@ -63,7 +63,7 @@ export function ReputablePersonTable({
               <td className="py-3 px-4 font-semibold text-gray-800">
                 {formatCurrency(person.monthlyAllowance)}
               </td>
-              
+
             </tr>
           ))}
         </tbody>

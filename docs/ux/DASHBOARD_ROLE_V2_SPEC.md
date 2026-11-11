@@ -1,7 +1,7 @@
 # PVH Dashboard V2 — Đặc tả BA & UX theo vai trò
 
-**Trạng thái:** Implemented in `feat/pvh-dashboard`, chưa merge.  
-**Nguồn đối chiếu:** `preview.html` (bản mẫu người dùng), `src/features/dashboard/*` và `work_items` M01 hiện tại.  
+**Trạng thái:** Implemented in `feat/pvh-dashboard`, chưa merge.\
+**Nguồn đối chiếu:** `preview.html` (bản mẫu người dùng), `src/features/dashboard/*` và `work_items` M01 hiện tại.\
 **Ranh giới:** Đây là **tổng quan công việc** thuộc phạm vi người dùng, KHÔNG phải trung tâm điều hành mọi dữ liệu M02–M09.
 
 ## 1. Nguyên tắc đổi tên và bố cục
