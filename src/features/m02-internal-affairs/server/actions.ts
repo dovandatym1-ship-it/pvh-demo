@@ -22,37 +22,26 @@ export async function resolveLaborDisputeAction(
       );
     }
 
-    const { disputeId, status, outcome, idempotencyKey } = parsed.data;
+    const { disputeId, status, outcome, idempotencyKey, expectedVersion, decisionReference } = parsed.data;
     const supabase = await createServerSupabaseClient();
 
-    const { error } = await supabase.rpc("resolve_labor_dispute", {
+    const { data, error } = await supabase.schema("app").rpc("resolve_labor_dispute", {
       p_tenant_id: ctx.tenantId,
       p_dispute_id: disputeId,
       p_status: status,
       p_outcome: outcome,
       p_idempotency_key: idempotencyKey ?? null,
+      p_expected_version: expectedVersion,
+      p_decision_reference: decisionReference,
     });
 
     if (error) {
-      await supabase
-        .from("labor_disputes")
-        .update({
-          status,
-          outcome_summary: outcome,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("tenant_id", ctx.tenantId)
-        .eq("id", disputeId);
-
-      await supabase.from("audit_log").insert({
-        tenant_id: ctx.tenantId,
-        user_id: ctx.userId,
-        action: "m02.labor_dispute.resolve",
-        entity_type: "labor_dispute",
-        entity_id: disputeId,
-        changes: { status, outcome },
-        idempotency_key: idempotencyKey,
-      });
+      if (error.code === "PV409") return fail("VERSION_CONFLICT", "Hồ sơ đã thay đổi, vui lòng tải lại.");
+      if (error.code === "42501") return fail("FORBIDDEN", "Không đủ quyền ghi nhận kết quả tranh chấp.");
+      return fail("INTERNAL", "Không thể xác nhận kết quả xử lý; dữ liệu chưa được thay đổi.");
+    }
+    if (!data || data.status !== status || data.id !== disputeId) {
+      return fail("INTERNAL", "Chưa nhận được biên nhận kết quả từ CSDL.");
     }
 
     revalidatePath("/noi-vu");

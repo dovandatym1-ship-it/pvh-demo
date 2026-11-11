@@ -1,16 +1,18 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isDemoAuthEnabled, isValidDemoPersona } from "@/lib/auth/demo-mode";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "http://127.0.0.1:54321";
-  const supabaseKey =
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    "";
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error("Thiếu cấu hình Supabase URL/publishable key");
+  }
 
   const supabase = createServerClient(supabaseUrl, supabaseKey, {
     cookies: {
@@ -39,36 +41,39 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/api/auth");
+  const isAuthRoute = pathname === "/login" || pathname === "/quen-mat-khau"
+    || pathname === "/dat-lai-mat-khau" || pathname.startsWith("/api/auth/");
   const isStaticRoute =
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/static") ||
-    pathname.includes(".") ||
-    pathname.startsWith("/api/files");
+    pathname.startsWith("/_next/") ||
+    pathname.startsWith("/static/") ||
+    pathname === "/favicon.ico" ||
+    /\.(?:svg|png|jpe?g|gif|webp)$/.test(pathname);
 
   // Allow demo session when NEXT_PUBLIC_DEMO_MODE is enabled
-  const isDemo = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+  const isDemo = isDemoAuthEnabled();
   const demoCookie = request.cookies.get("pvh_demo_session")?.value;
-  const isAuthenticated = Boolean(user) || (isDemo && Boolean(demoCookie));
+  const isAuthenticated = Boolean(user) || (isDemo && isValidDemoPersona(demoCookie));
+
+  const redirectWithSession = (url: URL) => {
+    const response = NextResponse.redirect(url);
+    // Keep refreshed SSR auth cookies even when middleware redirects.
+    supabaseResponse.cookies.getAll().forEach((cookie) => response.cookies.set(cookie));
+    return response;
+  };
 
   // Protect all non-auth and non-static routes
   if (!isAuthenticated && !isAuthRoute && !isStaticRoute) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
     redirectUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(redirectUrl);
+    return redirectWithSession(redirectUrl);
   }
 
-  // Redirect authenticated user away from login page
-  if (isAuthenticated && pathname.startsWith("/login")) {
-    const redirectParam = request.nextUrl.searchParams.get("redirect");
-    const targetUrl =
-      redirectParam && !redirectParam.startsWith("/login") ? redirectParam : "/ban-lam-viec";
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = targetUrl;
-    redirectUrl.search = "";
-    return NextResponse.redirect(redirectUrl);
-  }
+  // Authentication is NOT authorization. A Supabase Auth user can exist
+  // without a current commune membership; automatically redirecting away from
+  // /login created an infinite /login ↔ protected-layout loop in that case.
+  // The login action checks active membership before entering /ban-lam-viec.
+  // Keep /login available even when a session cookie exists.
 
   return supabaseResponse;
 }

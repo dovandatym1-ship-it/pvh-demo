@@ -22,33 +22,24 @@ export async function approveTuitionExemptionAction(
       );
     }
 
-    const { exemptionId, status, idempotencyKey } = parsed.data;
+    const { exemptionId, status, idempotencyKey, expectedVersion, decisionReference } = parsed.data;
     const supabase = await createServerSupabaseClient();
 
-    const { error } = await supabase.rpc("approve_tuition_exemption", {
+    const { data, error } = await supabase.schema("app").rpc("approve_tuition_exemption", {
       p_tenant_id: ctx.tenantId,
       p_exemption_id: exemptionId,
       p_status: status,
       p_idempotency_key: idempotencyKey ?? null,
+      p_expected_version: expectedVersion,
+      p_decision_reference: decisionReference,
     });
 
     if (error) {
-      await supabase
-        .from("tuition_exemptions")
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq("tenant_id", ctx.tenantId)
-        .eq("id", exemptionId);
-
-      await supabase.from("audit_log").insert({
-        tenant_id: ctx.tenantId,
-        user_id: ctx.userId,
-        action: "m03.exemption.status_transition",
-        entity_type: "tuition_exemption",
-        entity_id: exemptionId,
-        changes: { status },
-        idempotency_key: idempotencyKey,
-      });
+      if (error.code === "PV409") return fail("VERSION_CONFLICT", "Hồ sơ đã thay đổi, vui lòng tải lại.");
+      if (error.code === "42501") return fail("FORBIDDEN", "Không đủ thẩm quyền xác nhận hồ sơ.");
+      return fail("INTERNAL", "Không thể xác nhận kết quả xử lý; dữ liệu chưa được thay đổi.");
     }
+    if (!data || data.status !== status || data.id !== exemptionId) return fail("INTERNAL", "Chưa nhận được biên nhận quyết định từ CSDL.");
 
     revalidatePath("/giao-duc");
     return ok({

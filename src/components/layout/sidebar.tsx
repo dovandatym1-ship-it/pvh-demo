@@ -17,12 +17,15 @@ import {
   Compass,
   ClipboardList,
   BarChart3,
+  FileInput,
   RefreshCw,
   BookOpen,
   LucideIcon,
 } from "lucide-react";
 import { Persona } from "@/lib/auth/session";
 import { TenantConfig } from "@/lib/tenancy/tenant-config";
+import { deploymentBrand } from "@/config/deployment-brand";
+import { filterLegacyNavigation } from "./legacy-navigation";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   LayoutDashboard,
@@ -37,6 +40,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Compass,
   ClipboardList,
   BarChart3,
+  FileInput,
   RefreshCw,
   BookOpen,
 };
@@ -56,37 +60,33 @@ export interface NavigationGroupDisplay {
 
 const DEFAULT_GROUPS: NavigationGroupDisplay[] = [
   {
-    title: "Điều hành & Tác nghiệp",
+    title: "Điều hành và tác nghiệp",
     items: [
       { title: "Bàn làm việc", route: "/ban-lam-viec", iconName: "LayoutDashboard" },
       { title: "Quản lý công việc", route: "/cong-viec", iconName: "CalendarCheck" },
     ],
   },
   {
-    title: "Văn hóa - Thông tin & Giáo dục",
+    title: "Chuyên ngành văn hóa – xã hội",
     items: [
+      { title: "Nội vụ và lao động", route: "/noi-vu", iconName: "Building" },
+      { title: "Giáo dục và đào tạo", route: "/giao-duc", iconName: "GraduationCap" },
       { title: "Gia đình văn hóa", route: "/van-hoa/gia-dinh-van-hoa", iconName: "Sparkles" },
-      { title: "Thôn / Xóm văn hóa", route: "/van-hoa/thon-van-hoa", iconName: "Landmark" },
-      { title: "Giáo dục & Đào tạo", route: "/giao-duc", iconName: "GraduationCap" },
-      { title: "Khoa học & Chuyển đổi số", route: "/khcn-chuyen-doi-so", iconName: "Cpu" },
+      { title: "Thôn, xóm văn hóa", route: "/van-hoa/thon-van-hoa", iconName: "Compass" },
+      { title: "Khoa học và chuyển đổi số", route: "/khcn-chuyen-doi-so", iconName: "Cpu" },
+      { title: "Y tế và an sinh xã hội", route: "/y-te-an-sinh", iconName: "HeartHandshake" },
+      { title: "Dân tộc và tôn giáo", route: "/dan-toc-ton-giao", iconName: "Compass" },
     ],
   },
   {
-    title: "Lao động, Y tế & Chính sách xã hội",
+    title: "Kiểm tra, báo cáo và quản trị",
     items: [
-      { title: "Y tế & An sinh xã hội", route: "/y-te-an-sinh", iconName: "HeartHandshake" },
-      { title: "Nội vụ & Lao động", route: "/noi-vu", iconName: "Building" },
-      { title: "Dân tộc & Tôn giáo", route: "/dan-toc-ton-giao", iconName: "Compass" },
-    ],
-  },
-  {
-    title: "Kiểm tra, Báo cáo & Nền tảng",
-    items: [
-      { title: "Kiểm tra & Kiến nghị", route: "/kiem-tra", iconName: "ClipboardList" },
+      { title: "Kiểm tra và kiến nghị", route: "/kiem-tra", iconName: "ClipboardList" },
       { title: "Báo cáo thống kê", route: "/bao-cao", iconName: "BarChart3" },
+      { title: "Nhập chỉ tiêu có nguồn", route: "/nhap-chi-tieu", iconName: "FileInput" },
       { title: "Dữ liệu dùng chung", route: "/du-lieu-dung-chung", iconName: "Database" },
       { title: "Cổng tích hợp liên thông", route: "/tich-hop", iconName: "RefreshCw" },
-      { title: "Quản trị hệ thống & Cán bộ", route: "/quan-tri", iconName: "ShieldCheck" },
+      { title: "Quản trị hệ thống và cán bộ", route: "/quan-tri", iconName: "ShieldCheck" },
     ],
   },
 ];
@@ -94,18 +94,24 @@ const DEFAULT_GROUPS: NavigationGroupDisplay[] = [
 export function Sidebar({
   persona,
   tenant,
+  tenantLabel,
   groups,
   isOpen = true,
   onClose,
 }: {
   persona?: Persona;
   tenant?: TenantConfig;
+  tenantLabel?: string;
   groups?: readonly NavigationGroupDisplay[];
   isOpen?: boolean;
   onClose?: () => void;
 }) {
   const pathname = usePathname();
-  const displayGroups = groups && groups.length > 0 ? groups : DEFAULT_GROUPS;
+  // An explicitly empty list means no navigation entitlement, not the full demo menu.
+  const configuredGroups = groups === undefined ? DEFAULT_GROUPS : groups;
+  const displayGroups = groups === undefined && persona
+    ? filterLegacyNavigation(configuredGroups, persona.permissions)
+    : configuredGroups;
 
   return (
     <>
@@ -117,6 +123,8 @@ export function Sidebar({
       )}
 
       <aside
+        id="pvh-primary-nav"
+        aria-label="Điều hướng chính"
         className={cn(
           "w-64 border-r border-slate-200 bg-white flex flex-col min-h-screen shrink-0 transition-transform duration-200 ease-in-out z-50",
           "fixed lg:static inset-y-0 left-0",
@@ -124,15 +132,17 @@ export function Sidebar({
         )}
       >
         <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+          {onClose && <button type="button" aria-label="Đóng điều hướng" onClick={onClose}
+            className="absolute right-3 top-3 rounded border border-slate-200 px-2 py-1 text-xs text-slate-700 lg:hidden">Đóng</button>}
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-gov-600 flex items-center justify-center text-white font-bold text-sm shadow-xs">
               PVH
             </div>
             <div>
               <h1 className="text-sm font-bold text-slate-800 leading-tight">
-                {tenant?.name || "UBND Xã Định Hóa"}
+                {tenantLabel || tenant?.name || deploymentBrand.organizationName}
               </h1>
-              <p className="text-[11px] text-slate-500 font-medium">Huyện Định Hóa, Thái Nguyên</p>
+              <p className="text-[11px] text-slate-500 font-medium">{tenant?.province || deploymentBrand.regionLabel}</p>
             </div>
           </div>
         </div>

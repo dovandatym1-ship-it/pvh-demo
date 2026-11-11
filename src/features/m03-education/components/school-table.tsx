@@ -8,7 +8,7 @@ import { GraduationCap, School, Baby, ShieldCheck, AlertTriangle } from "lucide-
 
 interface SchoolTableProps {
   readonly schools: SchoolDTO[];
-  readonly privateFacilities: PrivateFacilityDTO[];
+  readonly privateFacilities: Omit<PrivateFacilityDTO, "ownerCccd">[];
 }
 
 export function SchoolTable({ schools, privateFacilities }: SchoolTableProps) {
@@ -97,9 +97,9 @@ export function SchoolTable({ schools, privateFacilities }: SchoolTableProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Tên nhóm trẻ / Cơ sở</TableHead>
+                <TableHead>Tên nhóm trẻ hoặc cơ sở</TableHead>
                 <TableHead>Chủ nhóm trẻ</TableHead>
-                <TableHead className="text-center">Quy mô / Hiện có</TableHead>
+                <TableHead className="text-center">Quy mô và số trẻ hiện có</TableHead>
                 <TableHead className="text-center">Diện tích (m²/trẻ)</TableHead>
                 <TableHead className="text-center">PCCC / ATTP</TableHead>
                 <TableHead className="text-right">Tình trạng cấp phép</TableHead>

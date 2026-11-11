@@ -82,7 +82,7 @@ const INITIAL_FACILITIES: FacilityItem[] = [
     code: "CS-VH-003",
     name: "Sân thể thao trung tâm xã",
     category: "Khu thể thao đa năng",
-    capacity: "Sân bóng đá mini & bóng chuyền",
+    capacity: "Sân bóng đá mini và bóng chuyền",
     hamlet: "Xóm A2",
     status: "Đang sử dụng",
     builtYear: 2023,
@@ -108,7 +108,7 @@ const INITIAL_FACILITIES: FacilityItem[] = [
     id: "fac-b-2",
     code: "CS-VH-B-002",
     name: "Không gian Trưng bày Văn hóa Trà Đồi Chè",
-    category: "Thiết chế du lịch & Di sản",
+    category: "Thiết chế du lịch và di sản",
     capacity: "Khuôn viên 1.500m2",
     hamlet: "Xóm B1",
     status: "Bảo tồn tốt",
@@ -257,10 +257,10 @@ export default function DuLieuDungChungPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gov-600">
-            Phân hệ M01 • Dữ liệu dùng chung & Thiết chế cơ sở
+            Phân hệ M01 • Dữ liệu dùng chung và thiết chế cơ sở
           </div>
           <h1 className="text-xl font-bold text-slate-900 mt-1 font-display">
-            Quản lý Danh mục Cơ sở Thiết chế & Chủ thể Đa ngành
+            Quản lý danh mục cơ sở, thiết chế và chủ thể
           </h1>
           <p className="text-xs text-slate-500 mt-1">
             Kho dữ liệu nền tảng định danh công dân, di tích, cơ sở vật chất văn hóa - xã hội của {tenant.name}.
@@ -306,7 +306,7 @@ export default function DuLieuDungChungPage() {
             onClick={() => setTab("FACILITIES")}
             className="gap-1.5"
           >
-            <Building className="w-3.5 h-3.5" /> Cơ sở & Thiết chế văn hóa ({tenantFacilities.length})
+            <Building className="w-3.5 h-3.5" /> Cơ sở và thiết chế văn hóa ({tenantFacilities.length})
           </Button>
           <Button
             variant={tab === "SUBJECTS" ? "primary" : "outline"}
@@ -314,7 +314,7 @@ export default function DuLieuDungChungPage() {
             onClick={() => setTab("SUBJECTS")}
             className="gap-1.5"
           >
-            <Users className="w-3.5 h-3.5" /> Chủ thể & Công dân ({citizenSubjects.length})
+            <Users className="w-3.5 h-3.5" /> Chủ thể và công dân ({citizenSubjects.length})
           </Button>
         </div>
 
@@ -336,7 +336,7 @@ export default function DuLieuDungChungPage() {
           <div className="lg:col-span-7">
             <Card className="shadow-xs">
               <CardHeader className="pb-3 border-b border-slate-100">
-                <CardTitle className="font-display">Danh sách Thiết chế & Di tích ({filteredFacilities.length})</CardTitle>
+                <CardTitle className="font-display">Danh sách thiết chế và di tích ({filteredFacilities.length})</CardTitle>
                 <CardDescription>Bấm vào từng cơ sở để mở hồ sơ kỹ thuật chi tiết bên phải</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
@@ -551,7 +551,7 @@ export default function DuLieuDungChungPage() {
           <Card className="shadow-xs">
             <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
               <div>
-                <CardTitle className="font-display">Danh mục Chủ thể & Đối tượng Quản lý ({filteredSubjects.length})</CardTitle>
+                <CardTitle className="font-display">Danh mục chủ thể và đối tượng quản lý ({filteredSubjects.length})</CardTitle>
                 <CardDescription>
                   Dữ liệu công dân được chuẩn hóa định danh và bảo vệ dữ liệu PII theo nguyên tắc D03
                 </CardDescription>

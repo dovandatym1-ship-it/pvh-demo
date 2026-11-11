@@ -289,15 +289,15 @@ def test_cross_lego_ui_legacy_decommission(h: TestHarness):
     test_id="T3.18",
     tier=3,
     feature_id=22,
-    name="Cross-Feature: Playwright E2E (F22) × State Machine (F19)",
-    description="Multi-role E2E tests execute complete state lifecycle transitions through the RPC state machine",
+    name="Cross-Feature: M01 Checklist (F22) × State Machine (F19)",
+    description="Pending staging acceptance maps reviewer transitions and concurrency to state-machine cases",
     source="ORIGINAL_REQUEST.md §R3, S2-05, S2-07, Gate G2",
 )
 def test_cross_e2e_state_machine(h: TestHarness):
-    adr = h.read_text("docs/architecture/ADR-002-implementation-conventions.md") if h.file_exists("docs/architecture/ADR-002-implementation-conventions.md") else ""
+    checklist = h.read_text("docs/integration/PVH_M01_STAGING_ACCEPTANCE_2026-11-10.md")
     h.assert_true(
-        "playwright" in adr.lower() or "e2e" in adr.lower(),
-        "ADR-002 must mandate E2E testing of multi-role state machine transitions",
+        "NOT_EXECUTED_ON_STAGING" in checklist and "G2-11" in checklist and "G2-12" in checklist,
+        "M01 staging acceptance must map transition and concurrency cases without claiming runtime pass",
     )
 
 

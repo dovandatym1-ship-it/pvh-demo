@@ -5,10 +5,12 @@ import {
   getFoodSafetyInspections,
   getMedicalFacilities,
   getEpidemicLogs,
+  getSocialHamlets,
 } from "@/features/m06-health-social/server/queries";
 import { BeneficiaryTable } from "@/features/m06-health-social/components/beneficiary-table";
 import { HealthInspectionPanels } from "@/features/m06-health-social/components/health-inspection-panels";
 import { HeartHandshake } from "lucide-react";
+import { toSocialDisplayRows } from "@/lib/authorization/display-sensitive";
 
 export default async function YTeAnSinhAppPage() {
   const ctx = await getRequestContext();
@@ -16,16 +18,14 @@ export default async function YTeAnSinhAppPage() {
 
   const canUnmask = canViewUnmaskedPII(ctx);
   const canManage =
-    ctx.permissions.includes("m06:social:write") ||
-    ctx.roles.includes("chu_tich_xa") ||
-    ctx.roles.includes("can_bo_chuyen_trach") ||
-    ctx.permissions.includes("admin");
+    ctx.permissions.includes("m06:social:write");
 
-  const [beneficiaries, foodSafeties, medicalFacilities, epidemicLogs] = await Promise.all([
+  const [beneficiaries, foodSafeties, medicalFacilities, epidemicLogs, hamlets] = await Promise.all([
     getSocialBeneficiaries(ctx),
     getFoodSafetyInspections(ctx),
     getMedicalFacilities(ctx),
     getEpidemicLogs(ctx),
+    getSocialHamlets(ctx),
   ]);
 
   return (
@@ -35,7 +35,7 @@ export default async function YTeAnSinhAppPage() {
           <div className="flex items-center gap-2">
             <HeartHandshake className="w-6 h-6 text-[#1F633E]" />
             <h1 className="text-xl font-bold text-slate-900">
-              Y tế & An sinh xã hội
+              Y tế và an sinh xã hội
             </h1>
           </div>
           <p className="mt-1 text-xs text-slate-600">
@@ -45,7 +45,8 @@ export default async function YTeAnSinhAppPage() {
       </div>
 
       <BeneficiaryTable
-        items={beneficiaries}
+        items={toSocialDisplayRows(beneficiaries, canUnmask)}
+        hamlets={hamlets}
         canUnmaskPII={canUnmask}
         canManage={canManage}
       />
@@ -55,6 +56,7 @@ export default async function YTeAnSinhAppPage() {
           foodSafeties={foodSafeties}
           medicalFacilities={medicalFacilities}
           epidemicLogs={epidemicLogs}
+          hamlets={hamlets}
         />
       </div>
     </div>

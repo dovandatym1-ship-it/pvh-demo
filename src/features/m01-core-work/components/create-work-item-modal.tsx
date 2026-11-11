@@ -72,7 +72,7 @@ export function CreateWorkItemModal({ isOpen, onClose, onSuccess }: CreateWorkIt
             Hủy bỏ
           </Button>
           <Button variant="primary" size="sm" onClick={handleSubmit} disabled={loading}>
-            {loading ? "Đang lưu..." : "Tạo & Phân công"}
+            {loading ? "Đang lưu..." : "Tạo và phân công"}
           </Button>
         </>
       }
@@ -101,7 +101,7 @@ export function CreateWorkItemModal({ isOpen, onClose, onSuccess }: CreateWorkIt
 
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Nội dung & Yêu cầu chỉ đạo
+            Nội dung và yêu cầu chỉ đạo
           </label>
           <textarea
             rows={3}
@@ -124,8 +124,8 @@ export function CreateWorkItemModal({ isOpen, onClose, onSuccess }: CreateWorkIt
             >
               <option value="VAN_HOA">Văn hóa - Gia đình</option>
               <option value="LAO_DONG_XH">Lao động - An sinh</option>
-              <option value="CHUYEN_DOI_SO">Chuyển đổi số & KHCN</option>
-              <option value="GIAO_DUC">Giáo dục & Đào tạo</option>
+              <option value="CHUYEN_DOI_SO">Chuyển đổi số và khoa học, công nghệ</option>
+              <option value="GIAO_DUC">Giáo dục và đào tạo</option>
               <option value="CHUNG">Hành chính chung</option>
             </select>
           </div>

@@ -71,7 +71,7 @@ export function WorkItemTable({
         <thead className="bg-gray-50 text-gray-600 font-medium border-b">
           <tr>
             <th className="py-3 px-4">Mã việc</th>
-            <th className="py-3 px-4">Tiêu đề & Nội dung</th>
+            <th className="py-3 px-4">Tiêu đề và nội dung</th>
             <th className="py-3 px-4">Độ ưu tiên</th>
             <th className="py-3 px-4">Trạng thái</th>
             <th className="py-3 px-4">Phiên bản</th>
@@ -104,15 +104,15 @@ export function WorkItemTable({
                 v{item.version}
               </td>
               <td className="py-3 px-4 text-right space-x-2">
-                <Link href="/cong-viec">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onSelect?.(item)}
-                  >
+                {onSelect ? (
+                  <Button size="sm" variant="outline" onClick={() => onSelect(item)}>
                     Chi tiết
                   </Button>
-                </Link>
+                ) : (
+                  <Link href={`/cong-viec/${encodeURIComponent(item.id)}`}>
+                    <Button size="sm" variant="outline">Chi tiết</Button>
+                  </Link>
+                )}
                 {item.status === "UNDER_REVIEW" && (
                   <Button
                     size="sm"

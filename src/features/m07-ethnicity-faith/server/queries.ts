@@ -7,15 +7,21 @@ import type { ReligiousEstablishmentDTO, ReligiousEventDTO, ReputablePersonDTO }
 export async function getReligiousEstablishments(ctx: RequestContext): Promise<ReligiousEstablishmentDTO[]> {
   const supabase = await createServerSupabaseClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("religious_establishments")
     .select("*")
     .eq("tenant_id", ctx.tenantId)
     .order("created_at", { ascending: true });
-
-  if (error || !data) {
-    return [];
+  if (ctx.scopes.hamletIds) {
+    if (ctx.scopes.hamletIds.length === 0) return [];
+    query = query.in("hamlet_id", [...ctx.scopes.hamletIds]);
   }
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error("Không thể tải dữ liệu dân tộc, tín ngưỡng và tôn giáo.");
+  }
+  if (!data) return [];
 
   return data.map((row) => ({
     id: String(row.id),
@@ -37,15 +43,21 @@ export async function getReligiousEstablishments(ctx: RequestContext): Promise<R
 export async function getReputablePersons(ctx: RequestContext): Promise<ReputablePersonDTO[]> {
   const supabase = await createServerSupabaseClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("reputable_persons")
     .select("*")
     .eq("tenant_id", ctx.tenantId)
     .order("full_name", { ascending: true });
-
-  if (error || !data) {
-    return [];
+  if (ctx.scopes.hamletIds) {
+    if (ctx.scopes.hamletIds.length === 0) return [];
+    query = query.in("hamlet_id", [...ctx.scopes.hamletIds]);
   }
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error("Không thể tải dữ liệu dân tộc, tín ngưỡng và tôn giáo.");
+  }
+  if (!data) return [];
 
   return data.map((row) => ({
     id: String(row.id),
@@ -53,10 +65,43 @@ export async function getReputablePersons(ctx: RequestContext): Promise<Reputabl
     fullName: String(row.full_name),
     ethnicGroup: String(row.ethnic_group),
     hamletId: String(row.hamlet_id),
-    yearRecognized: Number(row.year_recognized) || 2024,
-    policyStatus: (row.policy_status as ReputablePersonDTO["policyStatus"]) || "DANG_HUONG",
-    monthlyAllowance: Number(row.monthly_allowance) || 800000,
+    yearRecognized: Number(row.year_recognized),
+    policyStatus: (row.policy_status as ReputablePersonDTO["policyStatus"]) || "DANG_XAC_MINH",
+    monthlyAllowance: Number(row.monthly_allowance),
     version: Number(row.version) || 1,
     createdAt: String(row.created_at),
+  }));
+}
+
+export type FaithHamletOption = {id:string;name:string};
+
+/** Authoritative active hamlets for the current commune; never hardcoded in client forms. */
+export async function getReligiousHamlets(ctx:RequestContext):Promise<FaithHamletOption[]>{
+  const {assertCanViewFaith}=await import("./policy");
+  assertCanViewFaith(ctx);
+  if(ctx.scopes.hamletIds&&ctx.scopes.hamletIds.length===0)return [];
+  const db=await createServerSupabaseClient();
+  let query=db.from("org_units").select("id,name").eq("tenant_id",ctx.tenantId)
+    .eq("kind","HAMLET").eq("is_active",true).order("name");
+  if(ctx.scopes.hamletIds)query=query.in("id",[...ctx.scopes.hamletIds]);
+  const {data,error}=await query;
+  if(error)throw new Error("Không thể tải danh mục địa bàn thuộc quyền quản lý.");
+  return (data||[]).map(row=>({id:String(row.id),name:String(row.name)}));
+}
+
+export async function getReligiousEvents(ctx:RequestContext):Promise<ReligiousEventDTO[]>{
+  const {assertCanViewFaith}=await import("./policy");
+  assertCanViewFaith(ctx);
+  const db=await createServerSupabaseClient();
+  const {data,error}=await db.from("religious_events").select("*")
+    .eq("tenant_id",ctx.tenantId).order("event_date",{ascending:false}).limit(500);
+  if(error)throw new Error("Không thể tải hoạt động tín ngưỡng đã ghi nhận.");
+  return (data||[]).map(row=>({
+    id:String(row.id),tenantId:String(row.tenant_id),
+    establishmentId:String(row.establishment_id),title:String(row.title),
+    eventDate:String(row.event_date),expectedAttendees:Number(row.expected_attendees),
+    status:row.status as ReligiousEventDTO["status"],
+    rejectionReason:row.rejection_reason?String(row.rejection_reason):null,
+    version:Number(row.version),createdAt:String(row.created_at),
   }));
 }

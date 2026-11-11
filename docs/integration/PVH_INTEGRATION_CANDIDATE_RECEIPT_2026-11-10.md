@@ -1,0 +1,109 @@
+# PVH — Integration Candidate Receipt (10/11/2026)
+
+**Trạng thái:** IN_PROGRESS / NOT VERIFIED. **Nhánh:** `integrate/pvh-backbone-review-20261110` từ `main@e08fa3587bede82be6ea77c45d7a83a76cf9be24`.
+
+## Nguồn
+- Common base: `5c6c69846f54dddbdf99af60b3247bfece4df6f8`.
+- Phase 6 safety: `fix/pvh-ph06-data-safety-20261109@0506748c01f8f43293163b2f529a5c00675c92eb` (đã gồm PH03–PH05 gốc).
+- 154 đường dẫn thay đổi chỉ từ Phase (không kể các tệp xung đột); giữ 10 tệp riêng của main; 6 tệp có thay đổi từ cả hai phía cần phân giải.
+
+## Quyết định từng xung đột
+| Tệp | Chọn source trong candidate | Lý do / việc bắt buộc tiếp |
+|---|---|---|
+| `src/app/(app)/cong-viec/page.tsx` | PH06 | getWorkItemsPage có phân trang/lọc theo quyền; giữ các modal UI main làm nguồn tái tích hợp, không lấy getWorkItems có thể không giới hạn |
+| `src/components/layout/sidebar.tsx` | PH06 | menu nhập chỉ tiêu và permission registry đầy đủ hơn; PH05 fix fail-open sẽ áp sau |
+| `src/config/navigation.ts` | PH06 | hasExplicitPermission kiểm tra quyền tường minh; giữ grouping đẹp từ main làm task UI sau |
+| `src/features/m01-core-work/server/repository.ts` | PH06 | RPC app transaction/OCC/idempotency; loại bỏ fallback tạo thành công giả |
+| `src/features/m04-culture-family/server/actions.ts` | PH06 | khóa action di sản chưa có authority, tránh công nhận chính thức giả |
+| `src/features/m06-health-social/components/beneficiary-table.tsx` | PH06 safety | DTO đã che trường nhạy cảm trên server, tránh truyền raw CCCD và bệnh lý xuống trình duyệt; modal CRUD main cần tích hợp lại |
+
+**Quan trọng:** quyết định trên chỉ là code candidate; vẫn phải đối chiếu visual, API, nghiệp vụ, CI và owner trước G-MERGE. Không được hiểu là đánh giá 16 file UI của main đã được phục hồi đầy đủ.
+
+## Giữ lại main-only
+- `src/features/m01-core-work/components/create-work-item-modal.tsx`
+- `src/features/m01-core-work/components/work-item-detail-modal.tsx`
+- `src/features/m01-core-work/components/work-item-manager.tsx`
+- `src/features/m01-core-work/components/work-item-return-modal.tsx`
+- `src/features/m01-core-work/components/work-item-table.tsx`
+- `src/features/m04-culture-family/components/culture-dossier-manager.tsx`
+- `src/features/m04-culture-family/components/propose-household-modal.tsx`
+- `src/features/m06-health-social/components/create-beneficiary-modal.tsx`
+- `src/features/m07-ethnicity-faith/components/create-establishment-modal.tsx`
+- `src/features/m07-ethnicity-faith/components/establishment-table.tsx`
+
+## 9 migration bản cũ phải đối soát
+Đã xác nhận **9/9 bản sao lưu SHA-identical** dưới `supabase/_legacy/superseded_20261108/`. Trên nhánh candidate, 9 bản nguyên mẫu đã được cách ly khỏi thư mục `supabase/migrations/` để tránh replay trước baseline PH01; các bản cũ vẫn còn trong lịch sử Git và thư mục lưu trữ. Bộ kiểm tĩnh trong CI chặn bản cũ tái xuất hiện. **G-DB vẫn BLOCKED** cho đến khi chạy một lần replay sạch trong Supabase cục bộ/staging biệt lập, đối chiếu applied history/checksum và thử RLS/Storage. Không đổi cloud.
+
+## Cổng nghiệm thu còn thiếu
+- PH01/02 unique-tip audit và backport chính xác.
+- PH03/04/05 fix PR #8–#10 và PH06 safety PR #11 được đối chiếu theo file/commit, không merge chồng branch.
+- Dashboard, login split-screen, profile/notifications và chuẩn tiếng Việt đã được đưa từng phần vào candidate có kiểm soát; còn cần CI và kiểm thử thực tế.
+- Security audit từng PASS tại `49cef46b`; phải tái kiểm ở HEAD. Staging RLS/Storage/DB/E2E/UAT vẫn NOT_RUN.
+- **Không merge main, không deploy Vercel, không chạy migration trên Demo-pvh**. Owner Đỗ Văn Đạt duyệt lần cuối.
+
+## Bổ sung PR safety/UX tương thích cây nguồn
+Các delta PH03 PR #8 (8 tệp), PH04 PR #9 (9 tệp), PH05 PR #10 (11 tệp) đã được kiểm đối chiếu SHA từng tệp với commit PH03/PH04/PH05 gốc trước khi đưa vào candidate; **28/28 tệp có blob ở candidate trùng baseline của từng delta**, không có bản cập nhật độc lập cần ghi đè. Chạy lại CI integration và kiểm thử; không suy diễn G-MERGE PASS.
+
+## Truy hồi M00 PH01 (bổ sung candidate)
+Đưa vào màn quản lý tài khoản/role, action backend và Supabase admin client **server-only** từ `feat/pvh-ph01-platform-auth` cùng migration security contract để phục vụ kiểm toán. Menu con có quyền `m00:membership:manage`; matcher ưu tiên route cụ thể hơn route cha, action/page vẫn tự kiểm quyền. **Chưa thực thi lời mời thật, chưa apply migration và chưa xác nhận RPC/RLS trên staging**. Việc phục hồi này chưa thay thế review đầy đủ 7 commit PH01 độc lập.
+
+## Sửa xung đột M04 UI (typecheck)
+CI candidate phát hiện `propose-household-modal.tsx` của main gọi `createCultureSubmissionAction` đã bị PH03 chặn vì thiếu thẩm quyền/rule version. Đã chuyển modal legacy thành hướng dẫn điều hướng tới PH03 workflow, **không khôi phục action thiếu kiểm chứng**; loại bỏ ngưỡng điểm 80/100 hard-code. Đây là sửa tương thích ở candidate, không tác động nhánh main/gốc. Cần visual regression sau khi có staging.
+
+## PH02 core-workflow backport (candidate)
+Khôi phục từ `fix/pvh-ph02-completion-20261109` các màn tạo việc, lọc/phân trang, chỉnh hạn/địa bàn, người phối hợp, thông báo đã đọc, xử lý tệp pending và nhãn tiếng Việt. Query giữ RLS tenant và giới hạn `ctx.scopes.hamletIds` khi lọc thôn/xóm; giữ riêng nguồn thay đổi PH06 an toàn. Bổ sung PH02 workflow SQL + guardrail tests theo đúng tip branch. **Migration `20261108060000_m01_core_workflow.sql` đã có thay đổi nội dung chưa triển khai trên cloud**; tuyệt đối không replay lên DB hiện có khi chưa xác nhận checksum từng môi trường. G-DB/G-SEC vẫn BLOCKED.
+
+## Gate CI và tài liệu nguồn đã truy hồi
+- `49cef46bbcfc16b30aa0febafa9c4d7cce783fa0`: GitHub Actions **PVH Integration Candidate Gate**, run `42669739961`, source-checks **PASS**, dependency-audit **PASS**. `npm audit --omit=dev --audit-level=high` báo 0 lỗ hổng, đã thử `npm ci` từ lockfile mới. Nâng Next `15.5.29`, Zod `4.6.7`, overrides `postcss 8.5.32` của Next và `uuid 11.1.1`. Phải tái kiểm sau mọi thay đổi.
+- Thu thập tài liệu master plan **37 tệp** và full module spec **22 tệp** ở đúng đường dẫn từ các nhánh kế hoạch/tài liệu, không đánh đồng tài liệu với mã nguồn đã hoạt động. Crosswalk OP → màn → DB → kiểm thử còn `DRAFT` cho tới khi có evidence thực tế.
+- Mock Storage PGlite của smoke test bổ sung `metadata` để thử backfill tệp minh chứng, không hạ tiêu chuẩn migration.
+- **G-MERGE/G-DB/G-SEC/G-UX/G-PERF/G-OWNER chưa được ký duyệt**; chỉ owner duyệt merge.
+
+
+## Dashboard/Responsive Shell — candidate (PERF-301/302/303, UI-201)
+- Tích hợp giao diện và semantics từ `feat/pvh-dashboard` theo **nguồn mới** `getM01DashboardSnapshot`: `count: exact, head: true` trên từng nhóm, áp tenant/RLS và làm hẹp theo quyền; không dùng `getWorkItems(limit 100)` cho KPI. Chỉ tối đa 30 đầu việc chưa đóng được truyền xuống client làm danh sách ưu tiên, link chi tiết trực tiếp `/cong-viec/[id]`.
+- Các KPI điều hướng đến `/cong-viec?view=scope&quick=...`; query danh sách thật có lọc phân quyền, trạng thái, hạn xử lý, không lọc giả ở UI. Bổ sung test kiểm đếm mô hình 125 bản ghi với danh sách preview 1 bản ghi.
+- Nguồn hoàn thành `work_item_events` chưa có RPC aggregate chống trùng theo RLS nên **không bật** cột hoàn thành. Phân bổ cán bộ/địa bàn cũng chưa thống kê tổng hợp. Không trình bày 0 giả như đã có dữ liệu.
+- Responsive shell có nút điều hướng/đóng/Escape trên điện thoại, nav fail-closed; tên vai trò thiếu xác nhận không giả thành “Chủ tịch xã”.
+- **Chưa xác nhận G-PERF, G-UX/G-FLOW:** cần seed 101+, PostgREST EXPLAIN/trace, ảnh 375/768/1024/1440, keyboard/focus, RLS 3 vai trò sau migration replay.
+
+
+## Thông tin cá nhân / Thông báo (từ nhánh riêng)
+- Tiếp nhận 20 tệp chức năng/tài liệu/SQL/test từ `feat/pvh-personal-profile-notifications-20261109`, không chép đè sidebar/layout của main/PH06. Topbar dùng popover thông báo/tài khoản, theo dõi đã đọc, ảnh đại diện private; AppShell mới giữ menu responsive, đóng bằng Escape, trả focus, không lộ menu thiếu quyền.
+- Server Actions giới hạn tài khoản auth chính chủ; không cho client sửa quyền, scope, tenant; thông báo được phát sinh từ database trigger, không dùng thông báo giả hoặc email tự phát.
+- Migration `20261109130000_pvh_user_notifications.sql` **CHƯA ÁP DỤNG** vì lịch sử migration còn cần đối soát; notification query trả unavailable khi DB chưa sẵn sàng. Cần kiểm thử bucket Storage/RLS thật trước G-SEC.
+
+
+## Chuẩn tiếng Việt và login Split Screen — candidate
+- Áp các nhãn ngôn ngữ khớp đúng phần code hiện tại từ `fix/pvh-vietnamese-language-standardization-20261109`, giữ nguyên những tuyến trang đã được thay bằng workspace PH03/PH06 để không phục hồi mock. Chuyển nhãn điều hướng và cụm từ trong các bảng, không đổi enum/quyền/RPC/DB.
+- Đưa `docs/ux/PVH_VIETNAMESE_LANGUAGE_STANDARD.md` và bộ quét tĩnh vào CI; các thay đổi chưa qua review ngữ cảnh nghiệp vụ/truy xuất bản xuất phải kiểm chứng tiếp.
+- Chọn màn đăng nhập Split Screen từ `feat/pvh-government-login-split-screen`, giữ `deploymentBrand` và luồng xác thực Supabase. Có xử lý loading/lỗi, hiện/ẩn mật khẩu, tương thích mobile; chưa có ảnh browser đa kích thước, nên G-UX vẫn BLOCKED.
+- PH05/sidebar và profile đều cam kết **nhóm menu được cấp quyền rỗng không fallback mặc định**. Điều chỉnh test PH05 chấp nhận hai cách viết tương đương, không hạ điều kiện chặn. Chưa áp migration cloud.
+
+
+## Migration active-path de-duplication / Fitness
+- Cặp `supabase/migrations/20261108000001..00009` và `supabase/_legacy/superseded_20261108/20261108000001..00009` đã đối chiếu chính xác **9/9 blob SHA**; chỉ loại khỏi thư mục *được thực thi* trên candidate. Không drop bảng, không xóa bản lưu; `main` không đổi.
+- Thêm `scripts/check-migration-ledger.mjs` vào CI: 9 migration chuẩn duy nhất, 9 bản lưu bất biến, không trùng timestamp. Gate tĩnh không thay cho DB replay, tuyệt đối không `db push` lên cloud.
+- Sửa `npm run fitness`: tách bộ lọc M01 vào mô-đun server-only, giữ page trong giới hạn dòng và bổ sung guard `server-only` cho scope resolver. Phải chạy lại cả CI.
+
+
+## Language CI cleanup (candidate)
+- Bộ quét tiếng Việt ban đầu báo 75 dấu hiệu nhưng có báo sai do nhầm biểu thức TypeScript/JSX với text hiển thị. Chuyển sang scanner có test dương/âm, vẫn chặn nhãn tiếng Anh kỹ thuật và dấu `&` trong văn bản JSX tĩnh.
+- Sửa các nhãn thực tại màn công việc, báo cáo, bảng chỉ tiêu, điều hướng legacy. Đổi `LEGACY_MOCK` hiển thị thành `BẢN MÔ PHỎNG`; không đổi enum nội bộ, tên hàm hoặc các bản ghi người dùng.
+- M09 báo cáo hiển thị nhãn trạng thái tiếng Việt, không đưa mã `snapshot` hoặc nội dung nguồn chưa xác minh lên UI. PH04 vẫn cần nghiệm thu bản xuất và thẩm quyền chốt báo cáo.
+- Những module legacy và nội dung báo cáo vẫn chưa đạt kiểm thử browser/UAT; bộ quét tĩnh không chứng minh mọi câu chữ ngữ nghĩa đã đạt 100%.
+
+
+## M06 dữ liệu địa bàn & bản xuất M09 (candidate)
+- M06 đã bỏ `A1/A2/A3` giả trong bộ lọc địa bàn, dùng `org_units` thuộc tenant và phạm vi được phép. Không đưa UUID lên nhãn hiển thị, thêm trạng thái **tạm dừng chi trả** thay cho việc gộp nhầm vào chưa chi trả. Các trường nhạy cảm vẫn dùng DTO hiển thị của PH06.
+- Các phiên bản PDF/XLSX của M09 dùng nhãn trạng thái, nguồn và chất lượng số liệu tiếng Việt, giữ watermark `BẢN THỬ NGHIỆM`, dữ liệu nguồn và mã kiểm chứng; không biến thao tác chốt nội bộ thành văn bản phát hành.
+- Sửa bộ quét UI để không báo nhầm tên enum `LEGACY_MOCK`, biểu thức `snapshot.status` hay type TSX. Có unit tests chống báo nhầm và bỏ lọt nội dung kỹ thuật thực sự hiển thị.
+- Chưa kiểm thử trực tiếp RLS của bảng M06 hay mở/đối soát file PDF/XLSX trên staging; G-SEC và G-UX vẫn BLOCKED.
+
+## Gate CI `e90e7929` / `223411b4` — bằng chứng đóng kiểm thử tĩnh
+- `e90e7929`: [CI 42675803694](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42675803694), [integration 42675805528](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42675805528), [PH05 42675803518](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42675803518) đều **PASS**.
+- `223411b4`: [CI 42676418268](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42676418268), [integration 42676418336](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42676418336), [PH05 42676418360](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42676418360) đều **PASS**, gồm test M01 scoped-hamlet mới.
+- M01 `getActiveHamlets` trước đây đọc sai `org_unit_ids` từ `ctx.scopes`; nay dùng `hamletIds` và khóa kết quả khi danh sách rỗng; lọc trang không chấp nhận địa bàn ngoài phạm vi.
+- Tìm được nguyên nhân sâu trong contract SQL: membership `scopes.org_unit_ids` nhưng UI mới dùng `ctx.scopes.hamletIds`. `78c1750b` thêm `normalizeMembershipScopes()` sau Auth, không tăng quyền khi gặp hai key xung đột. Bộ test pure đã vào CI; vẫn cần RLS staging.
+- Đã lập [branch ledger](PVH_BRANCH_DISPOSITION_LEDGER_2026-11-10.md) (snapshot 20 nhánh/main) và [W0–W5 readiness](PVH_RELEASE_READINESS_2026-11-10.md) (36 task gắn trạng thái chứng cứ); **không** được tính kế hoạch thành code hoàn thiện.
+- **NO-GO**: hoàn thành CI không đóng G-DB/G-SEC/G-FLOW/G-UX/G-PERF/G-OWNER. PR #12 giữ draft, main/cloud không đổi.

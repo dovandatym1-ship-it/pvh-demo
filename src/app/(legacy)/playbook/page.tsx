@@ -39,7 +39,7 @@ const PLAYBOOK_STEPS: PlaybookStep[] = [
     persona: "P1 / P4",
     badgeBg: "bg-emerald-100",
     badgeColor: "text-emerald-800",
-    title: "Đăng nhập & Đa xã độc lập",
+    title: "Đăng nhập và chuyển xã minh họa",
     action: "Chọn P4 Xã A -> xem 11 module. Chuyển sang Xã B -> M05/M08 bị tắt, dữ liệu tự cô lập.",
     proof: "DEM-ADD-01, DEM-ADD-06, V01, V13",
     targetHref: "/ban-lam-viec",
@@ -89,8 +89,8 @@ const PLAYBOOK_STEPS: PlaybookStep[] = [
     persona: "P4",
     badgeBg: "bg-pink-100",
     badgeColor: "text-pink-800",
-    title: "Chốt Snapshot & Lineage",
-    action: "Chốt Snapshot Rev 1 tại kỳ báo cáo -> kiểm tra mã băm SHA256 -> mở Lineage truy nguyên số liệu.",
+    title: "Chốt phiên bản báo cáo và truy vết nguồn",
+    action: "Chốt phiên bản báo cáo tại kỳ, kiểm tra mã kiểm chứng dữ liệu và xem thông tin truy vết nguồn.",
     proof: "AC-18, AC-24, V11, V12 (DEM-R05)",
     targetHref: "/bao-cao",
   },
@@ -99,7 +99,7 @@ const PLAYBOOK_STEPS: PlaybookStep[] = [
     persona: "P2 / P5",
     badgeBg: "bg-sky-100",
     badgeColor: "text-sky-800",
-    title: "Import lô & Tích hợp liên ngành",
+    title: "Nhập dữ liệu theo lô và tích hợp liên ngành",
     action: "Upload Excel qua Batch Wizard 3 bước -> tự động tiền kiểm từ chối dòng ngoại lai chéo xã TN-DEMO-B.",
     proof: "AC-03, AC-14, AC-15, AC-16, V15",
     targetHref: "/tich-hop",
@@ -121,9 +121,9 @@ const DELTA_ROWS = [
   { code: "DEM-ADD-02", name: "Tách quyền kỹ thuật P1 Admin", test: "P1 không đọc được chi tiết cá nhân/nhạy cảm (AC-10)", gate: "G2" },
   { code: "DEM-ADD-03", name: "Gói quy tắc ghim version", test: "Ra pack v1.1 không tự tính lại hồ sơ v1.0 (V06)", gate: "G3" },
   { code: "DEM-ADD-04", name: "Phối hợp công việc đa chủ thể", test: "Xóm P6 chỉ sửa phần việc/ô chỉ tiêu của mình", gate: "G3/G4" },
-  { code: "DEM-ADD-05", name: "Snapshot báo cáo bất biến", test: "Chốt Rev 1 không đổi số khi tác nghiệp thay đổi (V11)", gate: "G4" },
+  { code: "DEM-ADD-05", name: "Phiên bản báo cáo lưu giữ nguyên trạng", test: "Chốt Rev 1 không đổi số khi tác nghiệp thay đổi (V11)", gate: "G4" },
   { code: "DEM-ADD-06", name: "Bật/tắt module theo tenant", test: "Tắt M05/M08 ở Xã B chặn tạo mới, giữ lịch sử (V13)", gate: "G2" },
-  { code: "DEM-ADD-07", name: "Lưu bền vững & Khóa lạc quan", test: "Optimistic lock 409 khi 2 người cùng sửa (V05)", gate: "G1/G3" },
+  { code: "DEM-ADD-07", name: "Lưu dữ liệu và kiểm soát sửa đồng thời", test: "Optimistic lock 409 khi 2 người cùng sửa (V05)", gate: "G1/G3" },
   { code: "DEM-ADD-08", name: "Reset Demo theo từng Tenant", test: "Reset Xã A không ảnh hưởng Xã B, có log (V16)", gate: "G7" },
 ];
 
@@ -134,7 +134,7 @@ export default function PlaybookPage() {
 
   const handleExecuteReset = () => {
     resetTenant("XA_A");
-    setResetSuccessMessage("Đã khôi phục toàn bộ bảng dữ liệu Xã Giả định A (TN-DEMO-A) về trạng thái hạt giống Golden Oracle ban đầu (LocalStorage pvh_demo_state_v1 & Audit Log AUDIT_RESET_TENANT). Dữ liệu Xã Giả định B (TN-DEMO-B) được giữ nguyên vẹn 100%.");
+    setResetSuccessMessage("Đã đặt lại dữ liệu minh họa của xã A trong trình duyệt. Dữ liệu xã B không thay đổi. Đây không phải thao tác trên cơ sở dữ liệu của hệ thống đang triển khai.");
     setResetModalOpen(false);
     setTimeout(() => {
       setResetSuccessMessage(null);
@@ -150,7 +150,7 @@ export default function PlaybookPage() {
             Bảng điều khiển Người thuyết trình • Wave W11 • Gate G7
           </div>
           <h1 className="text-xl font-bold text-slate-900 mt-1 font-display">
-            Kịch bản Diễn thử 8 Bước & Ma trận Nghiệm thu
+            Kịch bản diễn thử tám bước và ma trận nghiệm thu
           </h1>
           <p className="text-xs text-slate-500 mt-1">
             Trình diễn trọn vẹn 11 phân hệ M00–M10, 3 luồng sâu, 5 báo cáo Oracle và cơ chế cô lập dữ liệu đa xã.

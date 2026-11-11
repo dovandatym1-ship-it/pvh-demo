@@ -3,8 +3,23 @@
 Ứng dụng dự kiến phục vụ tác nghiệp, phối hợp và báo cáo cho Phòng VH-XH cấp xã tại Thái Nguyên, dùng chung một codebase với cấu hình và dữ liệu độc lập theo xã.
 
 **Kiến trúc được người dùng đồng ý:** Next.js App Router + TypeScript + Supabase.  
-**Cập nhật:** 08/11/2026.  
-**Hiện trạng:** Có ứng dụng Next.js và cấu hình kết nối Supabase cho môi trường local. Các màn hình demo hiện vẫn dùng dữ liệu giả/localStorage; database cloud chưa có bảng nghiệp vụ hoặc migration được áp dụng.
+**Cập nhật tích hợp:** 10/11/2026.\
+**Trạng thái phát hành:** **DRAFT / NO-GO** — [PR #12](https://github.com/dovandatym1-ship-it/pvh-demo/pull/12), chưa merge vào `main`, chưa triển khai production.
+
+**Bằng chứng đã đạt:** Next.js source CI, dependency audit và isolated local Supabase replay cho chuỗi migration hiện hành (14 file) cùng pgTAP M01/M04/M05/M08, notification/Storage và kiểm thử cách ly hai người nhận: [DB Replay PASS](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42742938865).
+
+**Giới hạn:** Supabase cloud `Demo-pvh` mới ghi nhận 2 migration đã áp dụng và 14 bảng nền tảng RLS. Nhánh tích hợp có migration và mã nguồn M02/M03/M06/M07/M11 nhưng chưa đưa lên cloud; còn thiếu đối chứng toàn bộ 128 OP về field, rule, CRUD, quyền và E2E/UAT. Năm feature M11 thuộc đặc tả nháp chờ duyệt. Tài liệu [readback cloud](docs/integration/PVH_CLOUD_SCHEMA_READBACK_2026-11-10.md) và [release readiness](docs/integration/PVH_RELEASE_READINESS_2026-11-10.md) là nguồn trạng thái hiện hành. Không coi việc đã có menu/mẫu dữ liệu là chức năng đã nghiệm thu.
+
+*Lưu ý: phần bên dưới ghi lại cả định hướng/scaffold trước tích hợp; những tuyên bố về tình trạng triển khai đã được thay thế bởi bằng chứng ở trên.*
+
+### Tích hợp giao diện và phân quyền trên PR #12
+
+- Login Split Screen, quên/đặt lại mật khẩu bằng mã PKCE dùng một lần, logout, điều hướng sau đăng nhập theo membership thực; không mặc định mọi người vào M01.
+- Dashboard M01 đếm chính xác theo quyền; phần số liệu nguồn M02–M11 nằm riêng và phân biệt lỗi dữ liệu với số 0.
+- Thông báo cá nhân có bộ lọc, phân trang, đánh dấu riêng và đánh dấu toàn bộ đã đọc, luôn giới hạn tenant và người nhận.
+- M00 có cấp/thu hồi vai trò, lọc danh sách, chọn đơn vị công tác; phạm vi thôn/xóm chỉ do server tính từ đơn vị đang hoạt động.
+- Các route `(legacy)` dùng localStorage và nút giả đồng bộ bị chặn tại server ngoài chế độ local demo, không còn trong menu đang dùng.
+- **Không đồng nghĩa hoàn thành 128/128 OP.** Kế hoạch Supabase/Vercel riêng tại `docs/integration/PVH_ENVIRONMENT_AND_ACCEPTANCE_PLAN_2026-11-10.md`. PR tiếp tục DRAFT.
 
 ## 1. Tài liệu và nguồn tham chiếu
 
@@ -17,7 +32,7 @@
 
 - **Next.js:** giao diện, Server Components, Server Actions và Route Handlers trong cùng một ứng dụng.
 - **Supabase:** PostgreSQL, Auth và private Storage; bổ sung job/Edge Function theo nhu cầu đã đặc tả.
-- **Module nghiệp vụ:** tách M00–M10. M02/M03/M06/M07 có điều hướng và không gian tác nghiệp độc lập; không thay thế bằng bốn tab của một trang hồ sơ tổng hợp.
+- **Module nghiệp vụ:** tách M00–M11. M02/M03/M06/M07 có điều hướng và không gian tác nghiệp độc lập; không thay thế bằng bốn tab của một trang hồ sơ tổng hợp.
 - **Đa xã:** chia sẻ source; tenant, membership, phân công và quyền theo vụ việc được kiểm tra ở server và database.
 - **LEGO:** view/form/modal nhỏ, logic cục bộ, sau đó ghép vào route/layout. File giao diện tối đa 300 dòng; `page.tsx` và `route.ts` giữ mỏng.
 
@@ -153,7 +168,7 @@ src/features/m04-culture-family/cultural-titles/
 
 - Migration SQL nằm trong `supabase/migrations/`, tạo bằng Supabase CLI sau khi kiểm tra phiên bản và lệnh hỗ trợ; bao gồm schema, constraints, RLS, functions và grants liên quan.
 - Golden seed (`GOLDEN_B3`) và seed mở rộng (`FULL_DEMO_EXT`) tách file dưới `supabase/seeds/`; không loại seed mở rộng khỏi báo cáo tổng thể để ép khớp oracle.
-- SQL migration và seed đã có trong source, nhưng chưa áp dụng lên cloud; chính sách tenant và hàm đặc quyền cần sửa và kiểm thử trước khi triển khai.
+- Đã có 14 migration canonical trên nhánh tích hợp (chỉ 2 nền tảng ghi nhận đã áp dụng cloud). Bộ local replay/pgTAP của các migration đã có CI; 12 migration bổ sung chưa được chạy trên staging/production. Không dùng `db push` với `Demo-pvh` trước khi chốt diff/checksum, RLS và rollback.
 - Sao chép `.env.example` thành `.env.local`, điền URL và publishable key của project Supabase demo. Không đặt secret/service role key trong biến `NEXT_PUBLIC_*` hoặc đưa file môi trường local vào Git.
 - Chỉ dùng project Supabase dành cho demo/dev khi dựng ban đầu. CI phải phân biệt môi trường và không mặc định migrate production mỗi lần push.
 - Không sử dụng `.ba/runtime.db`, `.ba/knowledge.db` hoặc tạo SQLite riêng cho ứng dụng.

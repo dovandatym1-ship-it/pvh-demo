@@ -1,0 +1,71 @@
+name: PVH isolated DB replay and security contracts
+
+on:
+  push:
+    branches: ['integrate/pvh-*']
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/pvh-db-replay.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pvh-db-replay-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  fresh-db-replay:
+    name: Fresh local Supabase migrations + pgTAP
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SUPABASE_ACCESS_TOKEN: ''
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up pinned Supabase CLI (local; never linked to cloud)
+        uses: supabase/setup-cli@v3
+        with:
+          version: 3.0.0
+      - name: Check migration inventory and CLI
+        run: |
+          node scripts/check-migration-ledger.mjs
+          supabase --version
+          supabase db start --help
+          supabase test db --help
+      - name: Add cloud RLS event-trigger fixture to isolated replay only
+        run: |
+          fixture="supabase/_ci_fixtures/rls_event_trigger.sql"
+          temporary_migration="supabase/migrations/20261108000000_ci_only_cloud_prerequisite.sql"
+          test -f "$fixture"
+          test ! -e "$temporary_migration"
+          cp -- "$fixture" "$temporary_migration"
+      - name: Fresh local replay of all 14 active migrations
+        run: supabase db start
+      - name: PH01 account, RLS and audited RPC contracts
+        run: supabase test db supabase/tests/01_ph01_single_commune_rls.sql
+      - name: M01 transactional and authorization contracts
+        run: supabase test db supabase/tests/02_ph02_m01_contract.sql
+      - name: M04/M05/M08 RLS and workflow tests
+        run: supabase test db supabase/tests/04_ph03_domain_contracts.sql supabase/tests/05_ph03_actor_workflows.sql
+      - name: Notifications and avatar hardening contract
+        run: supabase test db supabase/tests/06_pvh_notifications_storage_contract.sql
+      - name: Notification recipient isolation and forbidden writes
+        run: supabase test db supabase/tests/07_pvh_notifications_rls_negative.sql
+      - name: M11 shared catalog CRUD and RLS
+        run: supabase test db supabase/tests/08_m11_catalog_crud_rls.sql
+      - name: M07 faith domain permissions and audited intake
+        run: supabase test db supabase/tests/09_m07_faith_security_contract.sql
+      - name: M06 sensitive social-benefit intake and reconciliation
+        run: supabase test db supabase/tests/10_m06_sensitive_social_contract.sql
+      - name: M03 education decision RLS and authority
+        run: supabase test db supabase/tests/11_m03_education_authority.sql
+      - name: M02 source-backed labor and masked NCC
+        run: supabase test db supabase/tests/12_m02_labor_ncc_security.sql
+      - name: Remove the exact temporary replay fixture
+        if: always()
+        run: rm -f -- supabase/migrations/20261108000000_ci_only_cloud_prerequisite.sql
+
+# This job never authenticates to or writes Demo-pvh cloud. A green run proves
+# local migrations + selected pgTAP checks, not hosted RLS or browser E2E.

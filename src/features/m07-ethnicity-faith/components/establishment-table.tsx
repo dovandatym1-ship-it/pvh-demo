@@ -7,28 +7,30 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { Landmark, Plus, Search, Eye, CheckCircle2 } from "lucide-react";
 import { CreateEstablishmentModal } from "./create-establishment-modal";
+import { useRouter } from "next/navigation";
+import type { FaithHamletOption } from "../server/queries";
 
 interface EstablishmentTableProps {
   items: ReligiousEstablishmentDTO[];
   userPermissions?: readonly string[];
+  hamlets: readonly FaithHamletOption[];
 }
 
 export function EstablishmentTable({
   items: initialItems,
   userPermissions = [],
+  hamlets,
 }: EstablishmentTableProps) {
   const [items, setItems] = useState<ReligiousEstablishmentDTO[]>(initialItems);
+  const router = useRouter();
+  const hamletNames = useMemo(() => new Map(hamlets.map(h => [h.id,h.name])), [hamlets]);
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [selectedItem, setSelectedItem] = useState<ReligiousEstablishmentDTO | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [successToast, setSuccessToast] = useState<string | null>(null);
 
-  const canManage =
-    userPermissions.includes("m07:faith:manage") ||
-    userPermissions.includes("m07:faith:write") ||
-    userPermissions.includes("m07:full") ||
-    userPermissions.includes("m00:admin");
+  const canManage = userPermissions.includes("m07:faith:manage");
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
@@ -128,7 +130,7 @@ export function EstablishmentTable({
                   <td className="py-3 px-4 font-semibold text-slate-900 truncate max-w-xs">{item.name}</td>
                   <td className="py-3 px-4">{getReligionBadge(item.religionType)}</td>
                   <td className="py-3 px-4 text-slate-700">{item.representativeName}</td>
-                  <td className="py-3 px-4 text-slate-600">Xóm {item.hamletId}</td>
+                  <td className="py-3 px-4 text-slate-600">{hamletNames.get(item.hamletId) ?? "Địa bàn chưa xác định"}</td>
                   <td className="py-3 px-4 font-semibold text-slate-900 text-right font-mono">
                     {item.followerCount.toLocaleString("vi-VN")}
                   </td>
@@ -173,7 +175,7 @@ export function EstablishmentTable({
               </div>
               <div>
                 <span className="text-slate-500 block">Địa bàn hành chính:</span>
-                <span className="font-semibold text-slate-800">Xóm {selectedItem.hamletId}</span>
+                <span className="font-semibold text-slate-800">{hamletNames.get(selectedItem.hamletId) ?? "Địa bàn chưa xác định"}</span>
               </div>
               <div>
                 <span className="text-slate-500 block">Tín đồ sinh hoạt:</span>
@@ -185,10 +187,12 @@ export function EstablishmentTable({
       )}
 
       <CreateEstablishmentModal
+        hamlets={hamlets}
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         onSuccess={(newItem) => {
           setItems((prev) => [newItem, ...prev]);
+          router.refresh();
           showToast(`Đã đăng ký cơ sở [${newItem.name}] thành công!`);
         }}
       />

@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Adversarial Stress Test Suite: Milestone M4 / Gate G3 Empirical Verification
-Target: /Users/dovandat/teamwork_projects/pvh_demo
+Static Source Contract Suite: M04/M09 Release Safety Checks
+Target: repository containing this test file
 Author: Challenger 2 (challenger_m4_2)
 
-This harness empirically executes adversarial scenarios against the Milestone M4
-codebase to stress test:
-1. Immutable report snapshot defense (trg_report_snapshot_immutable & RPC)
+This harness checks source contracts and one in-memory reference model. It does
+not execute PostgreSQL, browser flows, hosted RLS/Storage or staging. It checks:
+1. Immutable report snapshot source contract (trigger and RLS grants)
 2. RFC 8785 Canonical JSON hashing determinism & avalanche tamper sensitivity
 3. Background system jobs concurrency & FOR UPDATE SKIP LOCKED race immunity
-4. Cultural evaluation dossier database check constraints (chk_submission_dat_requires_evidence)
+4. M04 verified-rule, evidence and reason checks in the review RPC
 5. Mandatory demonstration watermark disclaimer presence across formats
 6. Fail-closed CRON_SECRET security and HTTP authorization on job routes
 """
@@ -23,7 +23,7 @@ import threading
 import time
 from pathlib import Path
 
-PROJECT_ROOT = Path("/Users/dovandat/teamwork_projects/pvh_demo")
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 class EmpiricalChallengeResult:
@@ -50,7 +50,7 @@ class EmpiricalChallengeResult:
 def run_all_challenges():
     res = EmpiricalChallengeResult()
     print("=" * 80)
-    print(" EMPIRICAL ADVERSARIAL STRESS TEST SUITE: MILESTONE M4 (GATE G3)")
+    print(" STATIC SOURCE CONTRACT SUITE: M04/M09 RELEASE SAFETY")
     print(" Target:", PROJECT_ROOT)
     print("=" * 80)
 
@@ -137,18 +137,23 @@ def run_all_challenges():
     # -------------------------------------------------------------------------
     print("\n--- [AREA 2] IMMUTABLE REPORT SNAPSHOT DEFENSE ---")
 
-    migration_sql = (PROJECT_ROOT / "supabase/migrations/20261108000003_m04_culture_and_reporting.sql").read_text(encoding="utf-8")
+    ph03_sql = (PROJECT_ROOT / "supabase/migrations/20261108070000_ph03_domain_verticals.sql").read_text(encoding="utf-8")
+    report_sql = (PROJECT_ROOT / "supabase/migrations/20261108080000_ph04_reporting.sql").read_text(encoding="utf-8")
+    jobs_sql = (PROJECT_ROOT / "supabase/migrations/20261108081000_ph04_jobs.sql").read_text(encoding="utf-8")
+    report_normalized = re.sub(r"\s+", " ", report_sql.lower())
+    jobs_normalized = re.sub(r"\s+", " ", jobs_sql.lower())
+    ph03_normalized = re.sub(r"\s+", " ", ph03_sql.lower())
 
     # Challenge 2.1: Immutability Trigger Defined on BEFORE UPDATE OR DELETE
-    has_trigger_fn = "CREATE OR REPLACE FUNCTION app.enforce_snapshot_immutability()" in migration_sql
-    blocks_finalized = "OLD.status = 'FINALIZED' OR OLD.is_finalized = true" in migration_sql
-    has_trigger = "CREATE TRIGGER trg_report_snapshot_immutable" in migration_sql and "BEFORE UPDATE OR DELETE ON public.report_snapshots" in migration_sql
+    has_trigger_fn = "create function pvh_private.guard_report_snapshot()" in report_normalized
+    blocks_finalized = "old.status='finalized'" in report_normalized and "old.payload is distinct from new.payload" in report_normalized
+    has_trigger = "create trigger guard_report_snapshot before update or delete on public.report_snapshots" in report_normalized
 
     if has_trigger_fn and blocks_finalized and has_trigger:
         res.log_result(
             "Challenge 2.1 - Database Snapshot Immutability Trigger",
             True,
-            "trg_report_snapshot_immutable guards BEFORE UPDATE OR DELETE against status='FINALIZED' or is_finalized=true",
+            "pvh_private.guard_report_snapshot rejects deletion and mutation of finalized report payload/hash/lineage fields",
         )
     else:
         res.log_result(
@@ -158,15 +163,15 @@ def run_all_challenges():
         )
 
     # Challenge 2.2: RLS Deny-by-Default on report_snapshots
-    has_force_rls = "ALTER TABLE public.report_snapshots FORCE ROW LEVEL SECURITY;" in migration_sql
-    revoked_delete = "REVOKE UPDATE, DELETE ON TABLE public.report_snapshots FROM anon, PUBLIC;" in migration_sql
-    no_update_policy = "CREATE POLICY report_snapshots_update" not in migration_sql
+    has_force_rls = "alter table public.%i force row level security" in report_normalized
+    revoked_delete = "revoke all on public.%i from public,anon,authenticated" in report_normalized
+    no_update_policy = not re.search(r"create policy\s+\w+\s+on public\.report_snapshots\s+for\s+(update|delete|all)", report_sql, re.IGNORECASE)
 
     if has_force_rls and revoked_delete and no_update_policy:
         res.log_result(
             "Challenge 2.2 - Multi-Layer Immutability (Revocation & RLS Policy Absence)",
             True,
-            "Direct UPDATE/DELETE denied by RLS and REVOKE; mutation strictly restricted to SECURITY DEFINER finalize RPC",
+            "Migration forces RLS, revokes direct grants and defines a read policy without client update/delete policies",
         )
     else:
         res.log_result(
@@ -181,16 +186,16 @@ def run_all_challenges():
     print("\n--- [AREA 3] BACKGROUND JOBS CONCURRENCY & SKIP LOCKED ---")
 
     # Challenge 3.1: RPC claim_next_system_job uses FOR UPDATE SKIP LOCKED
-    has_skip_locked = "FOR UPDATE SKIP LOCKED" in migration_sql
-    orders_by_fifo = "ORDER BY created_at ASC" in migration_sql
-    increments_attempts = "attempts = attempts + 1" in migration_sql
-    guards_max_attempts = "attempts < max_attempts" in migration_sql
+    has_skip_locked = "for update skip locked" in jobs_normalized
+    orders_by_fifo = "order by created_at,id" in jobs_normalized
+    increments_attempts = "attempts=attempts+1" in jobs_normalized
+    guards_max_attempts = "attempts<max_attempts" in jobs_normalized
 
     if has_skip_locked and orders_by_fifo and increments_attempts and guards_max_attempts:
         res.log_result(
             "Challenge 3.1 - RPC claim_next_system_job SKIP LOCKED Semantics",
             True,
-            "Uses FOR UPDATE SKIP LOCKED, ORDER BY created_at ASC, attempts < max_attempts, and status IN ('PENDING', 'QUEUED')",
+            "Uses FOR UPDATE SKIP LOCKED, deterministic created_at/id order, increments attempts, and requeues only before max attempts",
         )
     else:
         res.log_result(
@@ -199,7 +204,7 @@ def run_all_challenges():
             "claim_next_system_job missing concurrency or attempt bounds",
         )
 
-    # Challenge 3.2: Multi-Threaded Concurrent Job Processing Simulation
+    # Challenge 3.2: in-memory reference model only; not a PostgreSQL concurrency test.
     num_jobs = 40
     num_workers = 30
     jobs = [{"id": f"j-{i}", "status": "PENDING", "attempts": 0, "max_attempts": 3} for i in range(num_jobs)]
@@ -226,13 +231,13 @@ def run_all_challenges():
 
     if len(claimed_job_ids) == len(unique_job_ids) and len(unique_job_ids) == num_jobs:
         res.log_result(
-            "Challenge 3.2 - Multi-Worker Concurrency Stress Test",
+            "Challenge 3.2 - In-Memory Claim Reference Model",
             True,
-            f"0 double claims across {num_jobs + 20} concurrent attempts; exactly {num_jobs} jobs processed",
+            f"Reference model produced 0 duplicate claims across {num_jobs + 20} attempts; does not execute PostgreSQL",
         )
     else:
         res.log_result(
-            "Challenge 3.2 - Multi-Worker Concurrency Stress Test",
+            "Challenge 3.2 - In-Memory Claim Reference Model",
             False,
             "Race condition detected in concurrent claim simulation",
             f"claimed={len(claimed_job_ids)}, unique={len(unique_job_ids)}",
@@ -243,42 +248,53 @@ def run_all_challenges():
     # -------------------------------------------------------------------------
     print("\n--- [AREA 4] CULTURE DOSSIER CHECK CONSTRAINTS & WORKFLOW ---")
 
-    # Challenge 4.1: Database Check Constraint chk_submission_dat_requires_evidence
-    has_dat_constraint = "CONSTRAINT chk_submission_dat_requires_evidence CHECK (status != 'DAT' OR has_evidence = true)" in migration_sql
-    has_comment_constraint = "chk_submission_supplementation_comment CHECK (status != 'YEU_CAU_BO_SUNG' OR (reviewer_comment IS NOT NULL AND trim(reviewer_comment) != ''))" in migration_sql
+    # Challenge 4.1: M04 review RPC validates verified rules, evidence and reason.
+    has_verified_pack_gate = "v_pack.status<>'verified'" in ph03_normalized and "unverified_legal_rule_or_threshold" in ph03_normalized
+    has_evidence_gate = "p_status='dat'" in ph03_normalized and "verified_evidence_required" in ph03_normalized
+    has_reason_gate = "length(btrim(coalesce(p_reason,'')))<5" in ph03_normalized and "reason_required" in ph03_normalized
 
-    if has_dat_constraint and has_comment_constraint:
+    if has_verified_pack_gate and has_evidence_gate and has_reason_gate:
         res.log_result(
-            "Challenge 4.1 - Cultural Dossier Check Constraints",
+            "Challenge 4.1 - M04 Verified Rule/Evidence/Reason Gates",
             True,
-            "chk_submission_dat_requires_evidence and chk_submission_supplementation_comment enforce DB-level validity",
+            "Review RPC rejects DAT without a verified pack, threshold and evidence; requires a non-empty reason",
         )
     else:
         res.log_result(
-            "Challenge 4.1 - Cultural Dossier Check Constraints",
+            "Challenge 4.1 - M04 Verified Rule/Evidence/Reason Gates",
             False,
-            "Migration missing required submission check constraints",
+            "Review RPC is missing one or more verified-rule, evidence or reason checks",
         )
 
-    # Challenge 4.2: Application-Tier Workflow Transition Validator
-    workflow_path = PROJECT_ROOT / "src/features/m04-culture-family/server/workflow.ts"
-    workflow_code = workflow_path.read_text(encoding="utf-8")
+    # Challenge 4.2: Legacy application scoring is retired; no unverified
+    # threshold may create a recognition decision. The replacement PH03 flow
+    # remains illustrative and gates internal review on a verified rule pack.
+    legacy_paths = [
+        PROJECT_ROOT / "src/features/m04-culture-family/server/workflow.ts",
+        PROJECT_ROOT / "src/features/m04-culture-family/server/service.ts",
+        PROJECT_ROOT / "src/features/m04-culture-family/server/repository.ts",
+        PROJECT_ROOT / "src/features/m04-culture-family/schemas/index.ts",
+    ]
+    legacy_actions = (PROJECT_ROOT / "src/features/m04-culture-family/server/actions.ts").read_text(encoding="utf-8")
+    ph03_actions = (PROJECT_ROOT / "src/features/m04-culture-family/server/ph03-actions.ts").read_text(encoding="utf-8")
+    ph03_workspace = (PROJECT_ROOT / "src/features/m04-culture-family/components/ph03-culture-workspace.tsx").read_text(encoding="utf-8")
 
-    guards_dat_score = "context.score < 85" in workflow_code
-    guards_dat_evidence = "!context.hasEvidence" in workflow_code
-    guards_comment = "!context.reviewerComment || context.reviewerComment.trim().length === 0" in workflow_code
+    retired_legacy_scoring = all(not path.exists() for path in legacy_paths)
+    old_actions_fail_closed = "return fail<never>(" in legacy_actions and "return ok(" not in legacy_actions
+    ph03_requires_verified_pack = "reviewRuleVerified" in ph03_workspace
+    ph03_is_illustrative = "open_illustrative_culture_campaign" in ph03_actions
 
-    if guards_dat_score and guards_dat_evidence and guards_comment:
+    if retired_legacy_scoring and old_actions_fail_closed and ph03_requires_verified_pack and ph03_is_illustrative:
         res.log_result(
-            "Challenge 4.2 - Defense-in-Depth Application Workflow Validation",
+            "Challenge 4.2 - Unverified Legacy Scoring Retired",
             True,
-            "validateStatusTransition enforces score >= 85, evidence requirement for DAT, and non-empty comment for YEU_CAU_BO_SUNG",
+            "Legacy fixed-score workflow is removed; old action entrypoints fail closed and PH03 gates internal review on verified rule packs",
         )
     else:
         res.log_result(
-            "Challenge 4.2 - Defense-in-Depth Application Workflow Validation",
+            "Challenge 4.2 - Unverified Legacy Scoring Retired",
             False,
-            "workflow.ts missing transition checks",
+            "Legacy scoring path remains reachable or the PH03 replacement is not explicitly gated",
         )
 
     # -------------------------------------------------------------------------
@@ -289,12 +305,12 @@ def run_all_challenges():
     export_path = PROJECT_ROOT / "src/features/m09-reporting/server/export-service.ts"
     export_code = export_path.read_text(encoding="utf-8")
 
-    disclaimer_str = "[MÔ PHỎNG DEMO — KHÔNG CÓ GIÁ TRỊ PHÁP LÝ]"
+    disclaimer_str = "BẢN THỬ NGHIỆM — KHÔNG CÓ GIÁ TRỊ PHÁP LÝ"
     has_disclaimer_const = f'DEMO_WATERMARK_DISCLAIMER = "{disclaimer_str}"' in export_code
-    has_draft_watermark = 'DRAFT_WATERMARK = "[DRAFT - BẢN NHÁP]"' in export_code
-    exports_json = 'disclaimer: DEMO_WATERMARK_DISCLAIMER' in export_code
-    exports_xlsx = f'`# ${{DEMO_WATERMARK_DISCLAIMER}}`' in export_code
-    exports_pdf = f'`[HEADER BANNER] ${{DEMO_WATERMARK_DISCLAIMER}}`' in export_code and f'`[RUNNING WATERMARK] ${{DEMO_WATERMARK_DISCLAIMER}}`' in export_code
+    has_draft_watermark = 'DRAFT_WATERMARK = "BẢN NHÁP — CHƯA ĐƯỢC PHÊ DUYỆT"' in export_code
+    exports_json = 'watermark:DEMO_WATERMARK_DISCLAIMER' in export_code
+    exports_xlsx = 'sheet.getCell("A1").value = DEMO_WATERMARK_DISCLAIMER' in export_code
+    exports_pdf = 'text(DEMO_WATERMARK_DISCLAIMER,{align:"center"})' in export_code
 
     if has_disclaimer_const and has_draft_watermark and exports_json and exports_xlsx and exports_pdf:
         res.log_result(
@@ -319,18 +335,15 @@ def run_all_challenges():
     proc_code = job_proc_path.read_text(encoding="utf-8")
     work_code = job_work_path.read_text(encoding="utf-8")
 
-    proc_checks_auth = 'authHeader !== `Bearer ${expectedSecret}`' in proc_code and "status: 401" in proc_code
-    proc_checks_prod = 'isProduction = process.env.NODE_ENV === "production"' in proc_code and "status: 500" in proc_code
-    proc_has_both_methods = "export async function POST" in proc_code and "export async function GET" in proc_code
+    proc_delegates = 'from "../worker/route"' in proc_code and "GET,POST,dynamic" in proc_code
+    work_checks_secret = "process.env.CRON_SECRET" in work_code and "timingSafeEqual" in work_code
+    work_fails_closed = "status:503" in work_code and "status:401" in work_code
 
-    work_checks_auth = 'authHeader !== `Bearer ${expectedSecret}`' in work_code and "status: 401" in work_code
-    work_checks_prod = 'isProduction = process.env.NODE_ENV === "production"' in work_code and "status: 500" in work_code
-
-    if proc_checks_auth and proc_checks_prod and proc_has_both_methods and work_checks_auth and work_checks_prod:
+    if proc_delegates and work_checks_secret and work_fails_closed:
         res.log_result(
             "Challenge 6.1 - Job Endpoints Fail-Closed Authorization & Production Secret Guard",
             True,
-            "Both /api/jobs/process and /api/jobs/worker require Bearer token matching CRON_SECRET and fail-closed (500) if unconfigured in production",
+            "The legacy endpoint delegates to the worker; worker requires timing-safe CRON_SECRET comparison and fails closed when absent/invalid",
         )
     else:
         res.log_result(
@@ -343,7 +356,7 @@ def run_all_challenges():
     # SUMMARY
     # -------------------------------------------------------------------------
     print("\n" + "=" * 80)
-    print(" EMPIRICAL ADVERSARIAL STRESS TEST SUMMARY")
+    print(" STATIC SOURCE CONTRACT SUMMARY (NOT DB/BROWSER/STAGING ACCEPTANCE)")
     print(f" Total Challenges : {res.passed + res.failed}")
     print(f" Passed           : {res.passed}")
     print(f" Failed           : {res.failed}")
@@ -353,7 +366,7 @@ def run_all_challenges():
         print(" Verdict: GAPS_FOUND")
         sys.exit(1)
     else:
-        print(" Verdict: ALL CHALLENGES PASSED (READY FOR APPROVE)")
+        print(" Verdict: STATIC CONTRACTS PASS; runtime and owner gates remain separate")
         sys.exit(0)
 
 

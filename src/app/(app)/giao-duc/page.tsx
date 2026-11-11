@@ -14,16 +14,15 @@ export default async function GiaoDucAppPage() {
   assertCanReadEducation(ctx);
 
   const canManage =
-    ctx.permissions.includes("m03:education:write") ||
-    ctx.roles.includes("chu_tich_xa") ||
-    ctx.roles.includes("can_bo_chuyen_trach") ||
-    ctx.permissions.includes("admin");
+    ctx.permissions.includes("m03:education:write");
 
   const [schools, privateFacilities, exemptions] = await Promise.all([
     getSchools(ctx),
     getPrivateChildcareFacilities(ctx),
     getTuitionExemptions(ctx),
   ]);
+
+  const publicFacilityRows = privateFacilities.map(({ ownerCccd: _secret, ...row }) => row);
 
   return (
     <div className="space-y-6">
@@ -32,16 +31,16 @@ export default async function GiaoDucAppPage() {
           <div className="flex items-center gap-2">
             <GraduationCap className="w-6 h-6 text-[#1F633E]" />
             <h1 className="text-xl font-bold text-slate-900">
-              Giáo dục & Đào tạo
+              Giáo dục và đào tạo
             </h1>
           </div>
           <p className="mt-1 text-xs text-slate-600">
-            Theo dõi phổ cập giáo dục, mạng lưới trường mầm non - tiểu học - THCS và chính sách miễn giảm học phí.
+            Theo dõi phổ cập giáo dục, mạng lưới trường mầm non, tiểu học và trung học cơ sở và chính sách miễn giảm học phí.
           </p>
         </div>
       </div>
 
-      <SchoolTable schools={schools} privateFacilities={privateFacilities} />
+      <SchoolTable schools={schools} privateFacilities={publicFacilityRows} />
 
       <div className="pt-4">
         <ExemptionTable items={exemptions} canManage={canManage} />

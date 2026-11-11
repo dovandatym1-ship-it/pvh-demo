@@ -1,0 +1,47 @@
+name: PH05 Release Candidate Gate
+on:
+  push:
+    branches: ['feat/pvh-ph05-release-clone', 'fix/pvh-ph05-*']
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: ph05-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  static-and-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: cp .env.example .env.local
+      - run: node --experimental-strip-types --test tests/ph05-clone-brand.test.mjs
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run fitness
+      - run: node --test tests/security/*.test.mjs
+      - run: node --experimental-strip-types --test tests/m01-workflow-rules.test.mjs
+      - run: node --test tests/ph03-contract-static.test.mjs
+      - run: npm run test:ph04
+      - run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+      - name: Dependency vulnerability scan (high and critical)
+        run: npm audit --omit=dev --audit-level=high
+      - name: Record immutable test context
+        if: always()
+        run: |
+          mkdir -p artifacts
+          printf 'commit=%s\nref=%s\nrun=%s\n' "$GITHUB_SHA" "$GITHUB_REF" "$GITHUB_RUN_ID" > artifacts/ci-context.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ph05-ci-context
+          path: artifacts/ci-context.txt
+          retention-days: 14
+# IMPORTANT: Static checks are NOT browser E2E, DB restore, UAT or production approval.

@@ -5,67 +5,21 @@ import type { RequestContext } from "@/lib/auth/request-context";
 import type { NCCBeneficiaryDTO, LaborContractDTO, LaborDisputeDTO } from "../types";
 
 export async function getNCCBeneficiaries(ctx: RequestContext): Promise<NCCBeneficiaryDTO[]> {
-  const supabase = await createServerSupabaseClient();
-
-  const { data, error } = await supabase
-    .from("ncc_beneficiaries")
-    .select("*")
-    .eq("tenant_id", ctx.tenantId)
-    .order("code", { ascending: true });
-
-  if (error || !data || data.length === 0) {
-    return [
-      {
-        id: "c0000000-0000-0000-0000-000000000001",
-        code: "NCC-TN-01",
-        fullName: "Nguyễn Văn Thành",
-        cccd: "019058001122",
-        hamletId: "A1",
-        category: "THUONG_BINH",
-        medalTitle: "Huân chương Kháng chiến Hạng Ba",
-        monthlyAllowance: 2850000,
-        hasDeduplicationFlag: false,
-        status: "ACTIVE",
-      },
-      {
-        id: "c0000000-0000-0000-0000-000000000002",
-        code: "NCC-TN-02",
-        fullName: "Mẹ Việt Nam AH Lê Thị Lan",
-        cccd: "019035003344",
-        hamletId: "A2",
-        category: "BA_ME_VNAH",
-        medalTitle: "Danh hiệu Bà Mẹ VNAH",
-        monthlyAllowance: 4850000,
-        hasDeduplicationFlag: false,
-        status: "ACTIVE",
-      },
-      {
-        id: "c0000000-0000-0000-0000-000000000003",
-        code: "NCC-TN-03",
-        fullName: "Hoàng Văn Thái",
-        cccd: "019062005566",
-        hamletId: "A3",
-        category: "BENH_BINH",
-        medalTitle: "Huy chương Chiến sĩ vẻ vang",
-        monthlyAllowance: 2150000,
-        hasDeduplicationFlag: false,
-        status: "ACTIVE",
-      },
-    ];
-  }
-
-  return data.map((row) => ({
-    id: String(row.id),
-    code: String(row.code),
-    fullName: String(row.full_name),
-    cccd: row.cccd ? String(row.cccd) : undefined,
-    hamletId: String(row.hamlet_id),
-    category: (row.category as NCCBeneficiaryDTO["category"]) || "THUONG_BINH",
-    medalTitle: String(row.medal_title),
-    monthlyAllowance: Number(row.monthly_allowance) || 0,
-    hasDeduplicationFlag: Boolean(row.has_deduplication_flag),
-    deduplicationWarning: row.deduplication_warning ? String(row.deduplication_warning) : undefined,
-    status: (row.status as NCCBeneficiaryDTO["status"]) || "ACTIVE",
+  // Sensitive identity and allowance fields are not SELECT-granted on the
+  // underlying table. The RPC enforces live role, hamlet scope and field mask.
+  const db=await createServerSupabaseClient();
+  const {data,error}=await db.schema("app").rpc("list_ncc_beneficiaries",{p_limit:1000});
+  if(error||!Array.isArray(data))throw new Error("Không thể tải hồ sơ người có công theo phân quyền.");
+  return data.map(row=>({
+    id:String(row.id),code:String(row.code),fullName:String(row.full_name),
+    cccd:typeof row.cccd==="string"?row.cccd:undefined,
+    hamletId:String(row.hamlet_id),
+    category:row.category as NCCBeneficiaryDTO["category"],
+    medalTitle:String(row.medal_title),
+    monthlyAllowance:row.monthly_allowance===null?0:Number(row.monthly_allowance),
+    hasDeduplicationFlag:Boolean(row.has_deduplication_flag),
+    deduplicationWarning:typeof row.deduplication_warning==="string"?row.deduplication_warning:undefined,
+    status:row.status as NCCBeneficiaryDTO["status"],
   }));
 }
 
@@ -78,34 +32,10 @@ export async function getLaborContracts(ctx: RequestContext): Promise<LaborContr
     .eq("tenant_id", ctx.tenantId)
     .order("business_name", { ascending: true });
 
-  if (error || !data || data.length === 0) {
-    return [
-      {
-        id: "c1000000-0000-0000-0000-000000000001",
-        businessName: "HTX Nông nghiệp Xanh Giả Định A",
-        taxCode: "4600123456",
-        totalWorkers: 28,
-        minWagePaid: 4200000,
-        regionalMinWage: 3450000,
-        isUnderMinWage: false,
-        seasonalWorkersCount: 6,
-        bhxhRegisteredCount: 22,
-        evaluationPeriod: "Q3/2026",
-      },
-      {
-        id: "c1000000-0000-0000-0000-000000000002",
-        businessName: "Xưởng chế biến chè Gia Định - Xóm A1",
-        taxCode: "4600654321",
-        totalWorkers: 14,
-        minWagePaid: 3800000,
-        regionalMinWage: 3450000,
-        isUnderMinWage: false,
-        seasonalWorkersCount: 4,
-        bhxhRegisteredCount: 10,
-        evaluationPeriod: "Q3/2026",
-      },
-    ];
+  if (error) {
+    throw new Error("Không thể tải dữ liệu chuyên ngành; vui lòng thử lại.");
   }
+  if (!data) return [];
 
   return data.map((row) => ({
     id: String(row.id),
@@ -113,7 +43,7 @@ export async function getLaborContracts(ctx: RequestContext): Promise<LaborContr
     taxCode: String(row.tax_code),
     totalWorkers: Number(row.total_workers) || 0,
     minWagePaid: Number(row.min_wage_paid) || 0,
-    regionalMinWage: Number(row.regional_min_wage) || 3450000,
+    regionalMinWage: Number(row.regional_min_wage),
     isUnderMinWage: Boolean(row.is_under_min_wage),
     seasonalWorkersCount: Number(row.seasonal_workers_count) || 0,
     bhxhRegisteredCount: Number(row.bhxh_registered_count) || 0,
@@ -130,22 +60,10 @@ export async function getLaborDisputes(ctx: RequestContext): Promise<LaborDisput
     .eq("tenant_id", ctx.tenantId)
     .order("received_date", { ascending: false });
 
-  if (error || !data || data.length === 0) {
-    return [
-      {
-        id: "c2000000-0000-0000-0000-000000000001",
-        code: "TC-2026-001",
-        requesterName: "Đỗ Văn Minh",
-        requesterRole: "EMPLOYEE",
-        respondentName: "Xưởng chè Gia Định",
-        disputeContent: "Tranh chấp tiền lương làm thêm giờ vụ thu hoạch",
-        disputeType: "INDIVIDUAL",
-        receivedDate: "2026-10-12",
-        status: "RESOLVED_SUCCESS",
-        outcomeSummary: "Hai bên thống nhất thanh toán đủ 1.800.000đ tiền làm thêm giờ.",
-      },
-    ];
+  if (error) {
+    throw new Error("Không thể tải dữ liệu chuyên ngành; vui lòng thử lại.");
   }
+  if (!data) return [];
 
   return data.map((row) => ({
     id: String(row.id),
@@ -158,5 +76,19 @@ export async function getLaborDisputes(ctx: RequestContext): Promise<LaborDisput
     receivedDate: String(row.received_date),
     status: (row.status as LaborDisputeDTO["status"]) || "RECEIVED",
     outcomeSummary: row.outcome_summary ? String(row.outcome_summary) : undefined,
+    version: Number(row.version),
+    decisionReference: row.decision_reference ? String(row.decision_reference) : null,
   }));
+}
+
+export async function getNccHamlets(ctx:RequestContext):Promise<{id:string;name:string}[]>{
+  if(!ctx.permissions.includes("m02:internal:read"))throw new Error("FORBIDDEN");
+  if(ctx.scopes.hamletIds&&ctx.scopes.hamletIds.length===0)return [];
+  const db=await createServerSupabaseClient();
+  let q=db.from("org_units").select("id,name").eq("tenant_id",ctx.tenantId)
+    .eq("kind","HAMLET").eq("is_active",true).order("name");
+  if(ctx.scopes.hamletIds)q=q.in("id",[...ctx.scopes.hamletIds]);
+  const {data,error}=await q;
+  if(error)throw new Error("Không thể tải địa bàn người có công được phân công.");
+  return (data||[]).map(row=>({id:String(row.id),name:String(row.name)}));
 }

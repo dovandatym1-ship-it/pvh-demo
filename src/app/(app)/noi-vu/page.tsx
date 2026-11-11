@@ -4,10 +4,12 @@ import {
   getNCCBeneficiaries,
   getLaborContracts,
   getLaborDisputes,
+  getNccHamlets,
 } from "@/features/m02-internal-affairs/server/queries";
 import { NCCTable } from "@/features/m02-internal-affairs/components/ncc-table";
 import { LaborPanels } from "@/features/m02-internal-affairs/components/labor-panels";
 import { Building } from "lucide-react";
+import { toNccDisplayRows } from "@/lib/authorization/display-sensitive";
 
 export default async function NoiVuAppPage() {
   const ctx = await getRequestContext();
@@ -15,10 +17,11 @@ export default async function NoiVuAppPage() {
 
   const canUnmask = canViewUnmaskedPII(ctx);
 
-  const [nccBeneficiaries, laborContracts, laborDisputes] = await Promise.all([
+  const [nccBeneficiaries, laborContracts, laborDisputes, hamlets] = await Promise.all([
     getNCCBeneficiaries(ctx),
     getLaborContracts(ctx),
     getLaborDisputes(ctx),
+    getNccHamlets(ctx),
   ]);
 
   return (
@@ -28,7 +31,7 @@ export default async function NoiVuAppPage() {
           <div className="flex items-center gap-2">
             <Building className="w-6 h-6 text-[#1F633E]" />
             <h1 className="text-xl font-bold text-slate-900">
-              Nội vụ, Lao động & Người có công
+              Nội vụ, lao động và người có công
             </h1>
           </div>
           <p className="mt-1 text-xs text-slate-600">
@@ -37,10 +40,10 @@ export default async function NoiVuAppPage() {
         </div>
       </div>
 
-      <NCCTable items={nccBeneficiaries} canUnmaskPII={canUnmask} />
+      <NCCTable items={toNccDisplayRows(nccBeneficiaries, canUnmask)} hamlets={hamlets} canUnmaskPII={canUnmask} />
 
       <div className="pt-4">
-        <LaborPanels contracts={laborContracts} disputes={laborDisputes} />
+        <LaborPanels contracts={laborContracts} disputes={laborDisputes} canManage={ctx.permissions.includes("m02:internal:write")} />
       </div>
     </div>
   );

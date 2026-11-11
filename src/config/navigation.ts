@@ -1,4 +1,5 @@
 import "server-only";
+import { hasExplicitPermission } from "@/lib/authorization/permission-check";
 
 export type NavigationStatus = "DEEP" | "FRAME" | "DEFERRED" | "LEGACY_MOCK";
 
@@ -19,14 +20,34 @@ export interface NavigationGroup {
   readonly items: readonly NavigationItem[];
 }
 
+const DASHBOARD_READ_PERMISSIONS = [
+  "m01:work:read", "m02:internal:read", "m03:education:read",
+  "m04:culture:read", "m05:digital:read", "m06:social:read",
+  "m07:faith:read", "m08:inspection:read", "m09:report:read",
+  "m10:indicator:import", "m11:catalog:read",
+] as const;
+
+/** Dashboard combines only permitted modules; it does not grant M01 access. */
+function canSeeDashboard(permissions: readonly string[]): boolean {
+  return DASHBOARD_READ_PERMISSIONS.some(code => hasExplicitPermission(permissions, code));
+}
+
 export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
   {
-    title: "Điều hành & Tác nghiệp",
+    title: "Điều hành và tác nghiệp",
     items: [
+      {
+        title: "Tổng quan điều hành",
+        route: "/dashboard",
+        iconName: "LayoutDashboard",
+        moduleKey: "m01",
+        status: "DEEP",
+      },
       {
         title: "Bàn làm việc",
         route: "/ban-lam-viec",
         iconName: "LayoutDashboard",
+        requiredPermission: "m01:work:read",
         status: "DEEP",
       },
       {
@@ -40,8 +61,24 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
     ],
   },
   {
-    title: "Văn hóa - Thông tin & Giáo dục",
+    title: "Chuyên ngành văn hóa – xã hội",
     items: [
+      {
+        title: "Nội vụ và lao động",
+        route: "/noi-vu",
+        iconName: "Building",
+        moduleKey: "m02",
+        requiredPermission: "m02:internal:read",
+        status: "DEEP",
+      },
+      {
+        title: "Giáo dục và đào tạo",
+        route: "/giao-duc",
+        iconName: "GraduationCap",
+        moduleKey: "m03",
+        requiredPermission: "m03:education:read",
+        status: "DEEP",
+      },
       {
         title: "Gia đình văn hóa",
         route: "/van-hoa/gia-dinh-van-hoa",
@@ -51,7 +88,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
-        title: "Thôn / Xóm văn hóa",
+        title: "Thôn, xóm văn hóa",
         route: "/van-hoa/thon-van-hoa",
         iconName: "Landmark",
         moduleKey: "m04",
@@ -59,28 +96,15 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
-        title: "Giáo dục & Đào tạo",
-        route: "/giao-duc",
-        iconName: "GraduationCap",
-        moduleKey: "m03",
-        requiredPermission: "m03:education:read",
-        status: "DEEP",
-      },
-      {
-        title: "Khoa học & Chuyển đổi số",
+        title: "Khoa học và chuyển đổi số",
         route: "/khcn-chuyen-doi-so",
         iconName: "Cpu",
         moduleKey: "m05-science-digital",
         requiredPermission: "m05:digital:read",
         status: "DEEP",
       },
-    ],
-  },
-  {
-    title: "Lao động, Y tế & Chính sách xã hội",
-    items: [
       {
-        title: "Y tế & An sinh xã hội",
+        title: "Y tế và an sinh xã hội",
         route: "/y-te-an-sinh",
         iconName: "HeartHandshake",
         moduleKey: "m06",
@@ -88,15 +112,7 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
-        title: "Nội vụ & Lao động",
-        route: "/noi-vu",
-        iconName: "Building",
-        moduleKey: "m02",
-        requiredPermission: "m02:internal:read",
-        status: "DEEP",
-      },
-      {
-        title: "Dân tộc & Tôn giáo",
+        title: "Dân tộc và tôn giáo",
         route: "/dan-toc-ton-giao",
         iconName: "Compass",
         moduleKey: "m07",
@@ -106,10 +122,10 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
     ],
   },
   {
-    title: "Kiểm tra, Báo cáo & Nền tảng",
+    title: "Kiểm tra, báo cáo và quản trị",
     items: [
       {
-        title: "Kiểm tra & Kiến nghị",
+        title: "Kiểm tra và kiến nghị",
         route: "/kiem-tra",
         iconName: "ClipboardList",
         moduleKey: "m08-inspections",
@@ -125,12 +141,21 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "DEEP",
       },
       {
-        title: "Dữ liệu dùng chung",
-        route: "/du-lieu-dung-chung",
+        title: "Nhập chỉ tiêu có nguồn",
+        route: "/nhap-chi-tieu",
+        iconName: "FileInput",
+        moduleKey: "m10",
+        requiredPermission: "m10:indicator:import",
+        status: "DEEP",
+        description: "Nhập CSV mô phỏng có kiểm tra, đối soát và lịch sử nguồn.",
+      },
+      {
+        title: "Danh mục dùng chung",
+        route: "/danh-muc-dung-chung",
         iconName: "Database",
-        moduleKey: "m01",
-        requiredPermission: "m01:work:read",
-        status: "LEGACY_MOCK",
+        moduleKey: "m11",
+        requiredPermission: "m11:catalog:read",
+        status: "DEEP",
       },
       {
         title: "Cổng tích hợp liên thông",
@@ -141,11 +166,19 @@ export const NAVIGATION_REGISTRY: readonly NavigationGroup[] = [
         status: "LEGACY_MOCK",
       },
       {
-        title: "Quản trị hệ thống & Cán bộ",
+        title: "Quản lý tài khoản và phân quyền",
+        route: "/quan-tri/tai-khoan",
+        iconName: "ShieldCheck",
+        moduleKey: "m00",
+        requiredPermission: "m00:membership:manage",
+        status: "DEEP",
+      },
+      {
+        title: "Quản trị hệ thống và cán bộ",
         route: "/quan-tri",
         iconName: "ShieldCheck",
         moduleKey: "m00",
-        requiredPermission: "m00:admin",
+        requiredPermission: "m00:membership:read",
         status: "LEGACY_MOCK",
       },
     ],
@@ -160,43 +193,19 @@ export function hasPermission(
   userPermissions: readonly string[] = [],
   userRoles: readonly string[] = []
 ): boolean {
+  // Retired or deferred screens are not active products, even if a role happens
+  // to carry their historical permissions. The local demo shell is separate.
+  if (item.status === "LEGACY_MOCK" || item.status === "DEFERRED") return false;
+  if (item.route === "/dashboard") return canSeeDashboard(userPermissions);
   if (!item.requiredPermission && !item.requiredRole) {
     return true;
   }
 
-  // Superuser admin bypass
-  if (
-    userRoles.includes("LANH_DAO_XA") ||
-    userRoles.includes("SYSTEM_ADMIN") ||
-    userRoles.includes("admin") ||
-    userPermissions.includes("m00:admin") ||
-    userPermissions.includes("*")
-  ) {
-    return true;
-  }
-
-  // Check role requirement
-  if (item.requiredRole && userRoles.includes(item.requiredRole)) {
-    return true;
-  }
-
-  // Check permission requirement
-  if (item.requiredPermission) {
-    const required = item.requiredPermission;
-    if (userPermissions.includes(required)) return true;
-
-    // Check wildcard prefix (e.g. m01:* matches m01:work:read)
-    const [modulePrefix] = required.split(":");
-    if (
-      userPermissions.includes(`${modulePrefix}:*`) ||
-      userPermissions.includes(`${modulePrefix}:full`) ||
-      userPermissions.includes(`${modulePrefix}:view`)
-    ) {
-      return true;
-    }
-  }
-
-  return false;
+  // Both conditions must hold when both are configured; no leader/admin bypass.
+  return (
+    (!item.requiredRole || userRoles.includes(item.requiredRole)) &&
+    (!item.requiredPermission || hasExplicitPermission(userPermissions, item.requiredPermission))
+  );
 }
 
 /**
@@ -223,14 +232,18 @@ export function canAccessRoute(
   userPermissions: readonly string[] = [],
   userRoles: readonly string[] = []
 ): boolean {
+  // A more specific sub-route takes precedence over a broad parent route.
+  // The page/server action still verifies its own permission independently.
+  let match: NavigationItem | undefined;
   for (const group of NAVIGATION_REGISTRY) {
     for (const item of group.items) {
-      if (item.route === route || route.startsWith(item.route + "/")) {
-        return hasPermission(item, userPermissions, userRoles);
+      if ((route === item.route || route.startsWith(item.route + "/")) &&
+          (!match || item.route.length > match.route.length)) {
+        match = item;
       }
     }
   }
-  return true;
+  return match ? hasPermission(match, userPermissions, userRoles) : false;
 }
 
 /**
@@ -244,4 +257,21 @@ export function assertRoutePermission(
   if (!canAccessRoute(route, userPermissions, userRoles)) {
     throw new Error("FORBIDDEN: Không có quyền truy cập trang này");
   }
+}
+
+/**
+ * Post-login landing route is selected exclusively from live membership
+ * permissions, never a client cookie, a role label or a local demo persona.
+ * Users with no business permissions retain safe self-service access.
+ */
+export function preferredLandingRoute(
+  userPermissions: readonly string[] = [],
+  userRoles: readonly string[] = [],
+): string {
+  if (canAccessRoute("/dashboard", userPermissions, userRoles)) return "/dashboard";
+  if (canAccessRoute("/quan-tri/tai-khoan", userPermissions, userRoles)) {
+    return "/quan-tri/tai-khoan";
+  }
+  if (canAccessRoute("/cong-viec", userPermissions, userRoles)) return "/cong-viec";
+  return "/thong-tin-ca-nhan";
 }

@@ -35,7 +35,7 @@ export interface ReputablePersonDTO {
   ethnicGroup: string;
   hamletId: string;
   yearRecognized: number;
-  policyStatus: "DANG_HUONG" | "TAM_DUNG" | "THAY_THE";
+  policyStatus: "DANG_XAC_MINH" | "DANG_HUONG" | "TAM_DUNG" | "THAY_THE";
   monthlyAllowance: number;
   version: number;
   createdAt: string;

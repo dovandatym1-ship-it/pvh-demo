@@ -1,0 +1,64 @@
+name: PVH Integration Candidate Gate
+on:
+  push:
+    branches: ['integrate/pvh-*']
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  source-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: cp .env.example .env.local
+      - run: node --test tests/security/*.test.mjs
+      - run: node --test tests/m00-route-guard.test.mjs
+      - run: node --test tests/app-layout-auth-guard.test.mjs
+      - run: node --test tests/m04-legacy-retirement.test.mjs
+      - run: node --experimental-strip-types --test tests/legacy-navigation.test.mjs
+      - run: node --experimental-strip-types --test tests/m01-workflow-rules.test.mjs
+      - run: node --experimental-strip-types --test tests/m01-presentation.test.mjs
+      - run: node --test tests/m01-sql-guardrails.test.mjs
+      - run: node --test tests/audit-logger-guardrails.test.mjs
+      - run: node --test tests/dashboard-metrics.test.mjs tests/dashboard-role-semantics.test.mjs
+      - run: node --experimental-strip-types --test tests/self-service-notifications.test.mjs
+      - run: node --experimental-strip-types --test tests/dashboard-server-source.test.mjs
+      - run: node --test tests/ph03-contract-static.test.mjs
+      - run: node --experimental-strip-types --test tests/ph03-presentation.test.mjs
+      - run: node --experimental-strip-types --test tests/m08-deadline-state.test.mjs
+      - run: node --experimental-strip-types --test tests/p0-domain-regressions.test.mjs
+      - run: node --import tsx --test tests/ph06-data-safety.test.ts
+      - run: node --test tests/m06-transaction-guard.test.mjs
+      - run: npm run test:ph04
+      - run: node --experimental-strip-types --test tests/ph04-presentation.test.mjs
+      - run: node --experimental-strip-types --test tests/ph05-clone-brand.test.mjs
+      - run: node scripts/check-migration-ledger.mjs
+      - run: node --experimental-strip-types --test tests/membership-scope-contract.test.mjs tests/m01-hamlet-scope.test.mjs tests/m06-hamlet-options.test.mjs tests/report-export-vi.test.mjs
+      - run: node --test tests/vietnamese-ui-scanner.test.mjs
+      - run: node scripts/check-vietnamese-ui.mjs
+      - run: node --test tests/locale-and-login.test.mjs
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run fitness
+      - run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+  dependency-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high
+# Source checks ≠ DB migration replay, browser E2E or production authorization.
