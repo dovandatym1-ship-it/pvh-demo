@@ -157,9 +157,9 @@ Context dự án còn `PVH-I-016` và `PVH-I-017` ở trạng thái OPEN/HIGH; c
 
 ## 12. D2 revalidation — 11/11/2026
 
-- Reconfirmed PR #12 source head `7a3bc7c0d0361ae8a0416acbeafc8bfeca222693`, base `main@e08fa3587bede82be6ea77c45d7a83a76cf9be24`, 165 commits, 389 changed files, no merge commits.
+- Reconfirmed tested source tree `7a3bc7c0d0361ae8a0416acbeafc8bfeca222693`; current PR head is documentation-only `2a13091ad4cd8cd3cd1a8bb23487dad5b9023403`, base `main@e08fa3587bede82be6ea77c45d7a83a76cf9be24`, 166 commits, 389 changed files, no merge commits.
 - In the isolated candidate checkout, configured Integration static/contract commands passed 119/119 and `test:ph04` passed 14/14; `typecheck`, `lint`, `fitness`, `build`, migration ledger, Vietnamese scanner, `git diff --check`, and `npm audit --omit=dev --audit-level=high` passed. The isolated PGlite smoke applies seven migration files, not all fourteen. Lint emitted the same four existing legacy warnings.
-- GitHub CI, Integration Candidate Gate, and PH05 at `7a3bc7c` all concluded failure, but the job API returned no step summaries or log URLs. These results do not identify a source failure and do not establish a pass. The exact Node native TypeScript-strip test invocation passed locally; push of this evidence refresh will trigger a new CI attempt.
+- GitHub CI, Integration Candidate Gate, and PH05 at current PR head `2a13091` failed before job start. Check annotations say recent account payments failed or the GitHub spending limit needs to be increased. No CI commands ran, so this is a billing block rather than a code verdict or pass. The workflow must be rerun after the release owner clears billing/spending limits.
 - No fresh database replay, staging Auth/RLS/Storage test, signed-in browser E2E, UX/performance measurement, or business-owner acceptance occurred in this refresh. Prior 14-migration replay evidence remains at `0adec43e` only.
 
 **Decision remains NO-GO.** The local source checks reduce code-level uncertainty, but release readiness is still blocked by fresh-head CI diagnostics and the isolated staging/business acceptance gates listed above.

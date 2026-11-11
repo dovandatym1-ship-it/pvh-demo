@@ -1,17 +1,17 @@
 # PVH execution baseline
 
 **Execution:** D1/GIT-01 and local portion of GIT-02  
-**Candidate:** local branch `codex/pvh-completion-candidate` at `7a3bc7c0d0361ae8a0416acbeafc8bfeca222693`
+**Candidate:** local branch `codex/pvh-completion-candidate` at `2a13091ad4cd8cd3cd1a8bb23487dad5b9023403`
 **Base:** `origin/main` at `e08fa3587bede82be6ea77c45d7a83a76cf9be24`
 **Source:** `origin/integrate/pvh-backbone-review-20261110` at the same candidate SHA
-**Refreshed:** 2026-11-11; all branch and PR-head refs refreshed, and tree comparison recomputed at `7a3bc7c`.
+**Refreshed:** 2026-11-11; all branch and PR-head refs refreshed, and tree comparison recomputed at `2a13091`.
 
 ## D2 revalidation — 2026-11-11
 
-The remote PR #12 branch was freshly verified at `7a3bc7c0d0361ae8a0416acbeafc8bfeca222693`, with base `main@e08fa3587bede82be6ea77c45d7a83a76cf9be24`, 165 commits ahead, 389 changed files, and no merge commits. The local candidate checkout starts from that same SHA; the D2 refresh changes only integration/readiness documentation.
+The code candidate was verified at `7a3bc7c0d0361ae8a0416acbeafc8bfeca222693`. The current PR source head is `2a13091ad4cd8cd3cd1a8bb23487dad5b9023403`, a documentation-only evidence refresh; it has base `main@e08fa3587bede82be6ea77c45d7a83a76cf9be24`, 166 commits ahead, 389 changed files, and no merge commits. Application source and migrations are unchanged from the tested code candidate.
 
 - Local checks on the candidate working tree, Node `v25.9.0`: all configured Integration static/contract commands **119/119 PASS**; `npm run test:ph04` **14/14 PASS**; `npm run typecheck`, `npm run lint`, `npm run fitness`, `npm run build`, `npm audit --omit=dev --audit-level=high` (0 vulnerabilities), migration ledger, Vietnamese scanner, and `git diff --check` PASS. Lint reports four existing warnings in the legacy shared-data page and avatar image component.
-- GitHub Actions at remote SHA `7a3bc7c`: CI run [42796993895](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42796993895), Integration run [42796993873](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42796993873), and PH05 run [42796993861](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42796993861) all report failure. GitHub's job API returned `steps=null` and `logs_url=null` for all four jobs; the failure cause is therefore **unclassified**, not evidence of a code failure or pass. Retry/diagnostic is required at the next pushed SHA.
+- GitHub Actions at current SHA `2a13091`: CI run [42942188484](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42942188484), Integration run [42942188495](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42942188495), and PH05 run [42942188567](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42942188567) failed before starting their jobs. Check annotations state GitHub blocked the runner because recent account payments failed or the spending limit needs to be increased. No CI command ran; the result is **billing-blocked**, not a code verdict or pass.
 - These are local source/static and contract checks. `test:ph04` applies only seven migration files in isolated PGlite; the 14 canonical migration replay and pgTAP have not been run at this candidate head. No authenticated browser E2E, hosted Auth/RLS/Storage test, or API-to-DB readback was performed.
 - Fresh 14-migration replay/pgTAP was last evidenced at `0adec43e`; it was not re-run at `7a3bc7c`. This checkout has no Docker executable, and no staging resource is configured. G-DB/G-SEC/G-FLOW/G-UX/G-PERF and owner acceptance remain BLOCKED; merge/deploy remains **NO-GO**.
 
@@ -39,13 +39,13 @@ origin/fix/pvh-ph04-data-quality-20261109 b76423e8897cb30bd95522586732754521fb79
 origin/fix/pvh-ph05-clone-brand-20261109 36fa5c3feb4b6e824930c3a89317cb1934452de4
 origin/fix/pvh-ph06-data-safety-20261109 0506748c01f8f43293163b2f529a5c00675c92eb
 origin/fix/pvh-vietnamese-language-standardization-20261109 144272f730c35bd5cf695a256f1934cd218d5bc2
-origin/integrate/pvh-backbone-review-20261110 7a3bc7c0d0361ae8a0416acbeafc8bfeca222693
+origin/integrate/pvh-backbone-review-20261110 2a13091ad4cd8cd3cd1a8bb23487dad5b9023403
 origin/main e08fa3587bede82be6ea77c45d7a83a76cf9be24
 origin/plan/pvh-master-integration-ux-first-20261109 b491c7375a470d3c1e7a8fc490b117ceacf6c170
 pulls/1 48d98e9b6dd8b0084f51c744d4f6208bf49b4802
 pulls/10 36fa5c3feb4b6e824930c3a89317cb1934452de4
 pulls/11 0506748c01f8f43293163b2f529a5c00675c92eb
-pulls/12 7a3bc7c0d0361ae8a0416acbeafc8bfeca222693
+pulls/12 2a13091ad4cd8cd3cd1a8bb23487dad5b9023403
 pulls/2 18280d1e3eadefe073b678a903f6e11ae8ddba9e
 pulls/3 5876113884ca9eb0325002d0ea352d5ad622668c
 pulls/4 223baa3473ca1987f3105e9c28bc90aec7ae474c
@@ -56,7 +56,7 @@ pulls/8 4304097d9a56d05b326c6f59a6e71a925c2fcea1
 pulls/9 b76423e8897cb30bd95522586732754521fb795b
 ```
 
-At the historical D1 candidate SHA, the PR was 162 commits ahead of base with zero merge commits and 386 changed files. At the refreshed D2 source SHA above, it is 165 commits ahead with 389 changed files. Source branch commits are not considered integrated solely because a ref exists. PR #1–#11 still require content/semantic disposition because their changes were ported and rewritten. A simple commit ancestry or patch-id result is insufficient for those rewritten changes.
+At the historical D1 candidate SHA, the PR was 162 commits ahead of base with zero merge commits and 386 changed files. At the refreshed D2 source SHA above, it is 166 commits ahead with 389 changed files. Source branch commits are not considered integrated solely because a ref exists. PR #1–#11 still require content/semantic disposition because their changes were ported and rewritten. A simple commit ancestry or patch-id result is insufficient for those rewritten changes.
 
 ## Local baseline evidence
 
