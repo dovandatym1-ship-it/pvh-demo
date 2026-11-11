@@ -54,7 +54,7 @@ test("M08 close requires completed M01 task, no fallback",()=>{
 test("legacy mutators are blocked",()=>{
  for(const module of ["m04-culture-family","m05-science-digital","m08-inspections"]){
   const source=readFileSync("src/features/"+module+"/server/actions.ts","utf8");
-  assert.match(source,/return fail\(/);
+  assert.match(source,/return fail(?:<never>)?\(/);
   assert.doesNotMatch(source,/return ok\(/);
  }
 });

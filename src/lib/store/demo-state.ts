@@ -169,7 +169,7 @@ export interface NCCItem {
   fullName: string;
   cccd?: string;
   hamlet?: string;
-  category: "THUONG_BINH" | "LIET_SI" | "BENH_BINH" | "CHAT_DOC_HOA_HOC" | "BA_ME_VNAH";
+  category: "THUONG_BINH" | "LIET_SI" | "BENH_BINH" | "CHAT_DOC_HOA_HOC" | "BA_ME_VNAH" | "UNKNOWN";
   medalTitle: string;
   monthlyAllowance: number; // PII sensitive money
   hasDeduplicationFlag: boolean; // AC-06 anti-duplication
@@ -1024,7 +1024,9 @@ export const GOLDEN_SEED_XA_A: TenantDemoData = {
           fullName: "Lê Thị Thảo",
           cccd: "019183003456",
           hamlet: "Xóm A3",
-          category: "LIET_SI",
+          // The sample describes a martyr's relative; no canonical beneficiary
+          // category was approved for this relationship, so do not misclassify it.
+          category: "UNKNOWN",
           medalTitle: "Thân nhân Liệt sĩ (Tuất hàng tháng)",
           monthlyAllowance: 1950000,
           hasDeduplicationFlag: false,
