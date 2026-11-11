@@ -1,6 +1,6 @@
 # PVH — Branch tip & disposition ledger (updated 11/11/2026)
 
-**Phạm vi:** read-only ref snapshot sau `git fetch origin --prune` ngày 11/11/2026; tree audit PR #1–#11 được tính lại trên candidate source commit `46d3953`. Đây là ledger đối soát để duyệt PR #12, **không phải lệnh merge** và không chứng minh runtime/owner acceptance. Nhánh main và các Phase giữ nguyên.
+**Phạm vi:** ref snapshot sau `git fetch origin --prune` ngày 11/11/2026; tree audit PR #1–#11 được tính lại tại candidate `0951bac104da7f72702784e9e4e31a69d5a14abd` (source code snapshot vẫn là `f8c0fb0`; các commit sau đó chỉ đổi tài liệu/crosswalk/ledger/PR body). Đây là ledger đối soát để duyệt PR #12, **không phải lệnh merge** và không chứng minh runtime/owner acceptance. Nhánh main và các Phase giữ nguyên.
 
 | Nhánh | Tip SHA (12 ký tự đầu) | Quyết định source | Điều kiện / giải thích |
 |---|---|---|---|
@@ -22,28 +22,28 @@
 | `fix/pvh-ph05-clone-brand-20261109` | `36fa5c3feb4b` | INHERITED_PATCH | Đã đối soát delta an toàn PH05 với cây PH06 |
 | `fix/pvh-ph06-data-safety-20261109` | `0506748c01f8` | CUMULATIVE_SOURCE | Nguồn v2 PH06 an toàn cho PII và territorial scope |
 | `fix/pvh-vietnamese-language-standardization-20261109` | `144272f730c3` | SELECTIVE_PORT | Bộ quét nhãn và các màn ưu tiên đã đưa vào; UAT ngữ nghĩa pending |
-| `integrate/pvh-backbone-review-20261110` | `46d3953` | CANDIDATE / no application-code path remains unchanged from base; four remaining paths are CI workflow/docs deltas, with workflow replacements present | Tree audit không chứng minh semantic acceptance. CI, field coverage, business/owner acceptance và staging G-DB/G-SEC/G-FLOW/G-UX/G-PERF chưa đóng |
+| `integrate/pvh-backbone-review-20261110` | `0951bac104da` | CANDIDATE / no application-code path remains unchanged from base; retained base blobs among PR-source deltas are workflow/docs paths only | Tree audit không chứng minh semantic acceptance. CI exact HEAD bị chặn trước job do billing/spending-limit; field coverage mới là static trace; business/owner acceptance và staging G-DB/G-SEC/G-FLOW/G-UX/G-PERF chưa đóng |
 | `plan/pvh-master-integration-ux-first-20261109` | `b491c7375a47` | PLAN_INVENTORY | 37 master plan docs; bản mới tip có thể còn chưa đưa vào manifest |
 
 ## Đối soát tree PR #1–#11 với candidate
 
-Sau `git fetch origin --prune`, lấy base `main@e08fa3587bede82be6ea77c45d7a83a76cf9be24` và candidate `46d3953`. Với mỗi `pr/N`, lập tập path có blob content khác base, rồi phân loại tree entry ở candidate: giống PR; giữ nguyên như base (delta chưa hiện diện ở path đó); hoặc khác cả hai (đã được viết lại/tiến hóa nhưng phải review). Phép tính tắt rename detection; đối chiếu tree entry (mode/type/blob), không khẳng định runtime hay nghiệp vụ.
+Lấy base `main@e08fa3587bede82be6ea77c45d7a83a76cf9be24` và các ref `pr/1`…`pr/11`; tính lại tại candidate `0951bac`. Với mỗi PR, lập tập path có tree entry khác base, rồi phân loại candidate: giống PR; giữ nguyên như base; hoặc khác cả hai (đã được viết lại/tiến hóa nhưng phải review). Phép tính tắt rename detection; đối chiếu tree entry (mode/type/blob), không khẳng định runtime hay nghiệp vụ. So với snapshot `46d3953`, các tài liệu/crosswalk vừa cập nhật làm thay đổi số path “giống PR/khác cả hai”; không phát hiện application-code path nào chuyển về nguyên blob base.
 
 | PR | Head SHA | Path khác base | Candidate giống PR | Candidate giữ blob base | Candidate khác cả hai |
 |---:|---|---:|---:|---:|---:|
 | #1 | `48d98e9b6dd8b0084f51c744d4f6208bf49b4802` | 78 | 44 | 1 | 33 |
-| #2 | `18280d1e3eadefe073b678a903f6e11ae8ddba9e` | 84 | 56 | 1 | 27 |
-| #3 | `5876113884ca9eb0325002d0ea352d5ad622668c` | 99 | 67 | 0 | 32 |
-| #4 | `223baa3473ca1987f3105e9c28bc90aec7ae474c` | 145 | 97 | 0 | 48 |
-| #5 | `282aa8d941b6d6b5f6435cf912223029c6f4e12c` | 24 | 16 | 1 | 7 |
+| #2 | `18280d1e3eadefe073b678a903f6e11ae8ddba9e` | 84 | 55 | 1 | 28 |
+| #3 | `5876113884ca9eb0325002d0ea352d5ad622668c` | 99 | 63 | 0 | 36 |
+| #4 | `223baa3473ca1987f3105e9c28bc90aec7ae474c` | 145 | 92 | 0 | 53 |
+| #5 | `282aa8d941b6d6b5f6435cf912223029c6f4e12c` | 24 | 15 | 1 | 8 |
 | #6 | `91b37883b4266f292f5fed27a226fcd83582e87d` | 1 | 0 | 0 | 1 |
-| #7 | `521e6fe75fe7a36b3e1bf9cdab3ca6fb3435a01c` | 87 | 61 | 2 | 24 |
-| #8 | `4304097d9a56d05b326c6f59a6e71a925c2fcea1` | 102 | 74 | 0 | 28 |
-| #9 | `b76423e8897cb30bd95522586732754521fb795b` | 148 | 103 | 0 | 45 |
-| #10 | `36fa5c3feb4b6e824930c3a89317cb1934452de4` | 155 | 105 | 0 | 50 |
-| #11 | `0506748c01f8f43293163b2f529a5c00675c92eb` | 170 | 104 | 0 | 66 |
+| #7 | `521e6fe75fe7a36b3e1bf9cdab3ca6fb3435a01c` | 87 | 60 | 2 | 25 |
+| #8 | `4304097d9a56d05b326c6f59a6e71a925c2fcea1` | 102 | 69 | 0 | 33 |
+| #9 | `b76423e8897cb30bd95522586732754521fb795b` | 148 | 97 | 0 | 51 |
+| #10 | `36fa5c3feb4b6e824930c3a89317cb1934452de4` | 155 | 100 | 0 | 55 |
+| #11 | `0506748c01f8f43293163b2f529a5c00675c92eb` | 170 | 99 | 0 | 71 |
 
-**Kết luận:** trên source/code paths, không còn file nào candidate giữ nguyên blob của base trong khi PR nguồn thay đổi; mỗi delta hiện hoặc khớp chính xác, hoặc có một bản candidate khác cần semantic review. Các path còn giữ blob base là workflow/docs: PR #1 `db-ci.yml`, PR #5 workflow notification riêng, PR #2/#7 hai tài liệu PH02 cũ. Candidate có `pvh-db-replay.yml` và Integration Gate chạy notification test, còn docs PH02 cần đối chiếu phiên bản hiện hành. Tree comparison không kết luận PR #1–#11 được nghiệm thu nghiệp vụ/runtime.
+**Kết luận:** candidate giữ nguyên blob base cho 5 PR-source paths: PR #1 `.github/workflows/db-ci.yml`, PR #2 `PH02_GATE_G2_VERIFICATION.md`, PR #5 `.github/workflows/self-service-notifications.yml`, PR #7 `PH02_COMPLETION_DELTA_2026-11-09.md` và cùng tài liệu G2 của PR #2. Không application-code path nào trong tập delta của PR #1–#11 vẫn nguyên blob base. Candidate thay thế workflow DB bằng `pvh-db-replay.yml`/Integration Gate, nhưng workflow Actions hiện bị chặn trước steps; các tài liệu PH02 cần được đối chiếu và disposition rõ. Những path “khác cả hai” phải semantic-review; tree comparison không kết luận PR #1–#11 đã được nghiệm thu nghiệp vụ/runtime.
 
 **Đã port/kiểm tra trên candidate `46d3953`:** lấy hardening của `audit-logger.ts` từ PR #1 (không còn giả actor/tenant/receipt), thêm 3 source guard tests và xóa `work-item-manager` cùng hai modal không còn route sử dụng. Các test guard 14/14, M01 workflow rules 5/5, typecheck, lint và production build PASS cục bộ; lint còn 4 warning legacy. `db-ci.yml` không port nguyên file vì candidate có `pvh-db-replay.yml` chạy local replay 14 migration và bộ pgTAP chọn lọc; workflow Actions hiện vẫn bị chặn trước steps nên chưa có kết quả CI tại candidate mới.
 
@@ -66,5 +66,6 @@ Sau `git fetch origin --prune`, lấy base `main@e08fa3587bede82be6ea77c45d7a83a
 - `78c1750b` bổ sung chuẩn hóa `org_unit_ids` → `hamletIds` và test; link CI HEAD cập nhật sau khi chạy xong.
 - PR #12 refreshed HEAD `a7e4fa67b106bb3920f649916093395aaa9b7cfa`: [CI Node 22](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42794311773), [Integration Candidate Gate](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42794311853), [PH05 Release Candidate Gate](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42794311837) all PASS. The 14-migration + pgTAP replay is separately evidenced at `0adec43e`; no migration file changed to `a7e4fa6`.
 - D2 source-code checks passed locally at `7a3bc7c`; the documentation-only refresh is now at `2a13091ad4cd8cd3cd1a8bb23487dad5b9023403`. [CI](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42942188484), [Integration Candidate Gate](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42942188495), and [PH05](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42942188567) were blocked before job start. Check annotations cite failed recent account payments or a spending limit requiring an increase; no CI commands ran. The release owner must clear the GitHub billing/spending-limit block and rerun CI.
+- Exact head `0951bac`: crosswalk 133/133 rows have static traces; all remain runtime UNVERIFIED. GitHub diagnostics for CI/source-checks/dependency-audit, integration static-and-contract, and Node 22 validation show failure before job start due account payments/spending-limit: [run 42960722814](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42960722814), [run 42960722639](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42960722639), [run 42960722654](https://github.com/dovandatym1-ship-it/pvh-demo/actions/runs/42960722654). No build or test step executed.
 
 **Chốt:** PR vẫn **DRAFT / NO-GO**, dữ liệu Supabase cloud và Vercel không thay đổi, một reviewer Đỗ Văn Đạt quyết định sau khi có G-DB/G-SEC/G-FLOW/G-UX/G-PERF.
