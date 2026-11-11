@@ -33,6 +33,35 @@
 | **M10** Nhập/xuất/tích hợp | Có luồng CSV preview/row errors/import receipt và các guard theo PH04 ở mức code. | 6 OP `UNVERIFIED`; cần xác nhận format, mapping, encoding, khóa chống trùng, quyền commit/export, retention file và phạm vi adapter. Đồng bộ hệ thống ngoài chưa nằm trong scope đã chốt. | Phân biệt nhập CSV MVP với tích hợp liên thông chính thức. |
 | **M11** Danh mục | Có console/định nghĩa catalog theo lát cắt. | 5 feature draft; chưa có OP độc lập, owner danh mục, mã chuẩn dùng chung, effective dates và quyết định sở hữu so với M00. | Giữ trạng thái draft đến khi chốt ownership và version/effective-date rules. |
 
+## 2.1. Trace source-level cho 15 OP M01 — snapshot `3d35d94`
+
+Đối chiếu tĩnh source/migration trên candidate PR #12 tại HEAD `3d35d94`; **không phải kết quả chạy browser, API, PostgreSQL hay nghiệm thu nghiệp vụ**. Tên OP lấy từ 15 dòng `OP-M01-001..015` trong `OP_FUNCTION_SCREEN_CODE_DB_CROSSWALK.csv`. Mọi dòng crosswalk vẫn `UNVERIFIED`; các cột route/API/DB/permission/test/evidence chưa được điền.
+
+| OP | Dấu vết trong candidate | Kết luận source-level và gap |
+|---|---|---|
+| `OP-M01-001` Tiếp nhận việc, chống trùng | `/cong-viec`; `createWorkItemAction` → `create_work_item_v2`; `source_ref`, idempotency | **Một phần.** Có chống gửi lặp theo actor/idempotency key; chưa thấy tiếp nhận có receipt riêng theo kênh trực tiếp/kế hoạch/văn bản. `source_ref` không là khóa duy nhất nên chưa bảo đảm chống trùng theo hồ sơ nguồn. |
+| `OP-M01-002` Phân loại/mở hồ sơ | `CreateWorkItemSchema.category`; `work_items` | **Một phần.** `category` là chuỗi tự do; chưa nối danh mục lĩnh vực/loại hồ sơ và mã nhiệm vụ đã duyệt. |
+| `OP-M01-003` Giao chủ trì/phối hợp, hạn | `assignWorkItemAction`, `updateWorkItemDetailsAction`, `setWorkCollaboratorsAction` và các RPC tương ứng | **Có lát cắt workflow.** Có giao lại, hạn, địa bàn, cộng tác viên, lý do/OCC/audit ở source; quyền/phạm vi vẫn cần test âm/dương bằng PostgreSQL với vai trò thật. |
+| `OP-M01-004` Tiến độ, làm lại, trao đổi, cảnh báo | `transition_work_item`, `work_item_events`, inbox; `IN_PROGRESS/UNDER_REVIEW/RETURNED` | **Một phần.** Có chuyển trạng thái, trả lại có lý do, lịch sử và inbox; chưa thấy trao đổi nhiều lượt có người gửi/nhận/đọc và chưa xác minh runtime cảnh báo. |
+| `OP-M01-005` Tài liệu/minh chứng theo trạng thái nguồn | `evidence_files`; actions register/finalize; trạng thái `PENDING/UPLOADED` | **Một phần.** Có vòng đời upload và xác nhận metadata; chưa có phân loại bản nháp/bản gửi/bản được nguồn xác nhận cùng metadata nguồn/chữ ký được owner duyệt. |
+| `OP-M01-006` Dự thảo văn bản/phiếu trình | Không tìm thấy route/action M01 tương ứng | **Chưa thấy triển khai.** Cần xác nhận thuộc MVP hay DEFER có owner chấp thuận. |
+| `OP-M01-007` Yêu cầu bổ sung/phối hợp, lưu từng lượt | `set_work_collaborators`; trạng thái `RETURNED` và lý do trong event | **Một phần.** Có cộng tác viên và trả lại; chưa thấy entity lưu từng lượt yêu cầu, hạn phản hồi, nội dung, người xử lý và trạng thái. |
+| `OP-M01-008` Trình rà soát, kết quả, chuyển UBND | `transition_work_item`; `UNDER_REVIEW/RETURNED/COMPLETED` | **Một phần.** Có rà soát nội bộ; chưa thấy hồ sơ trình/đầu ra chính thức hay bàn giao liên cơ quan theo thẩm quyền. |
+| `OP-M01-009` Đóng/hủy/chuyển đơn vị/mở lại/liên kết việc nối tiếp | `COMPLETED`, `CANCELLED`; gán lại cá nhân và audit | **Một phần.** Hoàn thành/hủy có workflow; gán lại cá nhân không tương đương chuyển đơn vị. Chưa thấy mở lại, liên kết việc tiếp nối hoặc hồ sơ chuyển giao. |
+| `OP-M01-010` Kế hoạch/chương trình lĩnh vực | M05 `digital_plans`: title, period, status, source_ref | **Một phần ở M05, chưa đủ OP.** Chưa thấy mục tiêu, mốc, người phụ trách và version kế hoạch; cần chốt ownership M01/M05. |
+| `OP-M01-011` Sinh việc từ kế hoạch, theo dõi kết quả/điều chỉnh | M05 `digital_plan_tasks`; `app.link_digital_plan_work` | **Một phần ở M05.** Chỉ thấy liên kết việc có sẵn với kế hoạch; chưa thấy sinh việc, kết quả theo kỳ hoặc lịch sử phiên bản/điều chỉnh. |
+| `OP-M01-012` Tuyên truyền/phổ biến/thi hành pháp luật | Không thấy luồng M01 có mapping route/API/DB | **Chưa thấy triển khai hoặc ownership.** Cần phân loại module; không suy diễn từ nội dung demo. |
+| `OP-M01-013` Cá nhân/hộ/tổ chức tham chiếu, chống trùng, phân quyền | Màn hình legacy `/du-lieu-dung-chung` đọc `demo-state` | **Demo-only, chưa có master data canonical.** Không thấy bảng canonical tương ứng trong migrations; mô phỏng gộp không chứng minh persistence, chống trùng hay quyền theo hồ sơ. |
+| `OP-M01-014` Cơ sở/thiết chế dùng chung, lịch sử biến động | `org_units` cho đơn vị/thôn; không thấy entity cơ sở/thiết chế trong migrations | **Chưa đủ mô hình.** Đơn vị hành chính không thay cho cơ sở nghiệp vụ có lịch sử đổi tên/biến động. |
+| `OP-M01-015` Ghép/tách định danh, chuyển địa bàn | Màn hình legacy mô phỏng “Golden ID” trên `demo-state` | **Demo-only, chưa có giao dịch DB canonical.** Chưa thấy migration/RPC ghép-tách, ánh xạ định danh, xử lý FK xung đột, audit và quyền phê duyệt. |
+
+### Kết luận trace M01
+
+- Phần có cơ sở source rõ nhất là **workflow công việc nội bộ**: tạo, giao/phối hợp, cập nhật hạn/địa bàn, chuyển trạng thái, minh chứng, lịch sử, inbox và phân trang. Đây chỉ là lát cắt, không đại diện toàn bộ 15 OP.
+- Chưa thể xác nhận M01 đầy đủ trường/nghiệp vụ: loại việc còn tự do; thiếu hồ sơ nguồn, trao đổi/yêu cầu bổ sung hoàn chỉnh; kế hoạch mới là lát cắt M05; entity chủ cá nhân/hộ/tổ chức/cơ sở và quản lý định danh chưa có mô hình DB canonical được chứng minh.
+- `tests/e2e/m01_multi_role.spec.ts` là test artifact, chưa phải bằng chứng đã chạy. Nó còn gọi `POST /api/work-items/:id/assign` và `GET /api/work-items/:id/audit`, trong khi source route tìm thấy chỉ có transition route; cần đồng bộ test với server actions/API hiện hành trước khi dùng làm gate.
+- Trạng thái phù hợp: **PARTIAL / RUNTIME_UNVERIFIED / OWNER_PENDING**. Chưa thể kết luận PR #12 sẵn sàng merge chỉ từ workflow code.
+
 ## 3. Các P0 xử lý trong candidate và phần còn mở
 
 | P0 | Thay đổi candidate | Kết luận còn lại |
