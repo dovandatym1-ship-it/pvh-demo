@@ -1,6 +1,6 @@
 # PVH — Branch tip & disposition ledger (updated 11/11/2026)
 
-**Phạm vi:** read-only snapshot sau `git fetch origin --prune` ngày 11/11/2026. Đây là ledger đối soát để duyệt PR #12, **không phải lệnh merge** và không chứng minh runtime/owner acceptance. Nhánh main và các Phase giữ nguyên.
+**Phạm vi:** read-only ref snapshot sau `git fetch origin --prune` ngày 11/11/2026; tree audit PR #1–#11 được tính lại trên candidate source commit `46d3953`. Đây là ledger đối soát để duyệt PR #12, **không phải lệnh merge** và không chứng minh runtime/owner acceptance. Nhánh main và các Phase giữ nguyên.
 
 | Nhánh | Tip SHA (12 ký tự đầu) | Quyết định source | Điều kiện / giải thích |
 |---|---|---|---|
@@ -22,28 +22,30 @@
 | `fix/pvh-ph05-clone-brand-20261109` | `36fa5c3feb4b` | INHERITED_PATCH | Đã đối soát delta an toàn PH05 với cây PH06 |
 | `fix/pvh-ph06-data-safety-20261109` | `0506748c01f8` | CUMULATIVE_SOURCE | Nguồn v2 PH06 an toàn cho PII và territorial scope |
 | `fix/pvh-vietnamese-language-standardization-20261109` | `144272f730c3` | SELECTIVE_PORT | Bộ quét nhãn và các màn ưu tiên đã đưa vào; UAT ngữ nghĩa pending |
-| `integrate/pvh-backbone-review-20261110` | `2df910a526ce` | CANDIDATE / source tree aligned to PR #1–#11 final touched paths; GitHub Actions blocked before steps | PR #12 có 169 commits/389 files và 0 merge commit; field coverage, business/owner acceptance và staging G-DB/G-SEC/G-FLOW/G-UX/G-PERF chưa đóng |
+| `integrate/pvh-backbone-review-20261110` | `46d3953` | CANDIDATE / no application-code path remains unchanged from base; four remaining paths are CI workflow/docs deltas, with workflow replacements present | Tree audit không chứng minh semantic acceptance. CI, field coverage, business/owner acceptance và staging G-DB/G-SEC/G-FLOW/G-UX/G-PERF chưa đóng |
 | `plan/pvh-master-integration-ux-first-20261109` | `b491c7375a47` | PLAN_INVENTORY | 37 master plan docs; bản mới tip có thể còn chưa đưa vào manifest |
 
-## Đối soát nội dung cuối PR #1–#11 với candidate
+## Đối soát tree PR #1–#11 với candidate
 
-Sau `git fetch origin --prune`, lấy base `main@e08fa3587bede82be6ea77c45d7a83a76cf9be24` và candidate `2df910a526ce4b96701d8efe2ff3e7b7b84bdcfb`. Với mỗi `pr/N`, lập tập đường dẫn khác base rồi so nội dung file cuối giữa `pr/N` và candidate trên đúng tập đó. Kết quả là **0 đường dẫn khác nội dung trong cả 11 PR**. Đây xác nhận tree cuối của candidate chứa cùng nội dung trên mọi file mà từng PR #1–#11 thay đổi; không dựa vào ancestry hay patch-id. Đây không chứng minh từng commit được cherry-pick, cũng không thay thế runtime, security, business-source hoặc owner acceptance.
+Sau `git fetch origin --prune`, lấy base `main@e08fa3587bede82be6ea77c45d7a83a76cf9be24` và candidate `46d3953`. Với mỗi `pr/N`, lập tập path có blob content khác base, rồi phân loại tree entry ở candidate: giống PR; giữ nguyên như base (delta chưa hiện diện ở path đó); hoặc khác cả hai (đã được viết lại/tiến hóa nhưng phải review). Phép tính tắt rename detection; đối chiếu tree entry (mode/type/blob), không khẳng định runtime hay nghiệp vụ.
 
-| PR | Head SHA | Đường dẫn đổi so với base | Khác nội dung cuối trong candidate |
-|---:|---|---:|---:|
-| #1 | `48d98e9b6dd8b0084f51c744d4f6208bf49b4802` | 67 | 0 |
-| #2 | `18280d1e3eadefe073b678a903f6e11ae8ddba9e` | 75 | 0 |
-| #3 | `5876113884ca9eb0325002d0ea352d5ad622668c` | 90 | 0 |
-| #4 | `223baa3473ca1987f3105e9c28bc90aec7ae474c` | 136 | 0 |
-| #5 | `282aa8d941b6d6b5f6435cf912223029c6f4e12c` | 24 | 0 |
-| #6 | `91b37883b4266f292f5fed27a226fcd83582e87d` | 1 | 0 |
-| #7 | `521e6fe75fe7a36b3e1bf9cdab3ca6fb3435a01c` | 78 | 0 |
-| #8 | `4304097d9a56d05b326c6f59a6e71a925c2fcea1` | 93 | 0 |
-| #9 | `b76423e8897cb30bd95522586732754521fb795b` | 139 | 0 |
-| #10 | `36fa5c3feb4b6e824930c3a89317cb1934452de4` | 146 | 0 |
-| #11 | `0506748c01f8f43293163b2f529a5c00675c92eb` | 161 | 0 |
+| PR | Head SHA | Path khác base | Candidate giống PR | Candidate giữ blob base | Candidate khác cả hai |
+|---:|---|---:|---:|---:|---:|
+| #1 | `48d98e9b6dd8b0084f51c744d4f6208bf49b4802` | 78 | 44 | 1 | 33 |
+| #2 | `18280d1e3eadefe073b678a903f6e11ae8ddba9e` | 84 | 56 | 1 | 27 |
+| #3 | `5876113884ca9eb0325002d0ea352d5ad622668c` | 99 | 67 | 0 | 32 |
+| #4 | `223baa3473ca1987f3105e9c28bc90aec7ae474c` | 145 | 97 | 0 | 48 |
+| #5 | `282aa8d941b6d6b5f6435cf912223029c6f4e12c` | 24 | 16 | 1 | 7 |
+| #6 | `91b37883b4266f292f5fed27a226fcd83582e87d` | 1 | 0 | 0 | 1 |
+| #7 | `521e6fe75fe7a36b3e1bf9cdab3ca6fb3435a01c` | 87 | 61 | 2 | 24 |
+| #8 | `4304097d9a56d05b326c6f59a6e71a925c2fcea1` | 102 | 74 | 0 | 28 |
+| #9 | `b76423e8897cb30bd95522586732754521fb795b` | 148 | 103 | 0 | 45 |
+| #10 | `36fa5c3feb4b6e824930c3a89317cb1934452de4` | 155 | 105 | 0 | 50 |
+| #11 | `0506748c01f8f43293163b2f529a5c00675c92eb` | 170 | 104 | 0 | 66 |
 
-**Kết luận về yêu cầu kéo nhánh/ghép code:** không cần merge/cherry-pick thêm toàn bộ PR #1–#11 vào candidate; làm vậy sẽ tạo lịch sử trùng và xung đột mà không đổi tree trên các đường dẫn đã đối soát. Đã xác nhận nội dung cuối theo file; semantic review, test và quyết định nghiệp vụ vẫn là các cổng riêng.
+**Kết luận:** trên source/code paths, không còn file nào candidate giữ nguyên blob của base trong khi PR nguồn thay đổi; mỗi delta hiện hoặc khớp chính xác, hoặc có một bản candidate khác cần semantic review. Các path còn giữ blob base là workflow/docs: PR #1 `db-ci.yml`, PR #5 workflow notification riêng, PR #2/#7 hai tài liệu PH02 cũ. Candidate có `pvh-db-replay.yml` và Integration Gate chạy notification test, còn docs PH02 cần đối chiếu phiên bản hiện hành. Tree comparison không kết luận PR #1–#11 được nghiệm thu nghiệp vụ/runtime.
+
+**Đã port/kiểm tra trên candidate `46d3953`:** lấy hardening của `audit-logger.ts` từ PR #1 (không còn giả actor/tenant/receipt), thêm 3 source guard tests và xóa `work-item-manager` cùng hai modal không còn route sử dụng. Các test guard 14/14, M01 workflow rules 5/5, typecheck, lint và production build PASS cục bộ; lint còn 4 warning legacy. `db-ci.yml` không port nguyên file vì candidate có `pvh-db-replay.yml` chạy local replay 14 migration và bộ pgTAP chọn lọc; workflow Actions hiện vẫn bị chặn trước steps nên chưa có kết quả CI tại candidate mới.
 
 ## Nguyên tắc chuyển giao
 
